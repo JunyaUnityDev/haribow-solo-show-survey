@@ -50,6 +50,14 @@ select:last-child,input:last-child{margin-bottom:0}
         <option>No</option>
       </select>
 
+      <label>Would you still want to watch it even if it's not live (e.g. a recording afterward)?</label>
+      <select id="watchRecorded">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>Maybe</option>
+        <option>No</option>
+      </select>
+
       <label>Where are you located? (optional)</label>
       <input type="text" id="location" placeholder="e.g. USA, Brazil, France...">
     </div>
@@ -72,8 +80,9 @@ document.getElementById('send').addEventListener('click',function(){
   var name=document.getElementById('name').value.trim();
   var heard=document.getElementById('heard').value;
   var watch=document.getElementById('watch').value;
+  var watchRecorded=document.getElementById('watchRecorded').value;
   var location=document.getElementById('location').value.trim();
-  if(!heard||!watch){
+  if(!heard||!watch||!watchRecorded){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
@@ -87,7 +96,7 @@ document.getElementById('send').addEventListener('click',function(){
     btn.disabled=false; btn.textContent='Submit';
     document.getElementById('err').textContent='Submission failed: '+((e&&e.message)||e)+' Please try again.';
     document.getElementById('err').style.display='block';
-  }).submitSoloInterestEn({name:name,heard:heard,watch:watch,location:location});
+  }).submitSoloInterestEn({name:name,heard:heard,watch:watch,watchRecorded:watchRecorded,location:location});
 });
 </script>
 </body>

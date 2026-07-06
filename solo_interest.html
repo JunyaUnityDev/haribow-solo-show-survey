@@ -97,6 +97,14 @@ textarea{min-height:60px;resize:vertical}
         <option>それ以外の国内</option>
         <option>海外</option>
       </select>
+
+      <label style="margin-top:14px">配信があったら観たいですか</label>
+      <select id="stream">
+        <option value="">選択してください</option>
+        <option>はい</option>
+        <option>いいえ</option>
+        <option>わからない</option>
+      </select>
     </div>
     <div class="card">
       <button class="btn" id="send">送信する</button>
@@ -121,11 +129,12 @@ document.getElementById('send').addEventListener('click',function(){
   var price=document.getElementById('price').value;
   var student=document.getElementById('student').value;
   var location=document.getElementById('location').value;
+  var stream=document.getElementById('stream').value;
   var wishChecks=Array.prototype.slice.call(document.querySelectorAll('#wishGroup input:checked')).map(function(c){return c.value;});
   var wishText=document.getElementById('wishText').value.trim();
   var wish=wishChecks.join('、')+(wishText?(wishChecks.length?'／':'')+wishText:'');
 
-  if(!source||!aware||!interest||!price||!student||!location){
+  if(!source||!aware||!interest||!price||!student||!location||!stream){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
@@ -139,7 +148,7 @@ document.getElementById('send').addEventListener('click',function(){
     btn.disabled=false; btn.textContent='送信する';
     document.getElementById('err').textContent='送信に失敗しました：'+((e&&e.message)||e)+' もう一度お試しください。';
     document.getElementById('err').style.display='block';
-  }).submitSoloInterest({name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location});
+  }).submitSoloInterest({name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location,stream:stream});
 });
 </script>
 </body>

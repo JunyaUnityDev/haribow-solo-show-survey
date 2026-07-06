@@ -45,9 +45,10 @@ function submitSoloInterest(payload){
   var sh = soloSs_().getSheetByName('興味関心_国内');
   var row = firstEmptyRowInBlock_(sh, 6, 105);
   var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
-  sh.getRange(row,1,1,9).setValues([[
+  sh.getRange(row,1,1,10).setValues([[
     payload.name||'', payload.source||'', payload.aware||'', payload.interest||'',
-    payload.price||'', payload.student||'', payload.wish||'', payload.location||'', ts
+    payload.price||'', payload.student||'', payload.wish||'', payload.location||'',
+    payload.stream||'', ts
   ]]);
   return 'ok';
 }
@@ -57,8 +58,9 @@ function submitSoloInterestEn(payload){
   var sh = soloSs_().getSheetByName('興味関心_海外EN');
   var row = firstEmptyRowInBlock_(sh, 6, 55);
   var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
-  sh.getRange(row,1,1,5).setValues([[
-    payload.name||'', payload.heard||'', payload.watch||'', payload.location||'', ts
+  sh.getRange(row,1,1,6).setValues([[
+    payload.name||'', payload.heard||'', payload.watch||'', payload.watchRecorded||'',
+    payload.location||'', ts
   ]]);
   return 'ok';
 }

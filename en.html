@@ -50,6 +50,14 @@ select:last-child,input:last-child{margin-bottom:0}
         <option>No</option>
       </select>
 
+      <label>Would you still want to watch it even if it's not live (e.g. a recording afterward)?</label>
+      <select id="watchRecorded">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>Maybe</option>
+        <option>No</option>
+      </select>
+
       <label>Where are you located? (optional)</label>
       <input type="text" id="location" placeholder="e.g. USA, Brazil, France...">
     </div>
@@ -74,8 +82,9 @@ document.getElementById('send').addEventListener('click',function(){
   var name=document.getElementById('name').value.trim();
   var heard=document.getElementById('heard').value;
   var watch=document.getElementById('watch').value;
+  var watchRecorded=document.getElementById('watchRecorded').value;
   var location=document.getElementById('location').value.trim();
-  if(!heard||!watch){
+  if(!heard||!watch||!watchRecorded){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
@@ -84,7 +93,7 @@ document.getElementById('send').addEventListener('click',function(){
   fetch(ENDPOINT,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'en',name:name,heard:heard,watch:watch,location:location})
+    body:JSON.stringify({survey:'en',name:name,heard:heard,watch:watch,watchRecorded:watchRecorded,location:location})
   }).then(function(){
     document.getElementById('form').style.display='none';
     document.getElementById('done').style.display='block';
