@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW単独公演 動員見込みヒアリング</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+h1 b{color:var(--blue)}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+select,input{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+select:last-child,input:last-child{margin-bottom:0}
+.hint{font-size:12px;color:var(--faint);margin:-10px 0 14px}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><b>HARIBOW</b> 単独公演 動員見込みヒアリング</h1>
+  <p class="lead">9/29の単独公演、大体どれくらい呼べそうか教えてください。義務ではないので、大体の見込みでOKです。1分ほどで終わります。<br>送信は何度でもやり直せます（後から送ると前の回答が上書きされます）。</p>
+
+  <div id="form">
+    <div class="card">
+      <label>あなたの名前</label>
+      <select id="who">
+        <option value="">選択してください</option>
+        <option>潤弥</option>
+        <option>海野</option>
+        <option>竜介</option>
+        <option>まほろ</option>
+        <option>周平</option>
+        <option>まえこう</option>
+        <option>ルナ</option>
+        <option>ぜんぺい</option>
+        <option>あおい</option>
+        <option>うんの</option>
+        <option>だいすけ</option>
+        <option>りゅうと</option>
+        <option>はじめ</option>
+        <option>れい</option>
+        <option>まきと</option>
+        <option>ケンタ</option>
+        <option>あたらし</option>
+        <option>小田原(参加未確定)</option>
+        <option>卓海</option>
+        <option>セイヤ</option>
+        <option>おち</option>
+        <option>りき</option>
+        <option>ガッファイ</option>
+        <option>せな</option>
+        <option>りおん</option>
+        <option>しゅうすけ</option>
+        <option>こころ</option>
+        <option>そら</option>
+        <option>もりお</option>
+        <option>みらい</option>
+        <option>みさき</option>
+        <option>しょう</option>
+        <option>奏(参加未確定)</option>
+      </select>
+
+      <label>家族・親族で「確実に来る」人数</label>
+      <input type="number" id="familySure" min="0" placeholder="例：2">
+
+      <label>家族・親族で「たぶん来る」人数</label>
+      <input type="number" id="familyMaybe" min="0" placeholder="例：1">
+
+      <label>友人・知人で「確実に来そう」な人（名前・ニックネームでOK、カンマ区切り）</label>
+      <input type="text" id="friendsSure" placeholder="例：太郎, サキ, りく">
+      <p class="hint">人数ではなく名前で書いてください（他の出演者との重複を自動でチェックするため）</p>
+
+      <label>友人・知人で「たぶん来そう」な人（名前・ニックネームでOK、カンマ区切り）</label>
+      <input type="text" id="friendsMaybe" placeholder="例：ゆうき, まお">
+
+      <label>その他・SNS経由で来てくれそうな人数感（あれば）</label>
+      <input type="number" id="otherCount" min="0" placeholder="例：3">
+    </div>
+    <div class="card">
+      <button class="btn" id="send">送信する</button>
+      <div class="err" id="err">名前を選択してください。</div>
+      <p class="muted" style="margin:10px 0 0">回答は集計のみに使います。</p>
+    </div>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>送信ありがとうございました！</h2>
+    <p class="muted">回答を受け付けました。</p>
+  </div>
+</div>
+
+<script>
+var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+
+document.getElementById('send').addEventListener('click',function(){
+  var who=document.getElementById('who').value;
+  if(!who){
+    document.getElementById('err').style.display='block';
+    window.scrollTo(0,document.body.scrollHeight);
+    return;
+  }
+  var familySure=document.getElementById('familySure').value;
+  var familyMaybe=document.getElementById('familyMaybe').value;
+  var friendsSure=document.getElementById('friendsSure').value.trim();
+  var friendsMaybe=document.getElementById('friendsMaybe').value.trim();
+  var otherCount=document.getElementById('otherCount').value;
+
+  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
+  fetch(ENDPOINT,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'member',name:who,familySure:familySure,familyMaybe:familyMaybe,friendsSure:friendsSure,friendsMaybe:friendsMaybe,otherCount:otherCount})
+  }).then(function(){
+    document.getElementById('form').style.display='none';
+    document.getElementById('done').style.display='block';
+    window.scrollTo(0,0);
+  }).catch(function(e){
+    btn.disabled=false; btn.textContent='送信する';
+    document.getElementById('err').textContent='送信に失敗しました：'+e+' もう一度お試しください。';
+    document.getElementById('err').style.display='block';
+  });
+});
+</script>
+</body>
+</html>
