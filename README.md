@@ -1,14 +1,22 @@
 # HARIBOW単独公演 興味関心アンケート
 
-HARIBOW初の単独公演（2026/9/29・めぐろパーシモンホール）に向けた、観客候補向けの興味関心アンケートWebアプリ（Google Apps Script / HtmlService）。
+HARIBOW初の単独公演（2026/9/29・めぐろパーシモンホール）に向けた、観客候補向けの興味関心アンケートWebアプリ（Google Apps Script + GitHub Pages）。
 
 他のHARIBOW関連リポジトリ（オーディション系）とは無関係の、独立したツールです。
 
+## 配布用URL（実際にはこちらを案内する）
+
+- 国内向け（日本語）: https://junyaunitydev.github.io/haribow-solo-show-survey/
+- 海外向け（英語・配信需要調査）: https://junyaunitydev.github.io/haribow-solo-show-survey/en.html
+
+GASのWebアプリ直URL(`.../exec`)は一部ユーザーでアクセスエラーが多発するため、外部配布は上記のGitHub Pages URLを使う。GAS側の`.../exec`は`doPost`エンドポイントとしてのみ使用（`index.html`/`en.html`が内部で`fetch()`している）。
+
 ## 構成
 
-- `Code.js` — GAS本体。`doGet`でページ出し分け、`google.script.run`経由でSheetsに回答を書き込む
-- `solo_interest.html` — 国内向け日本語フォーム
-- `solo_interest_en.html` — 海外SNSフォロワー向け簡易英語フォーム（配信の需要調査用）
+- `Code.js` — GAS本体。`doGet`は内部確認用（`solo_interest.html`/`solo_interest_en.html`をHtmlServiceで直配信）、`doPost`が本番の受け口（GitHub Pagesの静的サイトから`fetch()`で送られてくるJSONを受けてSheetsに書き込む）
+- `index.html` — **GitHub Pagesで配信される国内向け日本語フォーム本体**（`fetch()`で`doPost`にPOST）
+- `en.html` — **GitHub Pagesで配信される海外向け英語フォーム本体**（同上）
+- `solo_interest.html` / `solo_interest_en.html` — GAS直配信版（`google.script.run`使用・内部確認用のフォールバック、外部配布には使わない）
 - `appsscript.json` — マニフェスト（Webアプリとして誰でもアクセス可能に設定）
 - `Config.js` — **リポジトリには含まれません**（`.gitignore`対象）。書き込み先スプレッドシートIDを自分で設定してください
 
