@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW Solo Show Interest Survey</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+h1 b{color:var(--blue)}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+select,input{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+select:last-child,input:last-child{margin-bottom:0}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><b>HARIBOW</b> Solo Show — Quick Survey</h1>
+  <p class="lead">HARIBOW is doing its first solo theater show in Tokyo on Sept 29, 2026. We're checking whether an online livestream would be worth setting up. Takes 30 seconds.</p>
+
+  <div id="form">
+    <div class="card">
+      <label>Name / Handle</label>
+      <input type="text" id="name" placeholder="e.g. Alex">
+
+      <label>Had you heard of this show before now?</label>
+      <select id="heard">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <label>Would you watch a paid livestream if we offered one?</label>
+      <select id="watch">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>Maybe</option>
+        <option>No</option>
+      </select>
+
+      <label>Where are you located? (optional)</label>
+      <input type="text" id="location" placeholder="e.g. USA, Brazil, France...">
+    </div>
+    <div class="card">
+      <button class="btn" id="send">Submit</button>
+      <div class="err" id="err">Please answer the required questions.</div>
+      <p class="muted" style="margin:10px 0 0">Your answer is only used for internal planning.</p>
+    </div>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>Thank you!</h2>
+    <p class="muted">Your response has been recorded.</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('send').addEventListener('click',function(){
+  var name=document.getElementById('name').value.trim();
+  var heard=document.getElementById('heard').value;
+  var watch=document.getElementById('watch').value;
+  var location=document.getElementById('location').value.trim();
+  if(!heard||!watch){
+    document.getElementById('err').style.display='block';
+    window.scrollTo(0,document.body.scrollHeight);
+    return;
+  }
+  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='Submitting…';
+  google.script.run.withSuccessHandler(function(){
+    document.getElementById('form').style.display='none';
+    document.getElementById('done').style.display='block';
+    window.scrollTo(0,0);
+  }).withFailureHandler(function(e){
+    btn.disabled=false; btn.textContent='Submit';
+    document.getElementById('err').textContent='Submission failed: '+((e&&e.message)||e)+' Please try again.';
+    document.getElementById('err').style.display='block';
+  }).submitSoloInterestEn({name:name,heard:heard,watch:watch,location:location});
+});
+</script>
+</body>
+</html>

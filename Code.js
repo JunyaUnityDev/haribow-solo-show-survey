@@ -1,0 +1,52 @@
+/** HARIBOW単独公演 興味関心アンケート — GAS Web App (HtmlService)
+ *  team-builder/gas/Code.js の設計(doGet page分岐＋google.script.runでSheetsへappend)を参考にした独立プロジェクト。
+ *  オーディション/team-builderとは無関係・完全に別のGASプロジェクト。
+ *  SOLO_SS_ID は Config.js で定義（.gitignore対象・このリポジトリには含まれません。setup手順はREADME参照）。
+ */
+
+function doGet(e){
+  var page=(e&&e.parameter&&e.parameter.page)||'';
+  if(page==='en'){
+    return HtmlService.createHtmlOutputFromFile('solo_interest_en')
+      .setTitle('HARIBOW Solo Show Interest Survey')
+      .addMetaTag('viewport','width=device-width, initial-scale=1');
+  }
+  return HtmlService.createHtmlOutputFromFile('solo_interest')
+    .setTitle('HARIBOW単独公演 興味関心アンケート')
+    .addMetaTag('viewport','width=device-width, initial-scale=1');
+}
+
+function soloSs_(){ return SpreadsheetApp.openById(SOLO_SS_ID); }
+
+/** データブロック(startRow〜endRow)内でA列が空の最初の行を返す。ブロック下の集計式を上書きしないためのガード。 */
+function firstEmptyRowInBlock_(sheet, startRow, endRow){
+  var vals = sheet.getRange(startRow, 1, endRow-startRow+1, 1).getValues();
+  for (var i=0; i<vals.length; i++){
+    if (String(vals[i][0]).trim()==='') return startRow+i;
+  }
+  throw new Error('回答欄が満杯です。運営に連絡してください。');
+}
+
+/** 国内向け 興味関心アンケート回答保存 */
+function submitSoloInterest(payload){
+  var sh = soloSs_().getSheetByName('興味関心_国内');
+  var row = firstEmptyRowInBlock_(sh, 6, 105);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,9).setValues([[
+    payload.name||'', payload.source||'', payload.aware||'', payload.interest||'',
+    payload.price||'', payload.student||'', payload.wish||'', payload.location||'', ts
+  ]]);
+  return 'ok';
+}
+
+/** 海外向け(英語) 興味関心アンケート回答保存 */
+function submitSoloInterestEn(payload){
+  var sh = soloSs_().getSheetByName('興味関心_海外EN');
+  var row = firstEmptyRowInBlock_(sh, 6, 55);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,5).setValues([[
+    payload.name||'', payload.heard||'', payload.watch||'', payload.location||'', ts
+  ]]);
+  return 'ok';
+}
+

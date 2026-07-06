@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW単独公演 興味関心アンケート</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+h1 b{color:var(--blue)}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
+textarea{min-height:60px;resize:vertical}
+.chk-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.chk-row{display:flex;align-items:center;gap:8px;font-size:14.5px}
+.chk-row input{width:auto;margin:0}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><b>HARIBOW</b> 単独公演 興味関心アンケート</h1>
+  <p class="lead">2026年9月29日、めぐろパーシモンホールでHARIBOW初の単独公演を行います。企画の参考にしたいので、よければ教えてください。1分ほどで終わります。</p>
+
+  <div id="form">
+    <div class="card">
+      <label>お名前・ニックネーム</label>
+      <input type="text" id="name" placeholder="例：たろう">
+
+      <label>どこ経由でこのアンケートを受け取りましたか</label>
+      <select id="source">
+        <option value="">選択してください</option>
+        <option>出演者の友人・知人</option>
+        <option>オーディション応募者</option>
+        <option>オンラインレッスン受講者</option>
+        <option>その他</option>
+      </select>
+
+      <label>この公演のことを知っていましたか</label>
+      <select id="aware">
+        <option value="">選択してください</option>
+        <option>知っていた</option>
+        <option>知らなかった</option>
+      </select>
+
+      <label>行ってみたいと思いますか</label>
+      <select id="interest">
+        <option value="">選択してください</option>
+        <option>絶対行く</option>
+        <option>たぶん行く</option>
+        <option>興味はあるけどまだ未定</option>
+        <option>たぶん行かない</option>
+        <option>分からない</option>
+      </select>
+
+      <label>行くとしたら、どのくらいの価格なら払えますか</label>
+      <select id="price">
+        <option value="">選択してください</option>
+        <option>〜2,000円</option>
+        <option>2,000〜4,000円</option>
+        <option>4,000〜6,000円</option>
+        <option>6,000円以上</option>
+      </select>
+
+      <label>学生ですか</label>
+      <select id="student">
+        <option value="">選択してください</option>
+        <option>はい</option>
+        <option>いいえ</option>
+      </select>
+
+      <label>どんな公演を観たいですか（複数選択可）</label>
+      <div class="chk-group" id="wishGroup">
+        <label class="chk-row"><input type="checkbox" value="迫力・スピード感重視">迫力・スピード感重視</label>
+        <label class="chk-row"><input type="checkbox" value="ストーリーで泣ける系">ストーリーで泣ける系</label>
+        <label class="chk-row"><input type="checkbox" value="出演者それぞれの個性が見える構成">出演者それぞれの個性が見える構成</label>
+        <label class="chk-row"><input type="checkbox" value="観客参加型">観客参加型</label>
+      </div>
+      <textarea id="wishText" placeholder="自由記述（あれば）"></textarea>
+
+      <label style="margin-top:14px">お住まい</label>
+      <select id="location">
+        <option value="">選択してください</option>
+        <option>東京・関東</option>
+        <option>それ以外の国内</option>
+        <option>海外</option>
+      </select>
+    </div>
+    <div class="card">
+      <button class="btn" id="send">送信する</button>
+      <div class="err" id="err">未入力の項目があります。</div>
+      <p class="muted" style="margin:10px 0 0">回答は集計のみに使い、個別に公開されることはありません。</p>
+    </div>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>送信ありがとうございました！</h2>
+    <p class="muted">回答を受け付けました。</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('send').addEventListener('click',function(){
+  var name=document.getElementById('name').value.trim();
+  var source=document.getElementById('source').value;
+  var aware=document.getElementById('aware').value;
+  var interest=document.getElementById('interest').value;
+  var price=document.getElementById('price').value;
+  var student=document.getElementById('student').value;
+  var location=document.getElementById('location').value;
+  var wishChecks=Array.prototype.slice.call(document.querySelectorAll('#wishGroup input:checked')).map(function(c){return c.value;});
+  var wishText=document.getElementById('wishText').value.trim();
+  var wish=wishChecks.join('、')+(wishText?(wishChecks.length?'／':'')+wishText:'');
+
+  if(!source||!aware||!interest||!price||!student||!location){
+    document.getElementById('err').style.display='block';
+    window.scrollTo(0,document.body.scrollHeight);
+    return;
+  }
+  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
+  google.script.run.withSuccessHandler(function(){
+    document.getElementById('form').style.display='none';
+    document.getElementById('done').style.display='block';
+    window.scrollTo(0,0);
+  }).withFailureHandler(function(e){
+    btn.disabled=false; btn.textContent='送信する';
+    document.getElementById('err').textContent='送信に失敗しました：'+((e&&e.message)||e)+' もう一度お試しください。';
+    document.getElementById('err').style.display='block';
+  }).submitSoloInterest({name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location});
+});
+</script>
+</body>
+</html>

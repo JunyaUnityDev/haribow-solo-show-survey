@@ -1,0 +1,16 @@
+{
+  "scriptId": "1nZtHMFQLU3qQvnwXn9bBo3VfI_C50tbC2MZfG2kXUf_0p9arFpddbXF5",
+  "rootDir": "/Users/apple/projects/haribow/performance/solo_show/gas",
+  "scriptExtensions": [
+    ".js",
+    ".gs"
+  ],
+  "htmlExtensions": [
+    ".html"
+  ],
+  "jsonExtensions": [
+    ".json"
+  ],
+  "filePushOrder": [],
+  "skipSubdirectories": false
+}
