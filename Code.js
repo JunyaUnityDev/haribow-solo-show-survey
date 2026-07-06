@@ -16,6 +16,19 @@ function doGet(e){
     .addMetaTag('viewport','width=device-width, initial-scale=1');
 }
 
+/** GitHub Pages(静的サイト)からのフォーム送信を受ける口。GAS直URLのアクセスエラーを避けるため、
+ *  外部配布用のUIはGitHub Pagesで配信し、送信だけここにfetch()でPOSTする。 */
+function doPost(e){
+  try{
+    var payload=JSON.parse(e.postData.contents);
+    if(payload.survey==='en'){ submitSoloInterestEn(payload); }
+    else { submitSoloInterest(payload); }
+    return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+  }catch(err){
+    return ContentService.createTextOutput(JSON.stringify({ok:false,error:String(err)})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function soloSs_(){ return SpreadsheetApp.openById(SOLO_SS_ID); }
 
 /** データブロック(startRow〜endRow)内でA列が空の最初の行を返す。ブロック下の集計式を上書きしないためのガード。 */
