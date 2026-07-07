@@ -47,10 +47,10 @@ function submitSoloInterest(payload){
   var sh = soloSs_().getSheetByName('興味関心_国内');
   var row = firstEmptyRowInBlock_(sh, 6, 105);
   var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
-  sh.getRange(row,1,1,11).setValues([[
+  sh.getRange(row,1,1,12).setValues([[
     payload.name||'', payload.source||'', payload.aware||'', payload.interest||'',
     payload.price||'', payload.student||'', payload.wish||'', payload.location||'',
-    payload.stream||'', payload.startTime||'', ts
+    payload.stream||'', payload.startTime||'', payload.childPlan||'', ts
   ]]);
   return 'ok';
 }

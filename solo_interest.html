@@ -116,6 +116,14 @@ textarea{min-height:60px;resize:vertical}
         <option>20:00</option>
         <option>どちらでも</option>
       </select>
+
+      <label style="margin-top:14px">お子さんと一緒に来る予定はありますか</label>
+      <select id="childPlan">
+        <option value="">選択してください</option>
+        <option>はい</option>
+        <option>いいえ</option>
+        <option>子供はいない</option>
+      </select>
     </div>
     <div class="card">
       <button class="btn" id="send">送信する</button>
@@ -142,11 +150,12 @@ document.getElementById('send').addEventListener('click',function(){
   var location=document.getElementById('location').value;
   var stream=document.getElementById('stream').value;
   var startTime=document.getElementById('startTime').value;
+  var childPlan=document.getElementById('childPlan').value;
   var wishChecks=Array.prototype.slice.call(document.querySelectorAll('#wishGroup input:checked')).map(function(c){return c.value;});
   var wishText=document.getElementById('wishText').value.trim();
   var wish=wishChecks.join('、')+(wishText?(wishChecks.length?'／':'')+wishText:'');
 
-  if(!source||!aware||!interest||!price||!student||!location||!stream||!startTime){
+  if(!source||!aware||!interest||!price||!student||!location||!stream||!startTime||!childPlan){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
@@ -160,7 +169,7 @@ document.getElementById('send').addEventListener('click',function(){
     btn.disabled=false; btn.textContent='送信する';
     document.getElementById('err').textContent='送信に失敗しました：'+((e&&e.message)||e)+' もう一度お試しください。';
     document.getElementById('err').style.display='block';
-  }).submitSoloInterest({name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location,stream:stream,startTime:startTime});
+  }).submitSoloInterest({name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location,stream:stream,startTime:startTime,childPlan:childPlan});
 });
 </script>
 </body>
