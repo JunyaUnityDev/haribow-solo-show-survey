@@ -77,12 +77,12 @@ select:last-child,input:last-child{margin-bottom:0}
       <label>家族・親族で「たぶん来る」人数</label>
       <input type="number" id="familyMaybe" min="0" placeholder="例：1">
 
-      <label>友人・知人で「確実に来そう」な人（名前・ニックネームでOK、カンマ区切り）</label>
-      <input type="text" id="friendsSure" placeholder="例：太郎, サキ, りく">
-      <p class="hint">人数ではなく名前で書いてください（他の出演者との重複を自動でチェックするため）</p>
+      <label>友人・知人で「確実に来そう」な人数（大学ダブルダッチサークルの現役生は除く）</label>
+      <input type="number" id="friendsSure" min="0" placeholder="例：3">
+      <p class="hint">現役生は別で聞いているので、ここではそれ以外の友人・知人でお願いします</p>
 
-      <label>友人・知人で「たぶん来そう」な人（名前・ニックネームでOK、カンマ区切り）</label>
-      <input type="text" id="friendsMaybe" placeholder="例：ゆうき, まお">
+      <label>友人・知人で「たぶん来そう」な人数（現役生は除く）</label>
+      <input type="number" id="friendsMaybe" min="0" placeholder="例：2">
 
       <label>その他・SNS経由で来てくれそうな人数感（あれば）</label>
       <input type="number" id="otherCount" min="0" placeholder="例：3">
