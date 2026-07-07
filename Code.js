@@ -66,9 +66,9 @@ function submitSoloInterestEn(payload){
   return 'ok';
 }
 
-/** 動員見込み_出演者シートで氏名(A列・5〜37行目)が一致する行を探す。見つからなければ-1。 */
+/** 動員見込み_出演者シートで氏名(A列・5〜36行目)が一致する行を探す。見つからなければ-1。 */
 function findMemberRow_(sheet, name){
-  var names = sheet.getRange(5,1,33,1).getValues();
+  var names = sheet.getRange(5,1,32,1).getValues();
   for (var i=0; i<names.length; i++){
     if (String(names[i][0]).trim() === String(name).trim()) return 5+i;
   }
