@@ -23,6 +23,7 @@ function doPost(e){
     var payload=JSON.parse(e.postData.contents);
     if(payload.survey==='en'){ submitSoloInterestEn(payload); }
     else if(payload.survey==='member'){ submitMemberEstimate(payload); }
+    else if(payload.survey==='circle'){ submitCircleInterest(payload); }
     else { submitSoloInterest(payload); }
     return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
   }catch(err){
@@ -46,10 +47,22 @@ function submitSoloInterest(payload){
   var sh = soloSs_().getSheetByName('興味関心_国内');
   var row = firstEmptyRowInBlock_(sh, 6, 105);
   var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
-  sh.getRange(row,1,1,10).setValues([[
+  sh.getRange(row,1,1,11).setValues([[
     payload.name||'', payload.source||'', payload.aware||'', payload.interest||'',
     payload.price||'', payload.student||'', payload.wish||'', payload.location||'',
-    payload.stream||'', ts
+    payload.stream||'', payload.startTime||'', ts
+  ]]);
+  return 'ok';
+}
+
+/** 大学ダブルダッチサークル(現役生)代表による団体ヒアリング回答保存 */
+function submitCircleInterest(payload){
+  var sh = soloSs_().getSheetByName('興味関心_現役生サークル');
+  var row = firstEmptyRowInBlock_(sh, 6, 15);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,8).setValues([[
+    payload.circleName||'', payload.repName||'', payload.contact||'', payload.headcount||'',
+    payload.priceForVolume||'', payload.startTime||'', payload.wish||'', ts
   ]]);
   return 'ok';
 }

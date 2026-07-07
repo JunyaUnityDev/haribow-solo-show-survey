@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HARIBOW単独公演 興味関心アンケート</title>
+<title>HARIBOW単独公演 サークル代表ヒアリング</title>
 <style>
 :root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
 *{box-sizing:border-box}
@@ -15,12 +15,12 @@ h1 b{color:var(--blue)}
 .lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
 label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
-select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
-select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
-textarea{min-height:60px;resize:vertical}
+select,input{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+select:last-child,input:last-child{margin-bottom:0}
 .chk-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .chk-row{display:flex;align-items:center;gap:8px;font-size:14.5px}
 .chk-row input{width:auto;margin:0}
+.hint{font-size:12px;color:var(--faint);margin:-10px 0 14px}
 .btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
 .btn:disabled{opacity:.5;cursor:default;box-shadow:none}
 .muted{color:var(--faint);font-size:12.5px}
@@ -33,54 +33,49 @@ textarea{min-height:60px;resize:vertical}
 <body>
 <div class="wrap">
   <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
-  <h1>単独公演 興味関心アンケート</h1>
-  <p class="lead">2026年9月29日、めぐろパーシモンホールでHARIBOW初の単独公演を行います（開演は19:00か20:00頃を予定）。最寄駅は東急東横線「都立大学駅」（徒歩7分）です。企画の参考にしたいので、よければ教えてください。</p>
+  <h1>単独公演 サークル代表ヒアリング</h1>
+  <p class="lead">2026年9月29日、めぐろパーシモンホールでHARIBOW初の単独公演を行います。サークルの代表の方から、部員のみなさんの参加見込みをまとめて教えてください。何度でも送り直せます（後から送ると前の回答が上書きされます）。</p>
 
   <div id="form">
     <div class="card">
-      <label>お名前・ニックネーム</label>
-      <input type="text" id="name" placeholder="例：たろう">
-
-      <label>どこ経由でこのアンケートを受け取りましたか</label>
-      <select id="source">
+      <label>サークル名</label>
+      <select id="circleName">
         <option value="">選択してください</option>
-        <option>出演者の友人・知人</option>
-        <option>オーディション応募者</option>
-        <option>オンラインレッスン受講者</option>
-        <option>その他</option>
+        <option>DSP</option>
+        <option>乱縄</option>
+        <option>D-act</option>
+        <option>purplume</option>
+        <option>跳舞人</option>
+        <option>ParkJack</option>
+        <option>鴇縄</option>
+        <option>DoubleEight</option>
+        <option>shakinkey</option>
       </select>
 
-      <label>この公演のことを知っていましたか</label>
-      <select id="aware">
+      <label>代表者名</label>
+      <input type="text" id="repName" placeholder="例：山田太郎">
+
+      <label>連絡先（LINE等）</label>
+      <input type="text" id="contact" placeholder="例：LINE ID または電話番号">
+
+      <label>想定来場人数（概算でOK）</label>
+      <input type="number" id="headcount" min="0" placeholder="例：15">
+
+      <label>どのくらいの価格なら、多くの部員が来やすいと思いますか</label>
+      <select id="priceForVolume">
         <option value="">選択してください</option>
-        <option>知っていた</option>
-        <option>知らなかった</option>
+        <option>〜1,500円</option>
+        <option>1,500〜2,500円</option>
+        <option>2,500〜3,500円</option>
+        <option>3,500円以上</option>
       </select>
 
-      <label>行ってみたいと思いますか</label>
-      <select id="interest">
+      <label>希望のスタート時間</label>
+      <select id="startTime">
         <option value="">選択してください</option>
-        <option>絶対行く</option>
-        <option>たぶん行く</option>
-        <option>興味はあるけどまだ未定</option>
-        <option>たぶん行かない</option>
-        <option>分からない</option>
-      </select>
-
-      <label>行くとしたら、どのくらいの価格なら払えますか</label>
-      <select id="price">
-        <option value="">選択してください</option>
-        <option>〜2,000円</option>
-        <option>2,000〜4,000円</option>
-        <option>4,000〜6,000円</option>
-        <option>6,000円以上</option>
-      </select>
-
-      <label>学生ですか</label>
-      <select id="student">
-        <option value="">選択してください</option>
-        <option>はい</option>
-        <option>いいえ</option>
+        <option>19:00</option>
+        <option>20:00</option>
+        <option>どちらでも</option>
       </select>
 
       <label>どんな公演を観たいですか（複数選択可）</label>
@@ -90,36 +85,12 @@ textarea{min-height:60px;resize:vertical}
         <label class="chk-row"><input type="checkbox" value="出演者それぞれの個性が見えるもの">出演者それぞれの個性が見えるもの</label>
         <label class="chk-row"><input type="checkbox" value="観客参加型">観客参加型</label>
       </div>
-      <textarea id="wishText" placeholder="自由記述（あれば）"></textarea>
-
-      <label style="margin-top:14px">お住まい</label>
-      <select id="location">
-        <option value="">選択してください</option>
-        <option>東京・関東</option>
-        <option>それ以外の国内</option>
-        <option>海外</option>
-      </select>
-
-      <label style="margin-top:14px">配信があったら観たいですか</label>
-      <select id="stream">
-        <option value="">選択してください</option>
-        <option>はい</option>
-        <option>いいえ</option>
-        <option>わからない</option>
-      </select>
-
-      <label style="margin-top:14px">希望のスタート時間</label>
-      <select id="startTime">
-        <option value="">選択してください</option>
-        <option>19:00</option>
-        <option>20:00</option>
-        <option>どちらでも</option>
-      </select>
+      <input type="text" id="wishText" placeholder="自由記述（あれば）">
     </div>
     <div class="card">
       <button class="btn" id="send">送信する</button>
       <div class="err" id="err">未入力の項目があります。</div>
-      <p class="muted" style="margin:10px 0 0">回答は集計のみに使い、個別に公開されることはありません。</p>
+      <p class="muted" style="margin:10px 0 0">回答は集計のみに使います。</p>
     </div>
   </div>
 
@@ -134,20 +105,17 @@ textarea{min-height:60px;resize:vertical}
 var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 
 document.getElementById('send').addEventListener('click',function(){
-  var name=document.getElementById('name').value.trim();
-  var source=document.getElementById('source').value;
-  var aware=document.getElementById('aware').value;
-  var interest=document.getElementById('interest').value;
-  var price=document.getElementById('price').value;
-  var student=document.getElementById('student').value;
-  var location=document.getElementById('location').value;
-  var stream=document.getElementById('stream').value;
+  var circleName=document.getElementById('circleName').value;
+  var repName=document.getElementById('repName').value.trim();
+  var contact=document.getElementById('contact').value.trim();
+  var headcount=document.getElementById('headcount').value;
+  var priceForVolume=document.getElementById('priceForVolume').value;
   var startTime=document.getElementById('startTime').value;
   var wishChecks=Array.prototype.slice.call(document.querySelectorAll('#wishGroup input:checked')).map(function(c){return c.value;});
   var wishText=document.getElementById('wishText').value.trim();
   var wish=wishChecks.join('、')+(wishText?(wishChecks.length?'／':'')+wishText:'');
 
-  if(!source||!aware||!interest||!price||!student||!location||!stream||!startTime){
+  if(!circleName||!repName||!headcount||!priceForVolume||!startTime){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
@@ -156,7 +124,7 @@ document.getElementById('send').addEventListener('click',function(){
   fetch(ENDPOINT,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'jp',name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location,stream:stream,startTime:startTime})
+    body:JSON.stringify({survey:'circle',circleName:circleName,repName:repName,contact:contact,headcount:headcount,priceForVolume:priceForVolume,startTime:startTime,wish:wish})
   }).then(function(){
     document.getElementById('form').style.display='none';
     document.getElementById('done').style.display='block';
