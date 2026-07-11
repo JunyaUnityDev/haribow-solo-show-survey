@@ -34,7 +34,7 @@ textarea{min-height:60px;resize:vertical}
 <div class="wrap">
   <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
   <h1>単独公演 興味関心アンケート</h1>
-  <p class="lead">2026年9月29日、めぐろパーシモンホールでHARIBOW初の単独公演を行います（開演は19:00か20:00頃を予定）。最寄駅は東急東横線「都立大学駅」（徒歩7分）です。企画の参考にしたいので、よければ教えてください。</p>
+  <p class="lead">2026年9月29日(火) 19:30開演、めぐろパーシモンホールでHARIBOW初の単独公演を行います。最寄駅は東急東横線「都立大学駅」（徒歩7分）です。企画の参考にしたいので、よければ教えてください。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
 
   <div id="form">
     <div class="card">
@@ -108,15 +108,6 @@ textarea{min-height:60px;resize:vertical}
         <option>わからない</option>
       </select>
 
-      <label style="margin-top:14px">希望のスタート時間</label>
-      <select id="startTime">
-        <option value="">選択してください</option>
-        <option>19:00</option>
-        <option>19:30</option>
-        <option>20:00</option>
-        <option>どちらでも</option>
-      </select>
-
       <label style="margin-top:14px">お子さんと一緒に来る予定はありますか</label>
       <select id="childPlan">
         <option value="">選択してください</option>
@@ -151,13 +142,13 @@ document.getElementById('send').addEventListener('click',function(){
   var student=document.getElementById('student').value;
   var location=document.getElementById('location').value;
   var stream=document.getElementById('stream').value;
-  var startTime=document.getElementById('startTime').value;
+  var startTime='19:30'; // 開演時間確定済み(2026-07-11)のため設問は廃止、固定値を送信してSS列構成を維持
   var childPlan=document.getElementById('childPlan').value;
   var wishChecks=Array.prototype.slice.call(document.querySelectorAll('#wishGroup input:checked')).map(function(c){return c.value;});
   var wishText=document.getElementById('wishText').value.trim();
   var wish=wishChecks.join('、')+(wishText?(wishChecks.length?'／':'')+wishText:'');
 
-  if(!source||!aware||!interest||!price||!student||!location||!stream||!startTime||!childPlan){
+  if(!source||!aware||!interest||!price||!student||!location||!stream||!childPlan){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
