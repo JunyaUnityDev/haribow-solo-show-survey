@@ -36,6 +36,7 @@ function doPost(e){
     else if(payload.survey==='en'){ submitSoloInterestEn(payload); }
     else if(payload.survey==='member'){ submitMemberEstimate(payload); }
     else if(payload.survey==='circle'){ submitCircleInterest(payload); }
+    else if(payload.survey==='group'){ submitGroupInterest(payload); }
     else { submitSoloInterest(payload); }
     return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
   }catch(err){
@@ -75,6 +76,18 @@ function submitCircleInterest(payload){
   sh.getRange(row,1,1,8).setValues([[
     payload.circleName||'', payload.repName||'', payload.contact||'', payload.headcount||'',
     payload.priceForVolume||'', payload.startTime||'', payload.wish||'', ts
+  ]]);
+  return 'ok';
+}
+
+/** 非DDサークル団体(学校/企業/ダンス・チアスタジオ/地域団体等)からの団体来場相談 回答保存 */
+function submitGroupInterest(payload){
+  var sh = soloSs_().getSheetByName('興味関心_団体営業');
+  var row = firstEmptyRowInBlock_(sh, 6, 105);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,9).setValues([[
+    payload.groupName||'', payload.groupType||'', payload.repName||'', payload.contact||'',
+    payload.headcount||'', payload.discountInterest||'', payload.startTime||'', payload.note||'', ts
   ]]);
   return 'ok';
 }
