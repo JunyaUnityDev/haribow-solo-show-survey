@@ -85,9 +85,9 @@ function submitGroupInterest(payload){
   var sh = soloSs_().getSheetByName('興味関心_団体営業');
   var row = firstEmptyRowInBlock_(sh, 6, 105);
   var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
-  sh.getRange(row,1,1,9).setValues([[
+  sh.getRange(row,1,1,7).setValues([[
     payload.groupName||'', payload.groupType||'', payload.repName||'', payload.contact||'',
-    payload.headcount||'', payload.discountInterest||'', payload.startTime||'', payload.note||'', ts
+    payload.headcount||'', payload.note||'', ts
   ]]);
   return 'ok';
 }

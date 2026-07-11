@@ -31,7 +31,7 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
 <div class="wrap">
   <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
   <h1>団体でのご来場ご相談</h1>
-  <p class="lead">2026年9月29日、めぐろパーシモンホールでHARIBOW初の単独公演を行います。学校・企業・スタジオ・地域団体など、団体でのご来場をご検討中の方はこちらからご相談ください。人数規模に応じた団体割引のご案内も可能です。何度でも送り直せます（後から送ると前の回答が上書きされます）。</p>
+  <p class="lead">2026年9月29日(火) 19:30開演、めぐろパーシモンホールでHARIBOW初の単独公演を行います。学校・企業・スタジオ・地域団体など、団体でのご来場をご検討中の方はこちらからご相談ください。人数規模に応じた団体割引のご案内も可能です。何度でも送り直せます（後から送ると前の回答が上書きされます）。</p>
 
   <div id="form">
     <div class="card">
@@ -56,23 +56,6 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
 
       <label>想定参加人数（概算でOK）</label>
       <input type="number" id="headcount" min="0" placeholder="例：20">
-
-      <label>団体割引にご興味はありますか</label>
-      <select id="discountInterest">
-        <option value="">選択してください</option>
-        <option>はい・ぜひ検討したい</option>
-        <option>未定・もう少し詳しく知りたい</option>
-        <option>いいえ</option>
-      </select>
-
-      <label>希望のスタート時間</label>
-      <select id="startTime">
-        <option value="">選択してください</option>
-        <option>19:00</option>
-        <option>19:30</option>
-        <option>20:00</option>
-        <option>どちらでも</option>
-      </select>
 
       <label>ご要望・ご質問（あれば自由記述）</label>
       <textarea id="note" placeholder="例：座席をまとめて確保したい、見学のみの下見をしたい等"></textarea>
@@ -100,11 +83,9 @@ document.getElementById('send').addEventListener('click',function(){
   var repName=document.getElementById('repName').value.trim();
   var contact=document.getElementById('contact').value.trim();
   var headcount=document.getElementById('headcount').value;
-  var discountInterest=document.getElementById('discountInterest').value;
-  var startTime=document.getElementById('startTime').value;
   var note=document.getElementById('note').value.trim();
 
-  if(!groupName||!groupType||!repName||!contact||!headcount||!discountInterest||!startTime){
+  if(!groupName||!groupType||!repName||!contact||!headcount){
     document.getElementById('err').style.display='block';
     window.scrollTo(0,document.body.scrollHeight);
     return;
@@ -113,7 +94,7 @@ document.getElementById('send').addEventListener('click',function(){
   fetch(ENDPOINT,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'group',groupName:groupName,groupType:groupType,repName:repName,contact:contact,headcount:headcount,discountInterest:discountInterest,startTime:startTime,note:note})
+    body:JSON.stringify({survey:'group',groupName:groupName,groupType:groupType,repName:repName,contact:contact,headcount:headcount,note:note})
   }).then(function(){
     document.getElementById('form').style.display='none';
     document.getElementById('done').style.display='block';
