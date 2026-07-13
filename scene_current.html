@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ダブルダッチについてのアンケート</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:20px;font-weight:800;margin:8px 0 6px}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+.q{font-size:14.5px;color:var(--ink);margin-bottom:8px;font-weight:600}
+.hint{font-size:12px;color:var(--faint);margin:-4px 0 8px}
+select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+textarea{resize:vertical;min-height:70px}
+select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+.footnote{font-size:11.5px;color:var(--faint);text-align:center;margin-top:24px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ダブルダッチについてのアンケート</h1>
+  <p class="lead">現役でダブルダッチをやっている方向けのアンケートです。今の大会や発表の場について、率直なご意見をお聞かせください。5分程度で回答できます。何度でも送り直せます。</p>
+
+  <div id="form">
+    <div class="card">
+      <label>所属サークル・団体名</label>
+      <input type="text" id="circleName" placeholder="例：〇〇大学ダブルダッチサークル">
+
+      <label>学年</label>
+      <input type="text" id="grade" placeholder="例：大学2年">
+    </div>
+
+    <div class="card">
+      <div class="q">今のダブルダッチの大会や発表の場について、後輩や初心者の方に一言で説明するとしたら、どのように説明しますか？</div>
+      <textarea id="q2Explain" placeholder="思いついた言葉のままで大丈夫です"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="q">大会や動画をご覧になっていて、「これができたら」「もっとこういうのが見たい」と感じた瞬間があれば、その時に思ったことをそのまま教えてください。</div>
+      <div class="hint">特に思い当たらない場合は、空欄で構いません</div>
+      <textarea id="q3Moment" placeholder="任意"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="q">今のダブルダッチに一つだけ付け加えられるとしたら、何を付け加えますか？一言で。</div>
+      <input type="text" id="q4AddOne" placeholder="一言でお願いします">
+    </div>
+
+    <div class="card">
+      <div class="q">もし過去に活動していたチームが今また復活して、単独公演などの場に出るとしたら、ご覧になりたいのはどちらのチームですか？</div>
+      <input type="text" id="q5Revival" placeholder="思いつくお名前を自由にどうぞ">
+    </div>
+
+    <div class="card">
+      <div class="q">2026年9月29日、めぐろパーシモンホールでHARIBOWの単独公演が行われます。この話を友人にするとしたら、どのように伝えますか？</div>
+      <textarea id="q6TellFriend" placeholder="思いつく言い方のままで大丈夫です"></textarea>
+    </div>
+
+    <div class="card">
+      <button class="btn" id="send">送信する</button>
+      <div class="err" id="err">送信に失敗しました。もう一度お試しください。</div>
+    </div>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>ありがとうございました</h2>
+    <p class="muted">回答を受け付けました。</p>
+  </div>
+
+  <p class="footnote">このアンケートはHARIBOWが今後の企画の参考にするために実施しています。いただいた回答の一部は、個人や団体が特定されない形で今後の企画・告知の参考にさせていただく場合があります。</p>
+</div>
+
+<script>
+var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+
+document.getElementById('send').addEventListener('click',function(){
+  var payload = {
+    survey:'scene_current',
+    circleName: document.getElementById('circleName').value.trim(),
+    grade: document.getElementById('grade').value.trim(),
+    q2Explain: document.getElementById('q2Explain').value.trim(),
+    q3Moment: document.getElementById('q3Moment').value.trim(),
+    q4AddOne: document.getElementById('q4AddOne').value.trim(),
+    q5Revival: document.getElementById('q5Revival').value.trim(),
+    q6TellFriend: document.getElementById('q6TellFriend').value.trim()
+  };
+  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
+  fetch(ENDPOINT,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)
+  }).then(function(){
+    document.getElementById('form').style.display='none';
+    document.getElementById('done').style.display='block';
+    window.scrollTo(0,0);
+  }).catch(function(e){
+    btn.disabled=false; btn.textContent='送信する';
+    document.getElementById('err').style.display='block';
+  });
+});
+</script>
+</body>
+</html>
