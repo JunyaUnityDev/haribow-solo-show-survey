@@ -23,37 +23,86 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.deadline-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.deadline-row{padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .deadline-row:last-child{border-bottom:none}
 .deadline-task{color:var(--ink);font-weight:600}
 .deadline-owner{color:var(--faint);font-size:11.5px}
 .deadline-date{white-space:nowrap;font-weight:700;font-size:12.5px}
 .deadline-date.soon{color:var(--warn)}
-.person{margin-bottom:16px}
+.decision-row{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.decision-row:last-child{border-bottom:none}
+.decision-cat{display:inline-block;font-size:10px;font-weight:700;color:var(--blue);background:#e8f0ff;border-radius:6px;padding:1px 7px;margin-right:6px}
+.decision-text{color:var(--ink)}
+.decision-meta{font-size:11px;color:var(--faint);margin-top:2px}
+.person-progress{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.person-progress .ptrack{flex:1;height:8px;background:#eef3fa;border-radius:5px;overflow:hidden;display:flex}
+.person-progress .ppct{font-size:12px;font-weight:800;color:var(--blue);white-space:nowrap}
+.jumpnav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.jumpnav button{font-size:12px;font-weight:700;color:var(--blue);background:#e8f0ff;border:1px solid #cddcfb;border-radius:100px;padding:5px 12px;cursor:pointer;font-family:inherit}
+.jumpnav button.unassigned{color:var(--amber);background:#fdf2df;border-color:#f0dcb8}
+.jumpnav button .n{opacity:.7;font-weight:600;margin-left:2px}
+.person{margin-bottom:16px;scroll-margin-top:14px}
 .person-name{font-size:14.5px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .person-count{font-size:11px;font-weight:700;color:var(--faint);background:#eef3fa;border-radius:10px;padding:2px 9px}
-.task{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
+.task{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
 .task:last-child{border-bottom:none}
-.task-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.task-name{color:var(--ink)}
+.task-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.task-name{color:var(--ink);cursor:pointer;flex:1;min-width:0}
 .task-name .arrow{display:inline-block;color:var(--faint);font-size:11px;margin-right:5px;transition:transform .15s}
 .task.expanded .task-name .arrow{transform:rotate(90deg)}
-.task-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
-.badge{font-size:10.5px;font-weight:700;border-radius:8px;padding:2px 8px;white-space:nowrap}
-.badge-done{background:#e4f6ee;color:var(--ok)}
-.badge-active{background:#e8f0ff;color:var(--blue)}
-.badge-open{background:#f3eadd;color:var(--amber)}
-.task-date{font-size:11px;color:var(--faint)}
+.task-meta{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.status-select{font-size:10.5px;font-weight:700;border-radius:8px;padding:2px 6px;border:none;background:#f3eadd;color:var(--amber);font-family:inherit;cursor:pointer;-webkit-appearance:none;appearance:none;max-width:110px}
+.status-select.st-done{background:#e4f6ee;color:var(--ok)}
+.status-select.st-active{background:#e8f0ff;color:var(--blue)}
+.status-select.st-open{background:#f3eadd;color:var(--amber)}
+.status-select.st-hold{background:#efe8fa;color:#7a4fd1}
+.status-select.st-cancel{background:#eef0f3;color:var(--faint)}
+.task-subline{font-size:11.5px;color:var(--dim);margin:2px 0 0;padding-left:1px}
+.task.is-cancel .task-name{color:var(--faint);text-decoration:line-through}
+.epic-card{cursor:default}
+.epic-header{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14.5px;font-weight:800;margin:0 0 8px}
+.epic-arrow{color:var(--faint);font-size:11px;transition:transform .15s;flex-shrink:0}
+.epic-card.expanded .epic-arrow{transform:rotate(90deg)}
+.epic-title{flex:1}
+.epic-desc{margin:0 0 10px;font-size:12.5px;color:var(--dim)}
+.epic-children{display:none;margin-top:6px}
+.epic-card.expanded .epic-children{display:block}
+.epic-hint{font-size:11px;color:var(--faint);margin:0 0 2px}
+.task-date{font-size:11px;color:var(--faint);white-space:nowrap}
+.edit-btn{font-size:10.5px;color:var(--faint);background:#eef3fa;border:1px solid var(--line);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:inherit}
+.edit-btn:hover{color:var(--blue);border-color:var(--blue)}
 .task-detail{display:none;margin-top:8px;padding:10px 12px;background:#f5f8fd;border-radius:9px;font-size:12px;color:var(--dim)}
 .task.expanded .task-detail{display:block}
-.task-detail dt{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:6px}
+.task-detail dt{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:8px}
 .task-detail dt:first-child{margin-top:0}
 .task-detail dd{margin:1px 0 0}
 .task-detail a{color:var(--blue)}
+.owner-select{font-size:11.5px;font-family:inherit;border:1px solid var(--line);border-radius:6px;padding:1px 4px;background:#fff;color:var(--dim)}
+.memo-list{margin:4px 0 8px;max-height:140px;overflow-y:auto}
+.memo-item{font-size:11.5px;padding:5px 0;border-bottom:1px dashed var(--line);white-space:pre-wrap}
+.memo-item:last-child{border-bottom:none}
+.memo-add{display:flex;gap:6px;margin-top:4px}
+.memo-add textarea{flex:1;font-family:inherit;font-size:12px;border:1px solid var(--line);border-radius:7px;padding:6px 8px;resize:vertical;min-height:32px}
+.memo-add button{background:var(--blue);color:#fff;border:0;border-radius:7px;padding:0 12px;font-size:12px;font-weight:700;cursor:pointer}
 .person.unassigned{border:1.5px dashed var(--amber);background:#fdf8f0}
 .person.unassigned .person-name{color:var(--amber)}
 .muted{color:var(--faint);font-size:12.5px}
 .err{color:var(--warn);text-align:center;padding:40px 20px}
+.saving{opacity:.5;pointer-events:none}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:12.5px;padding:8px 16px;border-radius:20px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+.toast.show{opacity:.92}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(20,42,82,.45);z-index:40;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:14px;max-width:520px;width:100%;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 14px;font-size:16px}
+.modal label{display:block;font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:12px 0 5px}
+.modal label:first-of-type{margin-top:0}
+.modal input,.modal select,.modal textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit}
+.modal textarea{resize:vertical;min-height:56px}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.modal-actions button{flex:1;border:0;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-save{background:var(--blue);color:#fff}
+.btn-cancel{background:#eef3fa;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -69,135 +118,399 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <h2>直近の期限</h2>
     <div class="card" id="deadlines"></div>
 
+    <h2>直近の決定事項</h2>
+    <div class="card" id="decisions"></div>
+
+    <h2>プロジェクト別の内訳</h2>
+    <div id="epics"></div>
+
     <h2>担当者別タスク</h2>
+    <div class="jumpnav" id="jumpnav"></div>
     <div id="byPerson"></div>
   </div>
 </div>
 
-<script>
-var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec?page=dashboard';
+<div class="toast" id="toast"></div>
 
-function statusClass(status){
-  status = String(status||'');
-  if(status.indexOf('完了')>-1) return 'done';
-  if(status.indexOf('未着手')>-1 || status.indexOf('保留')>-1) return 'open';
-  return 'active'; // 進行中・要承認・判断待ち 等はまとめて「対応中」扱い
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>タスクを編集</h3>
+    <label>タスク名</label>
+    <input id="m_タスク名">
+    <label>目的</label>
+    <textarea id="m_目的"></textarea>
+    <label>成果物</label>
+    <input id="m_成果物">
+    <label>合格基準</label>
+    <input id="m_合格基準">
+    <label>責任者</label>
+    <input id="m_責任者" list="ownerList">
+    <datalist id="ownerList">
+      <option value="坂田潤弥"><option value="海野鷹幸"><option value="加藤周平"><option value="三輪卓海"><option value="前田航希"><option value="松澤竜介"><option value="井端真秀">
+    </datalist>
+    <label>期限</label>
+    <input id="m_期限" type="date">
+    <label>関連URL</label>
+    <input id="m_関連URL">
+    <label>進捗詳細（補足メモ・数値など）</label>
+    <input id="m_進捗詳細">
+    <label>親タスク（大きいタスクの一部なら、その名前）</label>
+    <input id="m_親タスク">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-save" onclick="saveModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var ENDPOINT = BASE + '?page=dashboard';
+var ADMIN_SECRET = 'hbw-2026-solo-admin-9f3k2x';
+var OWNER_OPTIONS = ['坂田潤弥','海野鷹幸','周平','卓海'];
+var latestData = null;
+
+var STATUS_OPTIONS = ['未着手','進行中','保留','完了','中止'];
+var STATUS_META = {
+  '未着手': {bucket:'open', cls:'st-open'},
+  '進行中': {bucket:'active', cls:'st-active'},
+  '保留':   {bucket:'open', cls:'st-hold'},
+  '完了':   {bucket:'done', cls:'st-done'},
+  '中止':   {bucket:'excluded', cls:'st-cancel'}
+};
+function statusBucket(status){
+  var m = STATUS_META[String(status||'').trim()];
+  return m ? m.bucket : 'active';
 }
-function statusLabel(cls){
-  return cls==='done' ? '完了' : (cls==='open' ? '未着手' : '対応中');
+function statusCls(status){
+  var m = STATUS_META[String(status||'').trim()];
+  return m ? m.cls : 'st-active';
 }
 function parseDate(v){
   if(!v) return null;
   var d = new Date(v);
   return isNaN(d.getTime()) ? null : d;
 }
-function fmtDate(d){
-  return (d.getMonth()+1)+'/'+d.getDate();
+function fmtDate(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
+function scrollToPerson(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+  el.style.transition = 'box-shadow .2s';
+  el.style.boxShadow = '0 0 0 3px var(--blue)';
+  setTimeout(function(){ el.style.boxShadow = ''; }, 900);
+}
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1800);
 }
 
-fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
-  document.getElementById('updated').textContent = '最終更新：'+data.updatedAt+'（WBSシートを毎回読み込んで表示）';
-  var rows = data.rows.filter(function(r){ return r['プロジェクト名']; });
+function postUpdate(body){
+  return fetch(BASE, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); });
+}
 
-  // ---- 全体進捗 ----
-  var counts = {done:0, active:0, open:0};
-  rows.forEach(function(r){ counts[statusClass(r['ステータス'])]++; });
-  var total = rows.length || 1;
-  var ov = document.getElementById('overview');
-  var pct = Math.round(counts.done/total*100);
-  ov.innerHTML =
-    '<div class="progress-row">'+
-      '<div class="progress-track">'+
-        '<div class="progress-seg-done" style="width:'+(counts.done/total*100)+'%"></div>'+
-        '<div class="progress-seg-active" style="width:'+(counts.active/total*100)+'%"></div>'+
-        '<div class="progress-seg-open" style="width:'+(counts.open/total*100)+'%"></div>'+
+function saveField(rowIndex, field, value, onDone){
+  postUpdate({survey:'wbs_update', secret:ADMIN_SECRET, rowIndex:rowIndex, field:field, value:value})
+    .then(function(res){
+      if(res.ok){ toast('保存しました'); if(onDone) onDone(); }
+      else toast('保存失敗：'+res.error);
+    }).catch(function(e){ toast('通信エラー：'+e); });
+}
+
+function onStatusSelectChange(sel, rowIndex){
+  saveField(rowIndex, 'ステータス', sel.value, function(){ load(); });
+}
+function onOwnerChange(input, rowIndex){
+  saveField(rowIndex, '責任者', input.value.trim(), function(){ load(); });
+}
+
+var editingRow = null;
+function openModal(r){
+  editingRow = r['_row'];
+  document.getElementById('m_タスク名').value = r['タスク名']||'';
+  document.getElementById('m_目的').value = r['目的']||'';
+  document.getElementById('m_成果物').value = r['成果物']||'';
+  document.getElementById('m_合格基準').value = r['合格基準']||'';
+  document.getElementById('m_責任者').value = r['責任者']||'';
+  document.getElementById('m_関連URL').value = r['関連URL']||'';
+  document.getElementById('m_進捗詳細').value = r['進捗詳細']||'';
+  document.getElementById('m_親タスク').value = r['親タスク']||'';
+  var d = parseDate(r['期限']);
+  document.getElementById('m_期限').value = d ? d.toISOString().slice(0,10) : '';
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('show'); editingRow=null; }
+function saveModal(){
+  if(!editingRow) return;
+  var fields = {
+    'タスク名': document.getElementById('m_タスク名').value.trim(),
+    '目的': document.getElementById('m_目的').value.trim(),
+    '成果物': document.getElementById('m_成果物').value.trim(),
+    '合格基準': document.getElementById('m_合格基準').value.trim(),
+    '責任者': document.getElementById('m_責任者').value.trim(),
+    '関連URL': document.getElementById('m_関連URL').value.trim(),
+    '進捗詳細': document.getElementById('m_進捗詳細').value.trim(),
+    '親タスク': document.getElementById('m_親タスク').value.trim(),
+    '期限': document.getElementById('m_期限').value
+  };
+  var row = editingRow;
+  var keys = Object.keys(fields);
+  function next(i){
+    if(i>=keys.length){ closeModal(); toast('保存しました'); load(); return; }
+    saveField(row, keys[i], fields[keys[i]], function(){ next(i+1); });
+  }
+  next(0);
+}
+function addMemo(btn, rowIndex){
+  var ta = btn.previousElementSibling;
+  var text = ta.value.trim();
+  if(!text) return;
+  btn.disabled = true;
+  postUpdate({survey:'wbs_memo', secret:ADMIN_SECRET, rowIndex:rowIndex, text:text, author:''})
+    .then(function(res){
+      btn.disabled = false;
+      if(res.ok){ ta.value=''; toast('追加しました'); load(); }
+      else toast('失敗：'+res.error);
+    }).catch(function(e){ btn.disabled=false; toast('通信エラー：'+e); });
+}
+
+function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+function renderStatusSelect(r){
+  var cur = r['ステータス']||'未着手';
+  var opts = STATUS_OPTIONS.map(function(o){
+    return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+o+'</option>';
+  }).join('');
+  return '<select class="status-select '+statusCls(cur)+'" '+
+    'onclick="event.stopPropagation()" onchange="event.stopPropagation();onStatusSelectChange(this,'+r['_row']+')">'+opts+'</select>';
+}
+
+function renderDetail(r){
+  var parts = [];
+  if(r['目的']) parts.push('<dt>目的</dt><dd>'+r['目的']+'</dd>');
+  if(r['成果物']) parts.push('<dt>成果物</dt><dd>'+r['成果物']+'</dd>');
+  if(r['合格基準']) parts.push('<dt>合格基準</dt><dd>'+r['合格基準']+'</dd>');
+  if(r['タスク属性']) parts.push('<dt>分類</dt><dd>'+r['タスク属性']+'</dd>');
+  if(r['進捗詳細']) parts.push('<dt>進捗詳細</dt><dd>'+r['進捗詳細']+'</dd>');
+  if(r['親タスク']) parts.push('<dt>所属プロジェクト</dt><dd>'+r['親タスク']+'</dd>');
+  parts.push('<dt>責任者</dt><dd><input class="owner-select" list="ownerListInline" value="'+(r['責任者']||'')+'" onclick="event.stopPropagation()" onchange="onOwnerChange(this,'+r['_row']+')" placeholder="未定"></dd>');
+  if(r['関連URL']) parts.push('<dt>関連URL</dt><dd><a href="'+r['関連URL']+'" target="_blank" rel="noopener">'+r['関連URL']+'</a></dd>');
+
+  var memoRaw = String(r['メモ・質問・提案']||'').trim();
+  var memoItems = memoRaw ? memoRaw.split('\n').filter(Boolean) : [];
+  var memoHtml = '<dt>メモ・質問・提案</dt><dd>'+
+    '<div class="memo-list">'+(memoItems.length ? memoItems.map(function(m){ return '<div class="memo-item">'+m+'</div>'; }).join('') : '<span class="muted">まだありません</span>')+'</div>'+
+    '<div class="memo-add" onclick="event.stopPropagation()">'+
+      '<textarea placeholder="質問・提案・進度メモを書く"></textarea>'+
+      '<button onclick="addMemo(this,'+r['_row']+')">追加</button>'+
+    '</div></dd>';
+  parts.push(memoHtml);
+
+  return '<dl class="task-detail">'+parts.join('')+'</dl>';
+}
+
+function renderTask(r){
+  var d = parseDate(r['期限']);
+  var isCancel = statusBucket(r['ステータス'])==='excluded';
+  return '<div class="task'+(isCancel?' is-cancel':'')+'" id="task-'+r['_row']+'">'+
+    '<div class="task-row">'+
+      '<div class="task-name" onclick="this.closest(\'.task\').classList.toggle(\'expanded\')"><span class="arrow">▸</span>'+r['タスク名']+'</div>'+
+      '<div class="task-meta">'+
+        (d ? '<span class="task-date">'+fmtDate(d)+'</span>' : '')+
+        renderStatusSelect(r)+
+        '<button class="edit-btn" onclick="event.stopPropagation();openModal(window.__rowsByIdx['+r['_row']+'])">編集</button>'+
       '</div>'+
-      '<div class="progress-pct">'+pct+'%</div>'+
     '</div>'+
-    '<div class="legend">'+
-      '<span><span class="dot" style="background:#1a9b66"></span>完了 '+counts.done+'件</span>'+
-      '<span><span class="dot" style="background:#2563eb"></span>対応中 '+counts.active+'件</span>'+
-      '<span><span class="dot" style="background:#c3ccdb"></span>未着手 '+counts.open+'件</span>'+
-      '<span>全'+total+'件中</span>'+
-    '</div>';
+    (r['進捗詳細'] ? '<div class="task-subline">'+r['進捗詳細']+'</div>' : '')+
+    renderDetail(r)+
+  '</div>';
+}
 
-  // ---- 直近の期限 ----
-  var now = new Date();
-  var withDeadline = rows
-    .filter(function(r){ return statusClass(r['ステータス'])!=='done'; })
-    .map(function(r){ return {row:r, date:parseDate(r['期限'])}; })
-    .filter(function(x){ return x.date; })
-    .sort(function(a,b){ return a.date - b.date; })
-    .slice(0,8);
-  var dl = document.getElementById('deadlines');
-  if(withDeadline.length===0){
-    dl.innerHTML = '<p class="muted">日付付きの期限は登録されていません。</p>';
-  } else {
-    dl.innerHTML = withDeadline.map(function(x){
-      var days = Math.ceil((x.date - now)/(1000*60*60*24));
-      var soon = days <= 5;
-      return '<div class="deadline-row">'+
-        '<div><div class="deadline-task">'+x.row['タスク名']+'</div>'+
-        '<div class="deadline-owner">'+(x.row['責任者']||'―')+'</div></div>'+
-        '<div class="deadline-date'+(soon?' soon':'')+'">'+fmtDate(x.date)+(days>=0?'（あと'+days+'日）':'（期限超過）')+'</div>'+
+function load(){
+  fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
+    latestData = data;
+    document.getElementById('updated').textContent = '最終更新：'+data.updatedAt+'（ステータス・責任者はここから編集すると即シートに反映されます）';
+    var rows = data.rows.filter(function(r){ return r['プロジェクト名']; });
+    window.__rowsByIdx = {};
+    rows.forEach(function(r){ window.__rowsByIdx[r['_row']] = r; });
+
+    // ---- 全体進捗（中止タスクは分母から除外） ----
+    var liveRows = rows.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
+    var counts = {done:0, active:0, open:0};
+    liveRows.forEach(function(r){ counts[statusBucket(r['ステータス'])]++; });
+    var total = liveRows.length || 1;
+    var ov = document.getElementById('overview');
+    var pct = Math.round(counts.done/total*100);
+    ov.innerHTML =
+      '<div class="progress-row">'+
+        '<div class="progress-track">'+
+          '<div class="progress-seg-done" style="width:'+(counts.done/total*100)+'%"></div>'+
+          '<div class="progress-seg-active" style="width:'+(counts.active/total*100)+'%"></div>'+
+          '<div class="progress-seg-open" style="width:'+(counts.open/total*100)+'%"></div>'+
+        '</div>'+
+        '<div class="progress-pct">'+pct+'%</div>'+
+      '</div>'+
+      '<div class="legend">'+
+        '<span><span class="dot" style="background:#1a9b66"></span>完了 '+counts.done+'件</span>'+
+        '<span><span class="dot" style="background:#2563eb"></span>対応中 '+counts.active+'件</span>'+
+        '<span><span class="dot" style="background:#c3ccdb"></span>未着手 '+counts.open+'件</span>'+
+        '<span>全'+total+'件中</span>'+
+      '</div>';
+
+    // ---- 直近の期限（詳細・編集可） ----
+    var now = new Date();
+    var withDeadline = rows
+      .filter(function(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; })
+      .map(function(r){ return {row:r, date:parseDate(r['期限'])}; })
+      .filter(function(x){ return x.date; })
+      .sort(function(a,b){ return a.date - b.date; })
+      .slice(0,8);
+    var dl = document.getElementById('deadlines');
+    if(withDeadline.length===0){
+      dl.innerHTML = '<p class="muted">日付付きの期限は登録されていません。タスクの「編集」から期限を追加できます。</p>';
+    } else {
+      dl.innerHTML = withDeadline.map(function(x){ return renderTask(x.row); }).join('');
+    }
+
+    // ---- 直近の決定事項 ----
+    var dec = document.getElementById('decisions');
+    var decisions = (data.decisions||[]).slice(0,8);
+    if(decisions.length===0){
+      dec.innerHTML = '<p class="muted">決定事項一覧シートにまだ記録がありません。</p>';
+    } else {
+      dec.innerHTML = decisions.map(function(d){
+        var dt = parseDate(d['決定日']);
+        return '<div class="decision-row">'+
+          (d['カテゴリ'] ? '<span class="decision-cat">'+d['カテゴリ']+'</span>' : '')+
+          '<span class="decision-text">'+(d['決定事項']||'')+'</span>'+
+          '<div class="decision-meta">'+(dt?fmtDate(dt)+'　':'')+(d['決定者']||'')+(d['備考']?'　・　'+d['備考']:'')+'</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // ---- プロジェクト別（親タスクを持つ行をエピックとして束ねる） ----
+    var childrenByParent = {};
+    rows.forEach(function(r){
+      var parent = String(r['親タスク']||'').trim();
+      if(!parent) return;
+      if(!childrenByParent[parent]) childrenByParent[parent] = [];
+      childrenByParent[parent].push(r);
+    });
+    var epicNames = Object.keys(childrenByParent);
+    var epicsEl = document.getElementById('epics');
+    if(epicNames.length===0){
+      epicsEl.innerHTML = '<p class="muted">「親タスク」が設定された行はまだありません。タスクの「編集」から親タスク名を入力すると、ここに内訳が表示されます。</p>';
+    } else {
+      epicsEl.innerHTML = epicNames.map(function(name, i){
+        var children = childrenByParent[name].slice().sort(function(a,b){
+          var da = parseDate(a['期限']), db = parseDate(b['期限']);
+          if(!da && !db) return 0;
+          if(!da) return 1;
+          if(!db) return -1;
+          return da-db;
+        });
+        var live = children.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
+        var done = live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
+        var active = live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
+        var open = live.length - done - active;
+        var etotal = live.length || 1;
+        var epct = Math.round(done/etotal*100);
+        var summaryRow = rows.filter(function(r){ return r['タスク名']===name; })[0];
+        var epicId = 'epic-'+i;
+        return '<div class="card epic-card" id="'+epicId+'">'+
+          '<div class="epic-header" onclick="this.closest(\'.epic-card\').classList.toggle(\'expanded\')">'+
+            '<span class="epic-arrow">▸</span>'+
+            '<span class="epic-title">'+name+'</span>'+
+            '<span class="person-count">未完了 '+(live.length-done)+'件 / 全'+live.length+'件</span>'+
+          '</div>'+
+          '<div class="person-progress">'+
+            '<div class="ptrack">'+
+              '<div class="progress-seg-done" style="width:'+(done/etotal*100)+'%"></div>'+
+              '<div class="progress-seg-active" style="width:'+(active/etotal*100)+'%"></div>'+
+              '<div class="progress-seg-open" style="width:'+(open/etotal*100)+'%"></div>'+
+            '</div>'+
+            '<div class="ppct">'+epct+'%</div>'+
+          '</div>'+
+          (summaryRow && summaryRow['目的'] ? '<p class="epic-desc">'+summaryRow['目的']+'</p>' : '')+
+          '<div class="epic-hint">タップして内訳を開閉</div>'+
+          '<div class="epic-children">'+children.map(renderTask).join('')+'</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // ---- 担当者別 ----
+    var byPerson = {};
+    rows.forEach(function(r){
+      var owner = String(r['責任者']||'未定').trim() || '未定';
+      if(!byPerson[owner]) byPerson[owner]=[];
+      byPerson[owner].push(r);
+    });
+    function isOpenTask(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; }
+    var owners = Object.keys(byPerson).sort(function(a,b){
+      if(a==='未定') return 1;
+      if(b==='未定') return -1;
+      var openA = byPerson[a].filter(isOpenTask).length;
+      var openB = byPerson[b].filter(isOpenTask).length;
+      return openB - openA;
+    });
+    var byPersonEl = document.getElementById('byPerson');
+    var personIds = {};
+    owners.forEach(function(owner, i){ personIds[owner] = 'person-'+i; });
+
+    document.getElementById('jumpnav').innerHTML = owners.map(function(owner){
+      var openCount = byPerson[owner].filter(isOpenTask).length;
+      var isUnassigned = owner==='未定';
+      var label = isUnassigned ? '未定' : owner;
+      return '<button class="'+(isUnassigned?'unassigned':'')+'" onclick="scrollToPerson(\''+personIds[owner]+'\')">'+label+'<span class="n">'+openCount+'</span></button>';
+    }).join('');
+
+    byPersonEl.innerHTML = owners.map(function(owner){
+      var tasks = byPerson[owner].slice().sort(function(a,b){
+        var da = parseDate(a['期限']), db = parseDate(b['期限']);
+        if(!da && !db) return 0;
+        if(!da) return 1;
+        if(!db) return -1;
+        return da-db;
+      });
+      var liveTasks = tasks.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
+      var pdone = liveTasks.filter(function(r){return statusBucket(r['ステータス'])==='done';}).length;
+      var pactive = liveTasks.filter(function(r){return statusBucket(r['ステータス'])==='active';}).length;
+      var popen = liveTasks.length - pdone - pactive;
+      var openCount = liveTasks.length - pdone;
+      var rowsHtml = tasks.map(renderTask).join('');
+      var isUnassigned = owner==='未定';
+      var label = isUnassigned ? '担当者未定（割り当てが必要）' : owner;
+      var ptotal = liveTasks.length || 1;
+      var ppct = Math.round(pdone/ptotal*100);
+      var progressHtml = '<div class="person-progress">'+
+        '<div class="ptrack">'+
+          '<div class="progress-seg-done" style="width:'+(pdone/ptotal*100)+'%"></div>'+
+          '<div class="progress-seg-active" style="width:'+(pactive/ptotal*100)+'%"></div>'+
+          '<div class="progress-seg-open" style="width:'+(popen/ptotal*100)+'%"></div>'+
+        '</div>'+
+        '<div class="ppct">'+ppct+'%</div>'+
+      '</div>';
+      return '<div class="card person'+(isUnassigned?' unassigned':'')+'" id="'+personIds[owner]+'">'+
+        '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+liveTasks.length+'件</span></div>'+
+        (isUnassigned ? '' : progressHtml)+
+        rowsHtml+
       '</div>';
     }).join('');
-  }
 
-  // ---- 担当者別 ----
-  var byPerson = {};
-  rows.forEach(function(r){
-    var owner = String(r['責任者']||'未定').trim() || '未定';
-    if(!byPerson[owner]) byPerson[owner]=[];
-    byPerson[owner].push(r);
+  }).catch(function(e){
+    document.getElementById('content').innerHTML = '<div class="err">読み込みに失敗しました：'+e+'</div>';
   });
-  var owners = Object.keys(byPerson).sort(function(a,b){
-    if(a==='未定') return 1;
-    if(b==='未定') return -1;
-    var openA = byPerson[a].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
-    var openB = byPerson[b].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
-    return openB - openA;
-  });
-  var byPersonEl = document.getElementById('byPerson');
-  byPersonEl.innerHTML = owners.map(function(owner){
-    var tasks = byPerson[owner].slice().sort(function(a,b){
-      var da = parseDate(a['期限']), db = parseDate(b['期限']);
-      if(!da && !db) return 0;
-      if(!da) return 1;
-      if(!db) return -1;
-      return da-db;
-    });
-    var openCount = tasks.filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
-    var rowsHtml = tasks.map(function(r){
-      var cls = statusClass(r['ステータス']);
-      var d = parseDate(r['期限']);
-      var detailParts = [];
-      if(r['目的']) detailParts.push('<dt>目的</dt><dd>'+r['目的']+'</dd>');
-      if(r['成果物']) detailParts.push('<dt>成果物</dt><dd>'+r['成果物']+'</dd>');
-      if(r['合格基準']) detailParts.push('<dt>合格基準</dt><dd>'+r['合格基準']+'</dd>');
-      if(r['備考']) detailParts.push('<dt>備考</dt><dd>'+r['備考']+'</dd>');
-      if(r['関連URL']) detailParts.push('<dt>関連URL</dt><dd><a href="'+r['関連URL']+'" target="_blank" rel="noopener">'+r['関連URL']+'</a></dd>');
-      var hasDetail = detailParts.length>0;
-      return '<div class="task" onclick="'+(hasDetail?"this.classList.toggle('expanded')":'')+'">'+
-        '<div class="task-row">'+
-        '<div class="task-name">'+(hasDetail?'<span class="arrow">▸</span>':'')+r['タスク名']+'</div>'+
-        '<div class="task-meta"><span class="badge badge-'+cls+'">'+statusLabel(cls)+'</span>'+
-        (d ? '<span class="task-date">'+fmtDate(d)+'</span>' : '')+
-        '</div></div>'+
-        (hasDetail ? '<dl class="task-detail">'+detailParts.join('')+'</dl>' : '')+
-        '</div>';
-    }).join('');
-    var isUnassigned = owner==='未定';
-    var label = isUnassigned ? '担当者未定（割り当てが必要）' : owner;
-    return '<div class="card person'+(isUnassigned?' unassigned':'')+'">'+
-      '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+tasks.length+'件</span></div>'+
-      rowsHtml+
-    '</div>';
-  }).join('');
+}
 
-}).catch(function(e){
-  document.getElementById('content').innerHTML = '<div class="err">読み込みに失敗しました：'+e+'</div>';
-});
+load();
 </script>
+<datalist id="ownerListInline">
+  <option value="坂田潤弥"><option value="海野鷹幸"><option value="加藤周平"><option value="三輪卓海"><option value="前田航希"><option value="松澤竜介"><option value="井端真秀">
+</datalist>
 </body>
 </html>

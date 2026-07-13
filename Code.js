@@ -21,7 +21,8 @@ function doGet(e){
 }
 
 /** ダッシュボード(dashboard.html)向け：WBSシートを丸ごとJSONで返す。
- *  ヘッダー行(2行目)をキーにして、タスク名(C列)が空の行(セクション見出し・空行)は除外する。 */
+ *  ヘッダー行(2行目)をキーにして、タスク名(C列)が空の行(セクション見出し・空行)は除外する。
+ *  各行に実シート上の行番号(_row)を付与し、ダッシュボードからの書き戻し(更新・メモ追加)で使う。 */
 function getWbsDashboardData_(){
   var sh = soloSs_().getSheetByName('WBS');
   var lastRow = sh.getLastRow();
@@ -29,13 +30,80 @@ function getWbsDashboardData_(){
   var header = sh.getRange(2,1,1,lastCol).getValues()[0];
   var body = sh.getRange(3,1,lastRow-2,lastCol).getValues();
   var rows = body
-    .filter(function(r){ return String(r[2]).trim() !== ''; })
-    .map(function(r){
+    .map(function(r,i){ return {r:r, rowIndex:3+i}; })
+    .filter(function(x){ return String(x.r[2]).trim() !== ''; })
+    .map(function(x){
       var obj = {};
-      header.forEach(function(h,i){ obj[h] = r[i]; });
+      header.forEach(function(h,i){ obj[h] = x.r[i]; });
+      obj['_row'] = x.rowIndex;
       return obj;
     });
-  return { updatedAt: Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm'), rows: rows };
+  return {
+    updatedAt: Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm'),
+    rows: rows,
+    decisions: getDecisionsData_()
+  };
+}
+
+/** ダッシュボード向け：「決定事項一覧」シートを丸ごとJSONで返す（決定日の新しい順）。
+ *  シートが無い/空のプロジェクトでもエラーにならないよう空配列を返す。 */
+function getDecisionsData_(){
+  try{
+    var sh = soloSs_().getSheetByName('決定事項一覧');
+    if(!sh) return [];
+    var lastRow = sh.getLastRow();
+    var lastCol = sh.getLastColumn();
+    if(lastRow < 3) return [];
+    var header = sh.getRange(2,1,1,lastCol).getValues()[0];
+    var body = sh.getRange(3,1,lastRow-2,lastCol).getValues();
+    var list = body
+      .filter(function(r){ return String(r[2]||'').trim() !== ''; })
+      .map(function(r){
+        var obj = {};
+        header.forEach(function(h,i){ obj[h] = r[i]; });
+        return obj;
+      });
+    list.sort(function(a,b){
+      var da = new Date(a['決定日']), db = new Date(b['決定日']);
+      var ta = isNaN(da.getTime()) ? 0 : da.getTime();
+      var tb = isNaN(db.getTime()) ? 0 : db.getTime();
+      return tb - ta;
+    });
+    return list;
+  }catch(e){
+    return [];
+  }
+}
+
+/** WBSシートのヘッダー行(2行目)から列名→列番号(1始まり)を引く。見つからなければエラー。 */
+function wbsColIndex_(header, name){
+  var idx = header.indexOf(name);
+  if(idx<0) throw new Error('WBSシートに列が見つかりません: '+name);
+  return idx+1;
+}
+
+/** ダッシュボードからの単一フィールド更新(ステータス・責任者・期限・関連URL・タスク名等の直接上書き)。 */
+function updateWbsField_(rowIndex, field, value){
+  var sh = soloSs_().getSheetByName('WBS');
+  var lastCol = sh.getLastColumn();
+  var header = sh.getRange(2,1,1,lastCol).getValues()[0];
+  var col = wbsColIndex_(header, field);
+  sh.getRange(rowIndex, col).setValue(value);
+  return 'ok';
+}
+
+/** ダッシュボードからのメモ・質問・提案の追記。既存内容の上に新しいエントリを積む(上書きしない)。 */
+function appendWbsMemo_(rowIndex, text, author){
+  var sh = soloSs_().getSheetByName('WBS');
+  var lastCol = sh.getLastColumn();
+  var header = sh.getRange(2,1,1,lastCol).getValues()[0];
+  var col = wbsColIndex_(header, 'メモ・質問・提案');
+  var cell = sh.getRange(rowIndex, col);
+  var existing = String(cell.getValue()||'').trim();
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  var entry = '['+ts+(author?' '+author:'')+'] '+text;
+  cell.setValue(existing ? (entry+'\n'+existing) : entry);
+  return 'ok';
 }
 
 /** GitHub Pages(静的サイト)からのフォーム送信を受ける口。GAS直URLのアクセスエラーを避けるため、
@@ -53,6 +121,16 @@ function doPost(e){
       else if(payload.action==='backfilllabels'){ adminResult = backfillMailMasterLabels(); }
       else if(payload.action==='setupsync'){ adminResult = setupSyncMasterTrigger(); }
       else { sendVenueInquiryEmailTest(); }
+      return ContentService.createTextOutput(JSON.stringify({ok:true, result:adminResult})).setMimeType(ContentService.MimeType.JSON);
+    }
+    else if(payload.survey==='wbs_update'){
+      if(payload.secret!==ADMIN_SECRET) throw new Error('unauthorized');
+      adminResult = updateWbsField_(payload.rowIndex, payload.field, payload.value);
+      return ContentService.createTextOutput(JSON.stringify({ok:true, result:adminResult})).setMimeType(ContentService.MimeType.JSON);
+    }
+    else if(payload.survey==='wbs_memo'){
+      if(payload.secret!==ADMIN_SECRET) throw new Error('unauthorized');
+      adminResult = appendWbsMemo_(payload.rowIndex, payload.text, payload.author);
       return ContentService.createTextOutput(JSON.stringify({ok:true, result:adminResult})).setMimeType(ContentService.MimeType.JSON);
     }
     else if(payload.survey==='en'){ submitSoloInterestEn(payload); }
