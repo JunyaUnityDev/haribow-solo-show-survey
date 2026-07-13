@@ -141,6 +141,8 @@ fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
     byPerson[owner].push(r);
   });
   var owners = Object.keys(byPerson).sort(function(a,b){
+    if(a==='未定') return 1;
+    if(b==='未定') return -1;
     var openA = byPerson[a].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
     var openB = byPerson[b].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
     return openB - openA;
