@@ -29,6 +29,14 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .deadline-owner{color:var(--faint);font-size:11.5px}
 .deadline-date{white-space:nowrap;font-weight:700;font-size:12.5px}
 .deadline-date.soon{color:var(--warn)}
+.decision-row{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.decision-row:last-child{border-bottom:none}
+.decision-cat{display:inline-block;font-size:10px;font-weight:700;color:var(--blue);background:#e8f0ff;border-radius:6px;padding:1px 7px;margin-right:6px}
+.decision-text{color:var(--ink)}
+.decision-meta{font-size:11px;color:var(--faint);margin-top:2px}
+.person-progress{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.person-progress .ptrack{flex:1;height:8px;background:#eef3fa;border-radius:5px;overflow:hidden;display:flex}
+.person-progress .ppct{font-size:12px;font-weight:800;color:var(--blue);white-space:nowrap}
 .jumpnav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
 .jumpnav button{font-size:12px;font-weight:700;color:var(--blue);background:#e8f0ff;border:1px solid #cddcfb;border-radius:100px;padding:5px 12px;cursor:pointer;font-family:inherit}
 .jumpnav button.unassigned{color:var(--amber);background:#fdf2df;border-color:#f0dcb8}
@@ -97,6 +105,9 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 
     <h2>直近の期限</h2>
     <div class="card" id="deadlines"></div>
+
+    <h2>直近の決定事項</h2>
+    <div class="card" id="decisions"></div>
 
     <h2>担当者別タスク</h2>
     <div class="jumpnav" id="jumpnav"></div>
@@ -338,6 +349,22 @@ function load(){
       dl.innerHTML = withDeadline.map(function(x){ return renderTask(x.row); }).join('');
     }
 
+    // ---- 直近の決定事項 ----
+    var dec = document.getElementById('decisions');
+    var decisions = (data.decisions||[]).slice(0,8);
+    if(decisions.length===0){
+      dec.innerHTML = '<p class="muted">決定事項一覧シートにまだ記録がありません。</p>';
+    } else {
+      dec.innerHTML = decisions.map(function(d){
+        var dt = parseDate(d['決定日']);
+        return '<div class="decision-row">'+
+          (d['カテゴリ'] ? '<span class="decision-cat">'+d['カテゴリ']+'</span>' : '')+
+          '<span class="decision-text">'+(d['決定事項']||'')+'</span>'+
+          '<div class="decision-meta">'+(dt?fmtDate(dt)+'　':'')+(d['決定者']||'')+(d['備考']?'　・　'+d['備考']:'')+'</div>'+
+        '</div>';
+      }).join('');
+    }
+
     // ---- 担当者別 ----
     var byPerson = {};
     rows.forEach(function(r){
@@ -371,12 +398,26 @@ function load(){
         if(!db) return -1;
         return da-db;
       });
-      var openCount = tasks.filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+      var pdone = tasks.filter(function(r){return statusClass(r['ステータス'])==='done';}).length;
+      var pactive = tasks.filter(function(r){return statusClass(r['ステータス'])==='active';}).length;
+      var popen = tasks.length - pdone - pactive;
+      var openCount = tasks.length - pdone;
       var rowsHtml = tasks.map(renderTask).join('');
       var isUnassigned = owner==='未定';
       var label = isUnassigned ? '担当者未定（割り当てが必要）' : owner;
+      var ptotal = tasks.length || 1;
+      var ppct = Math.round(pdone/ptotal*100);
+      var progressHtml = '<div class="person-progress">'+
+        '<div class="ptrack">'+
+          '<div class="progress-seg-done" style="width:'+(pdone/ptotal*100)+'%"></div>'+
+          '<div class="progress-seg-active" style="width:'+(pactive/ptotal*100)+'%"></div>'+
+          '<div class="progress-seg-open" style="width:'+(popen/ptotal*100)+'%"></div>'+
+        '</div>'+
+        '<div class="ppct">'+ppct+'%</div>'+
+      '</div>';
       return '<div class="card person'+(isUnassigned?' unassigned':'')+'" id="'+personIds[owner]+'">'+
         '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+tasks.length+'件</span></div>'+
+        (isUnassigned ? '' : progressHtml)+
         rowsHtml+
       '</div>';
     }).join('');
