@@ -59,6 +59,15 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .status-select.st-cancel{background:#eef0f3;color:var(--faint)}
 .task-subline{font-size:11.5px;color:var(--dim);margin:2px 0 0;padding-left:1px}
 .task.is-cancel .task-name{color:var(--faint);text-decoration:line-through}
+.epic-card{cursor:default}
+.epic-header{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14.5px;font-weight:800;margin:0 0 8px}
+.epic-arrow{color:var(--faint);font-size:11px;transition:transform .15s;flex-shrink:0}
+.epic-card.expanded .epic-arrow{transform:rotate(90deg)}
+.epic-title{flex:1}
+.epic-desc{margin:0 0 10px;font-size:12.5px;color:var(--dim)}
+.epic-children{display:none;margin-top:6px}
+.epic-card.expanded .epic-children{display:block}
+.epic-hint{font-size:11px;color:var(--faint);margin:0 0 2px}
 .task-date{font-size:11px;color:var(--faint);white-space:nowrap}
 .edit-btn{font-size:10.5px;color:var(--faint);background:#eef3fa;border:1px solid var(--line);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:inherit}
 .edit-btn:hover{color:var(--blue);border-color:var(--blue)}
@@ -112,6 +121,9 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <h2>直近の決定事項</h2>
     <div class="card" id="decisions"></div>
 
+    <h2>プロジェクト別の内訳</h2>
+    <div id="epics"></div>
+
     <h2>担当者別タスク</h2>
     <div class="jumpnav" id="jumpnav"></div>
     <div id="byPerson"></div>
@@ -142,6 +154,8 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <input id="m_関連URL">
     <label>進捗詳細（補足メモ・数値など）</label>
     <input id="m_進捗詳細">
+    <label>親タスク（大きいタスクの一部なら、その名前）</label>
+    <input id="m_親タスク">
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
       <button class="btn-save" onclick="saveModal()">保存</button>
@@ -226,6 +240,7 @@ function openModal(r){
   document.getElementById('m_責任者').value = r['責任者']||'';
   document.getElementById('m_関連URL').value = r['関連URL']||'';
   document.getElementById('m_進捗詳細').value = r['進捗詳細']||'';
+  document.getElementById('m_親タスク').value = r['親タスク']||'';
   var d = parseDate(r['期限']);
   document.getElementById('m_期限').value = d ? d.toISOString().slice(0,10) : '';
   document.getElementById('modalBg').classList.add('show');
@@ -241,6 +256,7 @@ function saveModal(){
     '責任者': document.getElementById('m_責任者').value.trim(),
     '関連URL': document.getElementById('m_関連URL').value.trim(),
     '進捗詳細': document.getElementById('m_進捗詳細').value.trim(),
+    '親タスク': document.getElementById('m_親タスク').value.trim(),
     '期限': document.getElementById('m_期限').value
   };
   var row = editingRow;
@@ -281,6 +297,7 @@ function renderDetail(r){
   if(r['合格基準']) parts.push('<dt>合格基準</dt><dd>'+r['合格基準']+'</dd>');
   if(r['タスク属性']) parts.push('<dt>分類</dt><dd>'+r['タスク属性']+'</dd>');
   if(r['進捗詳細']) parts.push('<dt>進捗詳細</dt><dd>'+r['進捗詳細']+'</dd>');
+  if(r['親タスク']) parts.push('<dt>所属プロジェクト</dt><dd>'+r['親タスク']+'</dd>');
   parts.push('<dt>責任者</dt><dd><input class="owner-select" list="ownerListInline" value="'+(r['責任者']||'')+'" onclick="event.stopPropagation()" onchange="onOwnerChange(this,'+r['_row']+')" placeholder="未定"></dd>');
   if(r['関連URL']) parts.push('<dt>関連URL</dt><dd><a href="'+r['関連URL']+'" target="_blank" rel="noopener">'+r['関連URL']+'</a></dd>');
 
@@ -372,6 +389,56 @@ function load(){
           (d['カテゴリ'] ? '<span class="decision-cat">'+d['カテゴリ']+'</span>' : '')+
           '<span class="decision-text">'+(d['決定事項']||'')+'</span>'+
           '<div class="decision-meta">'+(dt?fmtDate(dt)+'　':'')+(d['決定者']||'')+(d['備考']?'　・　'+d['備考']:'')+'</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // ---- プロジェクト別（親タスクを持つ行をエピックとして束ねる） ----
+    var childrenByParent = {};
+    rows.forEach(function(r){
+      var parent = String(r['親タスク']||'').trim();
+      if(!parent) return;
+      if(!childrenByParent[parent]) childrenByParent[parent] = [];
+      childrenByParent[parent].push(r);
+    });
+    var epicNames = Object.keys(childrenByParent);
+    var epicsEl = document.getElementById('epics');
+    if(epicNames.length===0){
+      epicsEl.innerHTML = '<p class="muted">「親タスク」が設定された行はまだありません。タスクの「編集」から親タスク名を入力すると、ここに内訳が表示されます。</p>';
+    } else {
+      epicsEl.innerHTML = epicNames.map(function(name, i){
+        var children = childrenByParent[name].slice().sort(function(a,b){
+          var da = parseDate(a['期限']), db = parseDate(b['期限']);
+          if(!da && !db) return 0;
+          if(!da) return 1;
+          if(!db) return -1;
+          return da-db;
+        });
+        var live = children.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
+        var done = live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
+        var active = live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
+        var open = live.length - done - active;
+        var etotal = live.length || 1;
+        var epct = Math.round(done/etotal*100);
+        var summaryRow = rows.filter(function(r){ return r['タスク名']===name; })[0];
+        var epicId = 'epic-'+i;
+        return '<div class="card epic-card" id="'+epicId+'">'+
+          '<div class="epic-header" onclick="this.closest(\'.epic-card\').classList.toggle(\'expanded\')">'+
+            '<span class="epic-arrow">▸</span>'+
+            '<span class="epic-title">'+name+'</span>'+
+            '<span class="person-count">未完了 '+(live.length-done)+'件 / 全'+live.length+'件</span>'+
+          '</div>'+
+          '<div class="person-progress">'+
+            '<div class="ptrack">'+
+              '<div class="progress-seg-done" style="width:'+(done/etotal*100)+'%"></div>'+
+              '<div class="progress-seg-active" style="width:'+(active/etotal*100)+'%"></div>'+
+              '<div class="progress-seg-open" style="width:'+(open/etotal*100)+'%"></div>'+
+            '</div>'+
+            '<div class="ppct">'+epct+'%</div>'+
+          '</div>'+
+          (summaryRow && summaryRow['目的'] ? '<p class="epic-desc">'+summaryRow['目的']+'</p>' : '')+
+          '<div class="epic-hint">タップして内訳を開閉</div>'+
+          '<div class="epic-children">'+children.map(renderTask).join('')+'</div>'+
         '</div>';
       }).join('');
     }
