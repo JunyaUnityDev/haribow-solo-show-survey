@@ -11,9 +11,31 @@ function doGet(e){
       .setTitle('HARIBOW Solo Show Interest Survey')
       .addMetaTag('viewport','width=device-width, initial-scale=1');
   }
+  if(page==='dashboard'){
+    return ContentService.createTextOutput(JSON.stringify(getWbsDashboardData_()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   return HtmlService.createHtmlOutputFromFile('solo_interest')
     .setTitle('HARIBOW単独公演 興味関心アンケート')
     .addMetaTag('viewport','width=device-width, initial-scale=1');
+}
+
+/** ダッシュボード(dashboard.html)向け：WBSシートを丸ごとJSONで返す。
+ *  ヘッダー行(2行目)をキーにして、タスク名(C列)が空の行(セクション見出し・空行)は除外する。 */
+function getWbsDashboardData_(){
+  var sh = soloSs_().getSheetByName('WBS');
+  var lastRow = sh.getLastRow();
+  var lastCol = sh.getLastColumn();
+  var header = sh.getRange(2,1,1,lastCol).getValues()[0];
+  var body = sh.getRange(3,1,lastRow-2,lastCol).getValues();
+  var rows = body
+    .filter(function(r){ return String(r[2]).trim() !== ''; })
+    .map(function(r){
+      var obj = {};
+      header.forEach(function(h,i){ obj[h] = r[i]; });
+      return obj;
+    });
+  return { updatedAt: Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm'), rows: rows };
 }
 
 /** GitHub Pages(静的サイト)からのフォーム送信を受ける口。GAS直URLのアクセスエラーを避けるため、
@@ -38,6 +60,8 @@ function doPost(e){
     else if(payload.survey==='circle'){ submitCircleInterest(payload); }
     else if(payload.survey==='group'){ submitGroupInterest(payload); }
     else if(payload.survey==='stream'){ submitStreamInterest(payload); }
+    else if(payload.survey==='scene_current'){ submitSceneCurrent(payload); }
+    else if(payload.survey==='scene_industry'){ submitSceneIndustry(payload); }
     else { submitSoloInterest(payload); }
     return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
   }catch(err){
@@ -103,6 +127,29 @@ function submitStreamInterest(payload){
     payload.wantWatch||'', payload.watchCount||'', payload.ticketCount||'', payload.price||'', payload.note||''
   ]]);
   sh.getRange(row,10).setValue(ts);
+  return 'ok';
+}
+
+/** 現役生向け「競技シーン意識調査」回答保存(HARIBOW単独公演とは切り離した聞き方・言語化抽出目的) */
+function submitSceneCurrent(payload){
+  var sh = soloSs_().getSheetByName('シーン意識調査_現役生');
+  var row = firstEmptyRowInBlock_(sh, 6, 205);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,8).setValues([[
+    payload.circleName||'', payload.grade||'', payload.q2Explain||'', payload.q3Moment||'',
+    payload.q4AddOne||'', payload.q5Revival||'', payload.q6TellFriend||'', ts
+  ]]);
+  return 'ok';
+}
+
+/** 業界人向け「競技シーン意識調査」回答保存(匿名・氏名収集なし) */
+function submitSceneIndustry(payload){
+  var sh = soloSs_().getSheetByName('シーン意識調査_業界人');
+  var row = firstEmptyRowInBlock_(sh, 6, 105);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,4).setValues([[
+    payload.role||'', payload.q2Gap||'', payload.q3RuleChange||'', ts
+  ]]);
   return 'ok';
 }
 
