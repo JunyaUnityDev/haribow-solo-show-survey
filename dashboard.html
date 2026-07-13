@@ -29,7 +29,11 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .deadline-owner{color:var(--faint);font-size:11.5px}
 .deadline-date{white-space:nowrap;font-weight:700;font-size:12.5px}
 .deadline-date.soon{color:var(--warn)}
-.person{margin-bottom:16px}
+.jumpnav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.jumpnav button{font-size:12px;font-weight:700;color:var(--blue);background:#e8f0ff;border:1px solid #cddcfb;border-radius:100px;padding:5px 12px;cursor:pointer;font-family:inherit}
+.jumpnav button.unassigned{color:var(--amber);background:#fdf2df;border-color:#f0dcb8}
+.jumpnav button .n{opacity:.7;font-weight:600;margin-left:2px}
+.person{margin-bottom:16px;scroll-margin-top:14px}
 .person-name{font-size:14.5px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .person-count{font-size:11px;font-weight:700;color:var(--faint);background:#eef3fa;border-radius:10px;padding:2px 9px}
 .task{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
@@ -95,6 +99,7 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <div class="card" id="deadlines"></div>
 
     <h2>担当者別タスク</h2>
+    <div class="jumpnav" id="jumpnav"></div>
     <div id="byPerson"></div>
   </div>
 </div>
@@ -147,6 +152,14 @@ function parseDate(v){
   return isNaN(d.getTime()) ? null : d;
 }
 function fmtDate(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
+function scrollToPerson(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+  el.style.transition = 'box-shadow .2s';
+  el.style.boxShadow = '0 0 0 3px var(--blue)';
+  setTimeout(function(){ el.style.boxShadow = ''; }, 900);
+}
 function toast(msg){
   var t = document.getElementById('toast');
   t.textContent = msg;
@@ -340,6 +353,16 @@ function load(){
       return openB - openA;
     });
     var byPersonEl = document.getElementById('byPerson');
+    var personIds = {};
+    owners.forEach(function(owner, i){ personIds[owner] = 'person-'+i; });
+
+    document.getElementById('jumpnav').innerHTML = owners.map(function(owner){
+      var openCount = byPerson[owner].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+      var isUnassigned = owner==='未定';
+      var label = isUnassigned ? '未定' : owner;
+      return '<button class="'+(isUnassigned?'unassigned':'')+'" onclick="scrollToPerson(\''+personIds[owner]+'\')">'+label+'<span class="n">'+openCount+'</span></button>';
+    }).join('');
+
     byPersonEl.innerHTML = owners.map(function(owner){
       var tasks = byPerson[owner].slice().sort(function(a,b){
         var da = parseDate(a['期限']), db = parseDate(b['期限']);
@@ -352,7 +375,7 @@ function load(){
       var rowsHtml = tasks.map(renderTask).join('');
       var isUnassigned = owner==='未定';
       var label = isUnassigned ? '担当者未定（割り当てが必要）' : owner;
-      return '<div class="card person'+(isUnassigned?' unassigned':'')+'">'+
+      return '<div class="card person'+(isUnassigned?' unassigned':'')+'" id="'+personIds[owner]+'">'+
         '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+tasks.length+'件</span></div>'+
         rowsHtml+
       '</div>';
