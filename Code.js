@@ -37,6 +37,7 @@ function doPost(e){
     else if(payload.survey==='member'){ submitMemberEstimate(payload); }
     else if(payload.survey==='circle'){ submitCircleInterest(payload); }
     else if(payload.survey==='group'){ submitGroupInterest(payload); }
+    else if(payload.survey==='stream'){ submitStreamInterest(payload); }
     else { submitSoloInterest(payload); }
     return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
   }catch(err){
@@ -89,6 +90,19 @@ function submitGroupInterest(payload){
     payload.groupName||'', payload.groupType||'', payload.repName||'', payload.contact||'',
     payload.headcount||'', payload.note||'', ts
   ]]);
+  return 'ok';
+}
+
+/** 全国DDスクール・大学サークルからの配信視聴意向アンケート 回答保存 */
+function submitStreamInterest(payload){
+  var sh = soloSs_().getSheetByName('興味関心_配信全国DD団体');
+  var row = firstEmptyRowInBlock_(sh, 6, 105);
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,9).setValues([[
+    payload.groupName||'', payload.area||'', payload.repName||'', payload.contact||'',
+    payload.wantWatch||'', payload.watchCount||'', payload.ticketCount||'', payload.price||'', payload.note||''
+  ]]);
+  sh.getRange(row,10).setValue(ts);
   return 'ok';
 }
 
