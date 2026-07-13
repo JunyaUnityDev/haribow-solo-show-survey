@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BGT裏側映像 プロジェクト概要</title>
+</head>
+<body>
+
+<style>
+:root {
+  --bg: #0d0d10;
+  --surface: #16161a;
+  --surface-2: #1e1e24;
+  --line: #2a2a32;
+  --text: #ede9e0;
+  --text-dim: #8f8d94;
+  --strong: #ff6a3d;
+  --strong-dim: #7a3524;
+  --weak: #6f8cff;
+  --weak-dim: #33395e;
+  --done: #4ade80;
+  --done-dim: #1f4a30;
+  --progress: #ffb238;
+  --progress-dim: #4a3a1a;
+  --todo: #5a5a64;
+  --todo-dim: #26262c;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+body { padding: 56px 24px 96px; }
+.wrap { max-width: 900px; margin: 0 auto; }
+
+.eyebrow {
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim); margin: 0 0 14px;
+}
+h1 {
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: clamp(28px, 5vw, 40px); font-weight: 600; line-height: 1.3;
+  margin: 0 0 18px; text-wrap: balance; letter-spacing: 0.02em;
+}
+h2 {
+  font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-dim); font-weight: 600; margin: 0 0 16px;
+}
+.lede { font-size: 15px; line-height: 1.85; color: #c9c6bd; max-width: 68ch; margin: 0 0 10px; }
+
+/* principles */
+.principles {
+  margin: 28px 0 0; padding: 18px 20px;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--surface);
+}
+.principles ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.9; color: #c9c6bd; }
+.principles li b { color: var(--text); font-weight: 600; }
+.bench {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 12.5px; color: var(--text-dim); line-height: 1.7;
+}
+.bench a { color: var(--progress); text-decoration: none; border-bottom: 1px solid transparent; }
+.bench a:hover { border-bottom-color: var(--progress); }
+
+/* section spacing */
+section { margin-top: 48px; }
+
+/* status board */
+.board { display: flex; flex-direction: column; gap: 8px; }
+.row {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+  padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+}
+.row-label { font-size: 13.5px; color: var(--text); }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 100px;
+  white-space: nowrap;
+}
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+.pill.done { background: var(--done-dim); color: var(--done); }
+.pill.done::before { background: var(--done); }
+.pill.progress { background: var(--progress-dim); color: var(--progress); }
+.pill.progress::before { background: var(--progress); }
+.pill.todo { background: var(--todo-dim); color: var(--text-dim); }
+.pill.todo::before { background: var(--todo); }
+
+/* link cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.card {
+  display: block; padding: 16px 18px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 4px; text-decoration: none; color: var(--text); transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--text-dim); }
+.card-tag {
+  font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+  color: var(--progress); margin-bottom: 8px; display: block;
+}
+.card-title { font-size: 14px; font-weight: 600; line-height: 1.5; margin-bottom: 6px; }
+.card-desc { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; }
+
+/* decisions */
+.decisions { display: flex; flex-direction: column; gap: 10px; }
+.decision {
+  display: grid; grid-template-columns: 90px 1fr; gap: 16px;
+  padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  font-size: 13px; line-height: 1.7;
+}
+.decision-who {
+  font-size: 11px; letter-spacing: 0.06em; color: var(--weak); font-weight: 600; padding-top: 2px;
+}
+.decision-what { color: #c9c6bd; }
+.decision-what b { color: var(--text); font-weight: 600; }
+
+.foot {
+  margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--text-dim); line-height: 1.8;
+}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">HARIBOW 単独公演 / BGT裏側映像</p>
+  <h1>プロジェクト概要</h1>
+  <p class="lede">BGT出演時の697本の生素材から、観客をファンにするショートドキュメンタリーを作る企画。このページが全体の入口。</p>
+
+  <div class="principles">
+    <ul>
+      <li><b>強さ→弱さの順で見せる。</b>畏怖を見せた直後に人間らしさを見せることで信頼・感情移入が生まれる</li>
+      <li><b>ナレーションは必ず本人の言葉。</b>AIによる代弁はしない</li>
+      <li><b>頻度より濃度。</b>本気の自己開示が少数濃く入っている方が効く</li>
+    </ul>
+    <div class="bench">確定ベンチマーク：avex ROYALBRATS「Dリーグ優勝密着動画」（60分）— <a href="https://www.youtube.com/watch?v=lrU_j_xOWCk" target="_blank" rel="noopener">視聴する</a></div>
+  </div>
+
+  <section>
+    <h2>現状ステータス</h2>
+    <div class="board">
+      <div class="row"><span class="row-label">697本の生素材カタログ化</span><span class="pill done">完了</span></div>
+      <div class="row"><span class="row-label">強さ20本・弱さ22本の候補抜粋</span><span class="pill done">完了</span></div>
+      <div class="row"><span class="row-label">レビュー担当3人の人選（奏＋海野が選ぶ2名）</span><span class="pill todo">未着手</span></div>
+      <div class="row"><span class="row-label">抜粋候補42本の出演者確認・AI解析内容レビュー</span><span class="pill todo">未着手・人選待ち</span></div>
+      <div class="row"><span class="row-label">インタビュー台本</span><span class="pill done">完成</span></div>
+      <div class="row"><span class="row-label">インタビュー実施</span><span class="pill todo">未着手・対象者確定待ち</span></div>
+      <div class="row"><span class="row-label">ベンチマーク調査</span><span class="pill done">完了・確定</span></div>
+      <div class="row"><span class="row-label">音楽の方向性</span><span class="pill progress">提案済み・承認待ち</span></div>
+      <div class="row"><span class="row-label">実編集</span><span class="pill todo">未着手</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>リンク集</h2>
+    <div class="cards">
+      <a class="card" href="https://docs.google.com/spreadsheets/d/11yhcDeoD56KWbxsXgWVoqSyL9k7GfrxiiXpEz_qRzs0/edit" target="_blank" rel="noopener">
+        <span class="card-tag">素材</span>
+        <div class="card-title">697本カタログ＋抜粋候補42本</div>
+        <div class="card-desc">シート1＝全カタログ／抜粋候補＝強さ・弱さ42本＋レビュー欄</div>
+      </a>
+      <a class="card" href="https://docs.google.com/document/d/1hS4-V23AFtauH4wPfO5mPzXCmpZ4HmceJX6LKojQFHs/edit" target="_blank" rel="noopener">
+        <span class="card-tag">資料</span>
+        <div class="card-title">台本・ベンチマーク・音楽提案</div>
+        <div class="card-desc">「7/13会議内容まとめ」Doc内、末尾4セクション</div>
+      </a>
+      <a class="card" href="https://claude.ai/code/artifact/66b65230-1831-455e-aa7a-3ddf905d7c96" target="_blank" rel="noopener">
+        <span class="card-tag">叩き台</span>
+        <div class="card-title">構成叩き台（ストーリーボード）</div>
+        <div class="card-desc">実クリップ5本で強弱の並びを確認</div>
+      </a>
+      <a class="card" href="https://claude.ai/code/artifact/a6a72789-be1d-4a15-9aa5-954ee82216b7" target="_blank" rel="noopener">
+        <span class="card-tag">叩き台</span>
+        <div class="card-title">完成イメージ（タイムライン）</div>
+        <div class="card-desc">尺・音楽ON/OFFの切り替えを可視化</div>
+      </a>
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1qZPr5yUliMlEP-KQT8p31i5R8P5CbcRihkpS2bt3HqM/edit" target="_blank" rel="noopener">
+        <span class="card-tag">進行管理</span>
+        <div class="card-title">WBS（行19・21・22・88・89）</div>
+        <div class="card-desc">単独公演2026 全体WBSタブ内</div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>未決定事項</h2>
+    <div class="decisions">
+      <div class="decision"><span class="decision-who">海野</span><span class="decision-what">レビュー担当3人のうち残り2名を決定（<b>本日中</b>）</span></div>
+      <div class="decision"><span class="decision-who">JUNYA</span><span class="decision-what">音楽方向性の承認 — 弱さパートは無音、強さパートのみSuno生成という提案</span></div>
+      <div class="decision"><span class="decision-who">未定</span><span class="decision-what">インタビュー実施日程 — 抜粋候補レビューで対象者が確定してから設定</span></div>
+      <div class="decision"><span class="decision-who">未定</span><span class="decision-what">実際に使う42本の組み合わせ・尺配分 — インタビュー収録後に決定</span></div>
+    </div>
+  </section>
+
+  <div class="foot">最終更新 2026-07-14。詳細な経緯・根拠は各リンク先を参照。</div>
+</div>
+
+</body>
+</html>
