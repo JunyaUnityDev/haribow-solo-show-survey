@@ -8,6 +8,8 @@ HARIBOW初の単独公演（2026/9/29・めぐろパーシモンホール）に�
 
 - 国内向け（日本語）: https://junyaunitydev.github.io/haribow-solo-show-survey/
 - 海外向け（英語・配信需要調査）: https://junyaunitydev.github.io/haribow-solo-show-survey/en.html
+- 大学DDサークル代表向け（現役生ヒアリング）: https://junyaunitydev.github.io/haribow-solo-show-survey/circle.html
+- 非DD団体向け（学校・企業・ダンス/チアスタジオ・地域団体の団体来場相談）: https://junyaunitydev.github.io/haribow-solo-show-survey/group.html
 
 GASのWebアプリ直URL(`.../exec`)は一部ユーザーでアクセスエラーが多発するため、外部配布は上記のGitHub Pages URLを使う。GAS側の`.../exec`は`doPost`エンドポイントとしてのみ使用（`index.html`/`en.html`が内部で`fetch()`している）。
 
@@ -16,6 +18,8 @@ GASのWebアプリ直URL(`.../exec`)は一部ユーザーでアクセスエラ�
 - `Code.js` — GAS本体。`doGet`は内部確認用（`solo_interest.html`/`solo_interest_en.html`をHtmlServiceで直配信）、`doPost`が本番の受け口（GitHub Pagesの静的サイトから`fetch()`で送られてくるJSONを受けてSheetsに書き込む）
 - `index.html` — **GitHub Pagesで配信される国内向け日本語フォーム本体**（`fetch()`で`doPost`にPOST）
 - `en.html` — **GitHub Pagesで配信される海外向け英語フォーム本体**（同上）
+- `circle.html` — **大学DDサークル代表向けヒアリングフォーム**（同上・survey='circle'）
+- `group.html` — **非DD団体（学校/企業/ダンス・チアスタジオ/地域団体等）向け団体来場相談フォーム**（同上・survey='group'）
 - `solo_interest.html` / `solo_interest_en.html` — GAS直配信版（`google.script.run`使用・内部確認用のフォールバック、外部配布には使わない）
 - `appsscript.json` — マニフェスト（Webアプリとして誰でもアクセス可能に設定）
 - `Config.js` — **リポジトリには含まれません**（`.gitignore`対象）。書き込み先スプレッドシートIDを自分で設定してください

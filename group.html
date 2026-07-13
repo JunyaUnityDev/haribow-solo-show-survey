@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW単独公演 団体でのご来場ご相談</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+h1 b{color:var(--blue)}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+textarea{resize:vertical;min-height:70px}
+select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
+  <h1>団体でのご来場ご相談</h1>
+  <p class="lead">2026年9月29日(火) 19:30開演、めぐろパーシモンホールでHARIBOW初の単独公演を行います。学校・企業・スタジオ・地域団体など、団体でのご来場をご検討中の方はこちらからご相談ください。人数規模に応じた団体割引のご案内も可能です。何度でも送り直せます（後から送ると前の回答が上書きされます）。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
+
+  <div id="form">
+    <div class="card">
+      <label>団体名</label>
+      <input type="text" id="groupName" placeholder="例：〇〇高校ダンス部、〇〇株式会社">
+
+      <label>団体の種別</label>
+      <select id="groupType">
+        <option value="">選択してください</option>
+        <option>学校（部活・授業単位等）</option>
+        <option>企業・法人（研修・イベント等）</option>
+        <option>ダンス・チアスタジオ</option>
+        <option>地域団体・PTA等</option>
+        <option>その他</option>
+      </select>
+
+      <label>ご担当者名</label>
+      <input type="text" id="repName" placeholder="例：山田太郎">
+
+      <label>連絡先（メールまたは電話番号）</label>
+      <input type="text" id="contact" placeholder="例：example@mail.com または 090-xxxx-xxxx">
+
+      <label>想定参加人数（概算でOK）</label>
+      <input type="number" id="headcount" min="0" placeholder="例：20">
+
+      <label>ご要望・ご質問（あれば自由記述）</label>
+      <textarea id="note" placeholder="例：座席をまとめて確保したい、見学のみの下見をしたい等"></textarea>
+    </div>
+    <div class="card">
+      <button class="btn" id="send">送信する</button>
+      <div class="err" id="err">未入力の項目があります。</div>
+      <p class="muted" style="margin:10px 0 0">送信後、担当より折り返しご連絡いたします。</p>
+    </div>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>送信ありがとうございました！</h2>
+    <p class="muted">ご相談を受け付けました。担当より折り返しご連絡いたします。</p>
+  </div>
+</div>
+
+<script>
+var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+
+document.getElementById('send').addEventListener('click',function(){
+  var groupName=document.getElementById('groupName').value.trim();
+  var groupType=document.getElementById('groupType').value;
+  var repName=document.getElementById('repName').value.trim();
+  var contact=document.getElementById('contact').value.trim();
+  var headcount=document.getElementById('headcount').value;
+  var note=document.getElementById('note').value.trim();
+
+  if(!groupName||!groupType||!repName||!contact||!headcount){
+    document.getElementById('err').style.display='block';
+    window.scrollTo(0,document.body.scrollHeight);
+    return;
+  }
+  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
+  fetch(ENDPOINT,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'group',groupName:groupName,groupType:groupType,repName:repName,contact:contact,headcount:headcount,note:note})
+  }).then(function(){
+    document.getElementById('form').style.display='none';
+    document.getElementById('done').style.display='block';
+    window.scrollTo(0,0);
+  }).catch(function(e){
+    btn.disabled=false; btn.textContent='送信する';
+    document.getElementById('err').textContent='送信に失敗しました：'+e+' もう一度お試しください。';
+    document.getElementById('err').style.display='block';
+  });
+});
+</script>
+</body>
+</html>

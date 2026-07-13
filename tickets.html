@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW単独公演 チケット購入</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.showinfo{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:22px;font-size:14px}
+.showinfo dt{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:10px}
+.showinfo dt:first-child{margin-top:0}
+.showinfo dd{margin:2px 0 0}
+.tier{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:4px}
+.tier-name{font-size:15px;font-weight:800}
+.tier-price{font-size:24px;font-weight:800;color:var(--blue)}
+.tier-price small{font-size:13px;font-weight:600;color:var(--faint)}
+.tier-note{font-size:12.5px;color:var(--dim);margin:2px 0 10px}
+.btn{display:block;text-align:center;width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn.soon{background:#c3ccdb;color:#5b6b86;cursor:default;box-shadow:none;pointer-events:none}
+.free{background:#eef3fa;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:14px;font-size:13.5px;color:var(--dim)}
+.free b{color:var(--ink)}
+.muted{color:var(--faint);font-size:12.5px}
+footer{margin-top:24px;font-size:12.5px;color:var(--faint);text-align:center}
+footer a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
+  <h1>HARIBOW単独公演 チケット購入</h1>
+  <p class="lead">世界一のダブルダッチパフォーマンスチーム「HARIBOW」、結成以来初の単独公演。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
+
+  <dl class="showinfo">
+    <dt>日時</dt>
+    <dd>2026年9月29日（火）19:30開演</dd>
+    <dt>会場</dt>
+    <dd>めぐろパーシモンホール 大ホール（目黒区八雲1-1-1・都立大学駅徒歩7分）</dd>
+  </dl>
+
+  <div class="tier">
+    <div class="tier-name">一般</div>
+    <div class="tier-price">¥4,000</div>
+    <p class="tier-note">一般来場者向けチケット</p>
+    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
+  </div>
+
+  <div class="tier">
+    <div class="tier-name">学生（個人）</div>
+    <div class="tier-price">¥2,500</div>
+    <p class="tier-note">学生証提示等が必要です（サークル団体でのお申し込みは下記「団体・サークル券」をご利用ください）</p>
+    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
+  </div>
+
+  <div class="tier">
+    <div class="tier-name">団体・サークル券</div>
+    <div class="tier-price">¥2,000</div>
+    <p class="tier-note">5名以上のまとまったお申し込み限定（大学ダブルダッチサークル等）</p>
+    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
+  </div>
+
+  <div class="tier">
+    <div class="tier-name">子供（小中学生）</div>
+    <div class="tier-price">¥1,500</div>
+    <p class="tier-note">小中学生向けチケット</p>
+    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
+  </div>
+
+  <div class="free">
+    <b>未就学児：無料</b><br>
+    保護者の膝上でのご鑑賞を想定しています。座席が必要な場合は別途チケットのご購入をお願いする場合があります。
+  </div>
+
+  <p class="muted">チケット購入受付は近日公開予定です。公開時期等のお問い合わせは info@haribow.com までお願いします。</p>
+
+  <footer>
+    <a href="https://haribow.com/" target="_blank" rel="noopener">haribow.com</a>
+  </footer>
+</div>
+</body>
+</html>
