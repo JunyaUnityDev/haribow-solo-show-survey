@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW単独公演 進捗ダッシュボード</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--amber:#c07a12;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:22px 16px 80px}
+.logo{height:48px;width:auto;display:block;margin:4px 0 12px}
+h1{font-size:20px;font-weight:800;margin:0 0 4px}
+.updated{color:var(--faint);font-size:12px;margin:0 0 20px}
+h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-left:4px solid var(--blue)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.progress-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.progress-track{flex:1;height:14px;background:#eef3fa;border-radius:7px;overflow:hidden;display:flex}
+.progress-seg-done{background:var(--ok)}
+.progress-seg-active{background:var(--blue)}
+.progress-seg-open{background:#c3ccdb}
+.progress-pct{font-size:20px;font-weight:800;color:var(--blue);white-space:nowrap}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.deadline-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.deadline-row:last-child{border-bottom:none}
+.deadline-task{color:var(--ink);font-weight:600}
+.deadline-owner{color:var(--faint);font-size:11.5px}
+.deadline-date{white-space:nowrap;font-weight:700;font-size:12.5px}
+.deadline-date.soon{color:var(--warn)}
+.person{margin-bottom:16px}
+.person-name{font-size:14.5px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.person-count{font-size:11px;font-weight:700;color:var(--faint);background:#eef3fa;border-radius:10px;padding:2px 9px}
+.task{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.task:last-child{border-bottom:none}
+.task-name{color:var(--ink)}
+.task-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
+.badge{font-size:10.5px;font-weight:700;border-radius:8px;padding:2px 8px;white-space:nowrap}
+.badge-done{background:#e4f6ee;color:var(--ok)}
+.badge-active{background:#e8f0ff;color:var(--blue)}
+.badge-open{background:#f3eadd;color:var(--amber)}
+.task-date{font-size:11px;color:var(--faint)}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);text-align:center;padding:40px 20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
+  <h1>単独公演 進捗ダッシュボード</h1>
+  <p class="updated" id="updated">読み込み中...</p>
+
+  <div id="content">
+    <h2>全体進捗</h2>
+    <div class="card" id="overview"></div>
+
+    <h2>直近の期限</h2>
+    <div class="card" id="deadlines"></div>
+
+    <h2>担当者別タスク</h2>
+    <div id="byPerson"></div>
+  </div>
+</div>
+
+<script>
+var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec?page=dashboard';
+
+function statusClass(status){
+  status = String(status||'');
+  if(status.indexOf('完了')>-1) return 'done';
+  if(status.indexOf('未着手')>-1 || status.indexOf('保留')>-1) return 'open';
+  return 'active'; // 進行中・要承認・判断待ち 等はまとめて「対応中」扱い
+}
+function statusLabel(cls){
+  return cls==='done' ? '完了' : (cls==='open' ? '未着手' : '対応中');
+}
+function parseDate(v){
+  if(!v) return null;
+  var d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDate(d){
+  return (d.getMonth()+1)+'/'+d.getDate();
+}
+
+fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
+  document.getElementById('updated').textContent = '最終更新：'+data.updatedAt+'（WBSシートを毎回読み込んで表示）';
+  var rows = data.rows.filter(function(r){ return r['プロジェクト名']; });
+
+  // ---- 全体進捗 ----
+  var counts = {done:0, active:0, open:0};
+  rows.forEach(function(r){ counts[statusClass(r['ステータス'])]++; });
+  var total = rows.length || 1;
+  var ov = document.getElementById('overview');
+  var pct = Math.round(counts.done/total*100);
+  ov.innerHTML =
+    '<div class="progress-row">'+
+      '<div class="progress-track">'+
+        '<div class="progress-seg-done" style="width:'+(counts.done/total*100)+'%"></div>'+
+        '<div class="progress-seg-active" style="width:'+(counts.active/total*100)+'%"></div>'+
+        '<div class="progress-seg-open" style="width:'+(counts.open/total*100)+'%"></div>'+
+      '</div>'+
+      '<div class="progress-pct">'+pct+'%</div>'+
+    '</div>'+
+    '<div class="legend">'+
+      '<span><span class="dot" style="background:#1a9b66"></span>完了 '+counts.done+'件</span>'+
+      '<span><span class="dot" style="background:#2563eb"></span>対応中 '+counts.active+'件</span>'+
+      '<span><span class="dot" style="background:#c3ccdb"></span>未着手 '+counts.open+'件</span>'+
+      '<span>全'+total+'件中</span>'+
+    '</div>';
+
+  // ---- 直近の期限 ----
+  var now = new Date();
+  var withDeadline = rows
+    .filter(function(r){ return statusClass(r['ステータス'])!=='done'; })
+    .map(function(r){ return {row:r, date:parseDate(r['期限'])}; })
+    .filter(function(x){ return x.date; })
+    .sort(function(a,b){ return a.date - b.date; })
+    .slice(0,8);
+  var dl = document.getElementById('deadlines');
+  if(withDeadline.length===0){
+    dl.innerHTML = '<p class="muted">日付付きの期限は登録されていません。</p>';
+  } else {
+    dl.innerHTML = withDeadline.map(function(x){
+      var days = Math.ceil((x.date - now)/(1000*60*60*24));
+      var soon = days <= 5;
+      return '<div class="deadline-row">'+
+        '<div><div class="deadline-task">'+x.row['タスク名']+'</div>'+
+        '<div class="deadline-owner">'+(x.row['責任者']||'―')+'</div></div>'+
+        '<div class="deadline-date'+(soon?' soon':'')+'">'+fmtDate(x.date)+(days>=0?'（あと'+days+'日）':'（期限超過）')+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ---- 担当者別 ----
+  var byPerson = {};
+  rows.forEach(function(r){
+    var owner = String(r['責任者']||'未定').trim() || '未定';
+    if(!byPerson[owner]) byPerson[owner]=[];
+    byPerson[owner].push(r);
+  });
+  var owners = Object.keys(byPerson).sort(function(a,b){
+    var openA = byPerson[a].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+    var openB = byPerson[b].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+    return openB - openA;
+  });
+  var byPersonEl = document.getElementById('byPerson');
+  byPersonEl.innerHTML = owners.map(function(owner){
+    var tasks = byPerson[owner].slice().sort(function(a,b){
+      var da = parseDate(a['期限']), db = parseDate(b['期限']);
+      if(!da && !db) return 0;
+      if(!da) return 1;
+      if(!db) return -1;
+      return da-db;
+    });
+    var openCount = tasks.filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+    var rowsHtml = tasks.map(function(r){
+      var cls = statusClass(r['ステータス']);
+      var d = parseDate(r['期限']);
+      return '<div class="task">'+
+        '<div class="task-name">'+r['タスク名']+'</div>'+
+        '<div class="task-meta"><span class="badge badge-'+cls+'">'+statusLabel(cls)+'</span>'+
+        (d ? '<span class="task-date">'+fmtDate(d)+'</span>' : '')+
+        '</div></div>';
+    }).join('');
+    return '<div class="card person">'+
+      '<div class="person-name">'+owner+' <span class="person-count">未完了 '+openCount+'件 / 全'+tasks.length+'件</span></div>'+
+      rowsHtml+
+    '</div>';
+  }).join('');
+
+}).catch(function(e){
+  document.getElementById('content').innerHTML = '<div class="err">読み込みに失敗しました：'+e+'</div>';
+});
+</script>
+</body>
+</html>
