@@ -51,11 +51,14 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .task-name .arrow{display:inline-block;color:var(--faint);font-size:11px;margin-right:5px;transition:transform .15s}
 .task.expanded .task-name .arrow{transform:rotate(90deg)}
 .task-meta{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.status-select{font-size:10.5px;font-weight:700;border-radius:8px;padding:2px 6px;border:none;background:#f3eadd;color:var(--amber);font-family:inherit;cursor:pointer;display:inline-block;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
-.status-input{font-size:11px;font-family:inherit;border:1px solid var(--blue);border-radius:6px;padding:2px 6px;width:150px}
+.status-select{font-size:10.5px;font-weight:700;border-radius:8px;padding:2px 6px;border:none;background:#f3eadd;color:var(--amber);font-family:inherit;cursor:pointer;-webkit-appearance:none;appearance:none;max-width:110px}
 .status-select.st-done{background:#e4f6ee;color:var(--ok)}
 .status-select.st-active{background:#e8f0ff;color:var(--blue)}
 .status-select.st-open{background:#f3eadd;color:var(--amber)}
+.status-select.st-hold{background:#efe8fa;color:#7a4fd1}
+.status-select.st-cancel{background:#eef0f3;color:var(--faint)}
+.task-subline{font-size:11.5px;color:var(--dim);margin:2px 0 0;padding-left:1px}
+.task.is-cancel .task-name{color:var(--faint);text-decoration:line-through}
 .task-date{font-size:11px;color:var(--faint);white-space:nowrap}
 .edit-btn{font-size:10.5px;color:var(--faint);background:#eef3fa;border:1px solid var(--line);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:inherit}
 .edit-btn:hover{color:var(--blue);border-color:var(--blue)}
@@ -137,6 +140,8 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <input id="m_期限" type="date">
     <label>関連URL</label>
     <input id="m_関連URL">
+    <label>進捗詳細（補足メモ・数値など）</label>
+    <input id="m_進捗詳細">
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
       <button class="btn-save" onclick="saveModal()">保存</button>
@@ -151,11 +156,21 @@ var ADMIN_SECRET = 'hbw-2026-solo-admin-9f3k2x';
 var OWNER_OPTIONS = ['坂田潤弥','海野鷹幸','周平','卓海'];
 var latestData = null;
 
-function statusClass(status){
-  status = String(status||'');
-  if(status.indexOf('完了')>-1) return 'done';
-  if(status.indexOf('未着手')>-1 || status.indexOf('保留')>-1) return 'open';
-  return 'active';
+var STATUS_OPTIONS = ['未着手','進行中','保留','完了','中止'];
+var STATUS_META = {
+  '未着手': {bucket:'open', cls:'st-open'},
+  '進行中': {bucket:'active', cls:'st-active'},
+  '保留':   {bucket:'open', cls:'st-hold'},
+  '完了':   {bucket:'done', cls:'st-done'},
+  '中止':   {bucket:'excluded', cls:'st-cancel'}
+};
+function statusBucket(status){
+  var m = STATUS_META[String(status||'').trim()];
+  return m ? m.bucket : 'active';
+}
+function statusCls(status){
+  var m = STATUS_META[String(status||'').trim()];
+  return m ? m.cls : 'st-active';
 }
 function parseDate(v){
   if(!v) return null;
@@ -194,20 +209,8 @@ function saveField(rowIndex, field, value, onDone){
     }).catch(function(e){ toast('通信エラー：'+e); });
 }
 
-function onStatusBadgeClick(span, rowIndex, currentVal){
-  var input = document.createElement('input');
-  input.className = 'status-input';
-  input.value = currentVal;
-  input.onclick = function(e){ e.stopPropagation(); };
-  input.onkeydown = function(e){ if(e.key==='Enter') input.blur(); };
-  input.onblur = function(){
-    var val = input.value.trim();
-    if(val !== currentVal){ saveField(rowIndex, 'ステータス', val, function(){ load(); }); }
-    else { load(); }
-  };
-  span.replaceWith(input);
-  input.focus();
-  input.select();
+function onStatusSelectChange(sel, rowIndex){
+  saveField(rowIndex, 'ステータス', sel.value, function(){ load(); });
 }
 function onOwnerChange(input, rowIndex){
   saveField(rowIndex, '責任者', input.value.trim(), function(){ load(); });
@@ -222,6 +225,7 @@ function openModal(r){
   document.getElementById('m_合格基準').value = r['合格基準']||'';
   document.getElementById('m_責任者').value = r['責任者']||'';
   document.getElementById('m_関連URL').value = r['関連URL']||'';
+  document.getElementById('m_進捗詳細').value = r['進捗詳細']||'';
   var d = parseDate(r['期限']);
   document.getElementById('m_期限').value = d ? d.toISOString().slice(0,10) : '';
   document.getElementById('modalBg').classList.add('show');
@@ -236,6 +240,7 @@ function saveModal(){
     '合格基準': document.getElementById('m_合格基準').value.trim(),
     '責任者': document.getElementById('m_責任者').value.trim(),
     '関連URL': document.getElementById('m_関連URL').value.trim(),
+    '進捗詳細': document.getElementById('m_進捗詳細').value.trim(),
     '期限': document.getElementById('m_期限').value
   };
   var row = editingRow;
@@ -262,9 +267,11 @@ function addMemo(btn, rowIndex){
 function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
 function renderStatusSelect(r){
   var cur = r['ステータス']||'未着手';
-  var short = cur.length>14 ? cur.slice(0,14)+'…' : cur;
-  return '<span class="status-select st-'+statusClass(cur)+'" title="クリックして編集：'+esc(cur)+'" '+
-    'onclick="event.stopPropagation();onStatusBadgeClick(this,'+r['_row']+',\''+esc(cur).replace(/'/g,"\\'")+'\')">'+short+'</span>';
+  var opts = STATUS_OPTIONS.map(function(o){
+    return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+o+'</option>';
+  }).join('');
+  return '<select class="status-select '+statusCls(cur)+'" '+
+    'onclick="event.stopPropagation()" onchange="event.stopPropagation();onStatusSelectChange(this,'+r['_row']+')">'+opts+'</select>';
 }
 
 function renderDetail(r){
@@ -273,6 +280,7 @@ function renderDetail(r){
   if(r['成果物']) parts.push('<dt>成果物</dt><dd>'+r['成果物']+'</dd>');
   if(r['合格基準']) parts.push('<dt>合格基準</dt><dd>'+r['合格基準']+'</dd>');
   if(r['タスク属性']) parts.push('<dt>分類</dt><dd>'+r['タスク属性']+'</dd>');
+  if(r['進捗詳細']) parts.push('<dt>進捗詳細</dt><dd>'+r['進捗詳細']+'</dd>');
   parts.push('<dt>責任者</dt><dd><input class="owner-select" list="ownerListInline" value="'+(r['責任者']||'')+'" onclick="event.stopPropagation()" onchange="onOwnerChange(this,'+r['_row']+')" placeholder="未定"></dd>');
   if(r['関連URL']) parts.push('<dt>関連URL</dt><dd><a href="'+r['関連URL']+'" target="_blank" rel="noopener">'+r['関連URL']+'</a></dd>');
 
@@ -291,7 +299,8 @@ function renderDetail(r){
 
 function renderTask(r){
   var d = parseDate(r['期限']);
-  return '<div class="task" id="task-'+r['_row']+'">'+
+  var isCancel = statusBucket(r['ステータス'])==='excluded';
+  return '<div class="task'+(isCancel?' is-cancel':'')+'" id="task-'+r['_row']+'">'+
     '<div class="task-row">'+
       '<div class="task-name" onclick="this.closest(\'.task\').classList.toggle(\'expanded\')"><span class="arrow">▸</span>'+r['タスク名']+'</div>'+
       '<div class="task-meta">'+
@@ -300,6 +309,7 @@ function renderTask(r){
         '<button class="edit-btn" onclick="event.stopPropagation();openModal(window.__rowsByIdx['+r['_row']+'])">編集</button>'+
       '</div>'+
     '</div>'+
+    (r['進捗詳細'] ? '<div class="task-subline">'+r['進捗詳細']+'</div>' : '')+
     renderDetail(r)+
   '</div>';
 }
@@ -312,10 +322,11 @@ function load(){
     window.__rowsByIdx = {};
     rows.forEach(function(r){ window.__rowsByIdx[r['_row']] = r; });
 
-    // ---- 全体進捗 ----
+    // ---- 全体進捗（中止タスクは分母から除外） ----
+    var liveRows = rows.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
     var counts = {done:0, active:0, open:0};
-    rows.forEach(function(r){ counts[statusClass(r['ステータス'])]++; });
-    var total = rows.length || 1;
+    liveRows.forEach(function(r){ counts[statusBucket(r['ステータス'])]++; });
+    var total = liveRows.length || 1;
     var ov = document.getElementById('overview');
     var pct = Math.round(counts.done/total*100);
     ov.innerHTML =
@@ -337,7 +348,7 @@ function load(){
     // ---- 直近の期限（詳細・編集可） ----
     var now = new Date();
     var withDeadline = rows
-      .filter(function(r){ return statusClass(r['ステータス'])!=='done'; })
+      .filter(function(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; })
       .map(function(r){ return {row:r, date:parseDate(r['期限'])}; })
       .filter(function(x){ return x.date; })
       .sort(function(a,b){ return a.date - b.date; })
@@ -372,11 +383,12 @@ function load(){
       if(!byPerson[owner]) byPerson[owner]=[];
       byPerson[owner].push(r);
     });
+    function isOpenTask(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; }
     var owners = Object.keys(byPerson).sort(function(a,b){
       if(a==='未定') return 1;
       if(b==='未定') return -1;
-      var openA = byPerson[a].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
-      var openB = byPerson[b].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+      var openA = byPerson[a].filter(isOpenTask).length;
+      var openB = byPerson[b].filter(isOpenTask).length;
       return openB - openA;
     });
     var byPersonEl = document.getElementById('byPerson');
@@ -384,7 +396,7 @@ function load(){
     owners.forEach(function(owner, i){ personIds[owner] = 'person-'+i; });
 
     document.getElementById('jumpnav').innerHTML = owners.map(function(owner){
-      var openCount = byPerson[owner].filter(function(r){return statusClass(r['ステータス'])!=='done';}).length;
+      var openCount = byPerson[owner].filter(isOpenTask).length;
       var isUnassigned = owner==='未定';
       var label = isUnassigned ? '未定' : owner;
       return '<button class="'+(isUnassigned?'unassigned':'')+'" onclick="scrollToPerson(\''+personIds[owner]+'\')">'+label+'<span class="n">'+openCount+'</span></button>';
@@ -398,14 +410,15 @@ function load(){
         if(!db) return -1;
         return da-db;
       });
-      var pdone = tasks.filter(function(r){return statusClass(r['ステータス'])==='done';}).length;
-      var pactive = tasks.filter(function(r){return statusClass(r['ステータス'])==='active';}).length;
-      var popen = tasks.length - pdone - pactive;
-      var openCount = tasks.length - pdone;
+      var liveTasks = tasks.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
+      var pdone = liveTasks.filter(function(r){return statusBucket(r['ステータス'])==='done';}).length;
+      var pactive = liveTasks.filter(function(r){return statusBucket(r['ステータス'])==='active';}).length;
+      var popen = liveTasks.length - pdone - pactive;
+      var openCount = liveTasks.length - pdone;
       var rowsHtml = tasks.map(renderTask).join('');
       var isUnassigned = owner==='未定';
       var label = isUnassigned ? '担当者未定（割り当てが必要）' : owner;
-      var ptotal = tasks.length || 1;
+      var ptotal = liveTasks.length || 1;
       var ppct = Math.round(pdone/ptotal*100);
       var progressHtml = '<div class="person-progress">'+
         '<div class="ptrack">'+
@@ -416,7 +429,7 @@ function load(){
         '<div class="ppct">'+ppct+'%</div>'+
       '</div>';
       return '<div class="card person'+(isUnassigned?' unassigned':'')+'" id="'+personIds[owner]+'">'+
-        '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+tasks.length+'件</span></div>'+
+        '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+liveTasks.length+'件</span></div>'+
         (isUnassigned ? '' : progressHtml)+
         rowsHtml+
       '</div>';
