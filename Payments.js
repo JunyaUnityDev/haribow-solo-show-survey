@@ -138,15 +138,26 @@ function sumTicketQty_(items){
   }, 0);
 }
 
+/** A列のラベル文字列（前方一致）でB列の値を探す。行の挿入/移動でセル番地がズレても壊れないようにするため、
+ *  集客収支シミュレーターの参照はハードコードした番地(例:'B33')ではなくこの関数経由で行う。 */
+function simLookup_(sheet, labelPrefix){
+  var lastRow = sheet.getLastRow();
+  var data = sheet.getRange(1, 1, lastRow, 2).getValues();
+  for (var i = 0; i < data.length; i++){
+    if (String(data[i][0]).indexOf(labelPrefix) === 0) return data[i][1];
+  }
+  throw new Error('集客収支シミュレーターにラベルが見つかりません: ' + labelPrefix);
+}
+
 /** ダッシュボード「集客・収支」タブ向け：見込み(集客収支シミュレーター)＋実績(注文シート)のサマリーを返す */
 function getBusinessSummary_(){
   var ss = soloSs_();
   var sim = ss.getSheetByName('集客収支シミュレーター');
   var forecast = {
-    totalAttendance: sim.getRange('B33').getValue(),
-    totalIncome:     sim.getRange('B44').getValue(),
-    totalExpense:    sim.getRange('B47').getValue(),
-    profitLoss:      sim.getRange('B48').getValue()
+    totalAttendance: simLookup_(sim, '合計来場人数'),
+    totalIncome:     simLookup_(sim, '合計収入'),
+    totalExpense:    simLookup_(sim, '支出合計'),
+    profitLoss:      simLookup_(sim, '収支(合計収入')
   };
 
   var orderSheet = ss.getSheetByName(PAY_SHEET_NAME.ORDERS);
