@@ -103,6 +103,17 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .modal-actions button{flex:1;border:0;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 .btn-save{background:var(--blue);color:#fff}
 .btn-cancel{background:#eef3fa;color:var(--dim)}
+.tabbar{display:flex;gap:8px;margin:0 0 20px}
+.tab-btn{font-size:13px;font-weight:700;padding:8px 16px;border-radius:100px;border:1px solid var(--line);background:var(--panel);color:var(--dim);cursor:pointer;font-family:inherit}
+.tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+.summary-stat{background:var(--bg);border-radius:10px;padding:12px 14px}
+.summary-stat .label{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.summary-stat .value{font-size:22px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+.summary-stat .value.warn{color:var(--warn)}
+.summary-stat .value.ok{color:var(--ok)}
+.summary-link{display:inline-block;margin-top:12px;font-size:13px;color:var(--blue);font-weight:700;text-decoration:none}
+.summary-link:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -110,6 +121,16 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
   <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
   <h1>単独公演 進捗ダッシュボード</h1>
   <p class="updated" id="updated">読み込み中...</p>
+
+  <div class="tabbar">
+    <button class="tab-btn active" id="tabBtnProgress" onclick="switchTab('progress')">進捗</button>
+    <button class="tab-btn" id="tabBtnBusiness" onclick="switchTab('business')">集客・収支</button>
+  </div>
+
+  <div id="businessTab" style="display:none">
+    <h2>集客・収支サマリー</h2>
+    <div class="card" id="businessSummary"></div>
+  </div>
 
   <div id="content">
     <h2>全体進捗</h2>
@@ -200,6 +221,30 @@ function scrollToPerson(id){
   el.style.boxShadow = '0 0 0 3px var(--blue)';
   setTimeout(function(){ el.style.boxShadow = ''; }, 900);
 }
+function switchTab(tab){
+  document.getElementById('content').style.display = tab==='progress' ? '' : 'none';
+  document.getElementById('businessTab').style.display = tab==='business' ? '' : 'none';
+  document.getElementById('tabBtnProgress').classList.toggle('active', tab==='progress');
+  document.getElementById('tabBtnBusiness').classList.toggle('active', tab==='business');
+}
+
+function renderBusiness(b){
+  var el = document.getElementById('businessSummary');
+  if(!b){ el.innerHTML = '<p class="muted">データを取得できませんでした。</p>'; return; }
+  var f = b.forecast, a = b.actual;
+  var plCls = f.profitLoss>=0 ? 'ok' : 'warn';
+  var plText = (f.profitLoss>=0?'+':'') + Math.round(f.profitLoss).toLocaleString('ja-JP') + '円';
+  el.innerHTML =
+    '<div class="summary-grid">'+
+      '<div class="summary-stat"><div class="label">総動員数見込み</div><div class="value">'+(Math.round(f.totalAttendance*10)/10)+'人</div></div>'+
+      '<div class="summary-stat"><div class="label">収支予想</div><div class="value '+plCls+'">'+plText+'</div></div>'+
+      '<div class="summary-stat"><div class="label">実際の申込み枚数</div><div class="value">'+a.ticketQty+'枚<span style="font-size:12px;font-weight:600;color:var(--faint)">（'+a.orderCount+'件）</span></div></div>'+
+      '<div class="summary-stat"><div class="label">売上合計（申込みベース）</div><div class="value">'+Math.round(a.revenueTotal).toLocaleString('ja-JP')+'円</div></div>'+
+    '</div>'+
+    '<p class="muted">うち入金確認済み：'+Math.round(a.revenueConfirmed).toLocaleString('ja-JP')+'円</p>'+
+    '<a class="summary-link" href="'+b.simulatorUrl+'" target="_blank" rel="noopener">集客収支シミュレーターを開く →</a>';
+}
+
 function toast(msg){
   var t = document.getElementById('toast');
   t.textContent = msg;
@@ -335,6 +380,7 @@ function load(){
   fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
     latestData = data;
     document.getElementById('updated').textContent = '最終更新：'+data.updatedAt+'（ステータス・責任者はここから編集すると即シートに反映されます）';
+    renderBusiness(data.business);
     var rows = data.rows.filter(function(r){ return r['プロジェクト名']; });
     window.__rowsByIdx = {};
     rows.forEach(function(r){ window.__rowsByIdx[r['_row']] = r; });

@@ -41,7 +41,8 @@ function getWbsDashboardData_(){
   return {
     updatedAt: Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm'),
     rows: rows,
-    decisions: getDecisionsData_()
+    decisions: getDecisionsData_(),
+    business: getBusinessSummary_()
   };
 }
 
@@ -393,15 +394,19 @@ function createDraftReplyForThread_(threadId, body, to, subject){
   return '下書き作成(新規): '+to;
 }
 
-/** syncMailToMaster専用の30分おきトリガーを設定する。Gemini等の外部AI呼び出しはこの関数にはない(単純転記のみ)。
- *  一度だけ手動実行すればOK(既存トリガーがあれば重複作成しない)。 */
+/** syncMailToMaster専用のトリガーを、毎日9時・12時・15時の3回に設定する。Gemini等の外部AI呼び出しはこの関数にはない(単純転記のみ)。
+ *  GASエディタから手動実行すること想定(Claude Code経由の自動判定モードでは常時トリガー設置がハードブロック対象のため)。
+ *  既存のsyncMailToMasterトリガーがあれば一度全部削除してから、9/12/15時の3つを作り直す(重複防止)。 */
 function setupSyncMasterTrigger(){
   var existing = ScriptApp.getProjectTriggers().filter(function(t){
     return t.getHandlerFunction()==='syncMailToMaster';
   });
-  if(existing.length>0) return 'already exists';
-  ScriptApp.newTrigger('syncMailToMaster').timeBased().everyMinutes(30).create();
-  return 'created';
+  existing.forEach(function(t){ ScriptApp.deleteTrigger(t); });
+
+  [9, 12, 15].forEach(function(hour){
+    ScriptApp.newTrigger('syncMailToMaster').timeBased().atHour(hour).everyDays(1).inTimezone('Asia/Tokyo').create();
+  });
+  return 'created: 9,12,15時(Asia/Tokyo)の1日3回トリガーを設置(既存分は削除して作り直し)';
 }
 
 /** syncMailToMaster向けの既存トリガーを確認し、あれば削除する(常時自動化はしない方針のため)。 */

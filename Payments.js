@@ -11,9 +11,9 @@ const PAY_SHEET_NAME = { ORDERS: '注文', SETTINGS: '決済設定' };
 const COL_ORDER = {
   NO: 1, TIMESTAMP: 2, TYPE: 3, NAME: 4, CONTACT: 5, BREAKDOWN: 6,
   TOTAL: 7, METHOD: 8, DEADLINE: 9, STATUS: 10,
-  CONFIRM_SENT: 11, REMINDER_SENT: 12, OVERDUE_SENT: 13, NOTES: 14
+  CONFIRM_SENT: 11, REMINDER_SENT: 12, OVERDUE_SENT: 13, NOTES: 14, QTY: 15
 };
-const ORDER_LAST_COL = COL_ORDER.NOTES;
+const ORDER_LAST_COL = COL_ORDER.QTY;
 
 // 決済設定シートの行定義（1-based）— A列ラベル・B列値
 const PAY_SETTINGS_ROW = {
@@ -77,6 +77,7 @@ function submitTicketOrder(payload){
   var breakdown = items.map(function(it){
     return it.label + '×' + it.qty + '(¥' + Number(it.price).toLocaleString() + ')';
   }).join('、');
+  var qty = sumTicketQty_(items);
 
   var settings = getPaySettings_();
   var now = new Date();
@@ -89,7 +90,7 @@ function submitTicketOrder(payload){
     writeOrderRow_({
       type: orderType, name: name, contact: contact, breakdown: breakdown,
       total: total, method: 'Square', deadline: '', status: '未',
-      timestamp: now, confirmSent: now
+      timestamp: now, confirmSent: now, qty: qty
     });
     return { ok:true, method:'square', url: link };
   }
@@ -99,7 +100,7 @@ function submitTicketOrder(payload){
   var rowNum = writeOrderRow_({
     type: orderType, name: name, contact: contact, breakdown: breakdown,
     total: total, method: '振込', deadline: deadline, status: '未',
-    timestamp: now, confirmSent: null
+    timestamp: now, confirmSent: null, qty: qty
   });
   sendBankConfirmation_({
     rowNum: rowNum, name: name, contact: contact, breakdown: breakdown,
@@ -125,8 +126,49 @@ function writeOrderRow_(o){
   row[COL_ORDER.DEADLINE-1]  = o.deadline||'';
   row[COL_ORDER.STATUS-1]    = o.status;
   row[COL_ORDER.CONFIRM_SENT-1] = o.confirmSent||'';
+  row[COL_ORDER.QTY-1]       = o.qty||0;
   sh.getRange(nextRow,1,1,ORDER_LAST_COL).setValues([row]);
   return nextRow;
+}
+
+/** 応援金(ドネーション)を除いた、実際のチケット枚数の合計を返す */
+function sumTicketQty_(items){
+  return items.reduce(function(sum, it){
+    return it.label==='応援金' ? sum : sum + Number(it.qty||0);
+  }, 0);
+}
+
+/** ダッシュボード「集客・収支」タブ向け：見込み(集客収支シミュレーター)＋実績(注文シート)のサマリーを返す */
+function getBusinessSummary_(){
+  var ss = soloSs_();
+  var sim = ss.getSheetByName('集客収支シミュレーター');
+  var forecast = {
+    totalAttendance: sim.getRange('B33').getValue(),
+    totalIncome:     sim.getRange('B44').getValue(),
+    totalExpense:    sim.getRange('B47').getValue(),
+    profitLoss:      sim.getRange('B48').getValue()
+  };
+
+  var orderSheet = ss.getSheetByName(PAY_SHEET_NAME.ORDERS);
+  var lastRow = orderSheet.getLastRow();
+  var actual = { orderCount: 0, ticketQty: 0, revenueTotal: 0, revenueConfirmed: 0 };
+  if (lastRow > 1){
+    var data = orderSheet.getRange(2, 1, lastRow - 1, ORDER_LAST_COL).getValues();
+    data.forEach(function(r){
+      if (String(r[COL_ORDER.NAME - 1] || '').trim() === '') return;
+      actual.orderCount++;
+      actual.ticketQty += Number(r[COL_ORDER.QTY - 1]) || 0;
+      var total = Number(r[COL_ORDER.TOTAL - 1]) || 0;
+      actual.revenueTotal += total;
+      if (r[COL_ORDER.STATUS - 1] === '済') actual.revenueConfirmed += total;
+    });
+  }
+
+  return {
+    simulatorUrl: 'https://docs.google.com/spreadsheets/d/' + SOLO_SS_ID + '/edit#gid=1025959564',
+    forecast: forecast,
+    actual: actual
+  };
 }
 
 /** ------------------------------------------------------------
