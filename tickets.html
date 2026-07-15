@@ -5,82 +5,344 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HARIBOW単独公演 チケット購入</title>
 <style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+:root{--bg:#f5f8fd;--panel:#ffffff;--panel-2:#eef3fa;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--blue-soft:#e8effd;--ok:#1a9b66;--ok-soft:#e5f5ee;--gold:#8a6110;--gold-soft:#faf1de;--gold-line:#e6d3a3;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10);--shadow-sm:0 2px 8px rgba(20,42,82,.07)}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 132px}
 .logo{height:54px;width:auto;display:block;margin:4px 0 12px}
 h1{font-size:20px;font-weight:800;margin:0 0 6px}
 .lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
-.showinfo{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:22px;font-size:14px}
-.showinfo dt{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:10px}
-.showinfo dt:first-child{margin-top:0}
-.showinfo dd{margin:2px 0 0}
-.tier{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px;display:flex;flex-direction:column;gap:4px}
-.tier-name{font-size:15px;font-weight:800}
-.tier-price{font-size:24px;font-weight:800;color:var(--blue)}
-.tier-price small{font-size:13px;font-weight:600;color:var(--faint)}
-.tier-note{font-size:12.5px;color:var(--dim);margin:2px 0 10px}
-.btn{display:block;text-align:center;width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
-.btn.soon{background:#c3ccdb;color:#5b6b86;cursor:default;box-shadow:none;pointer-events:none}
-.free{background:#eef3fa;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:14px;font-size:13.5px;color:var(--dim)}
-.free b{color:var(--ink)}
+
+.showinfo{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;font-size:14px;display:flex;gap:26px}
+.showinfo dt{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:0}
+.showinfo dd{margin:2px 0 0;font-weight:700}
+
+.period-bar{display:flex;align-items:center;gap:8px;background:var(--blue-soft);border:1px solid #c7d7fb;border-radius:11px;padding:10px 14px;margin-bottom:20px;font-size:12.5px;font-weight:700;color:var(--blue)}
+.period-bar .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex:none}
+
+h2.block-title{font-size:12px;font-weight:800;color:var(--faint);text-transform:uppercase;letter-spacing:.09em;margin:0 0 10px;padding:0 2px}
+
+.cart{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.row{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center}
+.row .name{font-size:15px;font-weight:700;grid-column:1;grid-row:1}
+.row .price{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;grid-column:2;grid-row:1;justify-self:end;white-space:nowrap}
+.row .price.free{color:var(--ok)}
+.row .note{grid-column:1;grid-row:2;font-size:12px;color:var(--dim);margin:0}
+.row .note .badge{display:inline-block;background:var(--ok-soft);color:var(--ok);font-weight:700;border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px;font-variant-numeric:tabular-nums}
+.row .note .badge.gold{background:var(--gold-soft);color:var(--gold)}
+.row .stepper{grid-column:2;grid-row:2;justify-self:end;display:flex;align-items:center;gap:10px}
+.stepper button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font-size:16px;font-weight:700;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.stepper button:hover{border-color:var(--blue)}
+.stepper button:disabled{opacity:.35;cursor:default}
+.stepper .qty{min-width:16px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;font-size:14.5px}
+
+.row.premium{border-color:var(--gold-line);background:linear-gradient(180deg,var(--gold-soft),var(--panel) 60%)}
+.row.premium .price{color:var(--gold)}
+
+.free-note{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:14px 0 22px;font-size:12.5px;color:var(--dim)}
+.free-note b{color:var(--ink)}
+
+.group-cta{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);padding:15px 16px;margin-bottom:22px}
+.group-cta .gtitle{font-size:13px;font-weight:700;margin:0 0 8px}
+.group-cta a{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--blue);font-weight:700;text-decoration:none;font-size:13px;padding:8px 0;border-top:1px solid var(--line)}
+.group-cta a:first-of-type{border-top:0;padding-top:0}
+.group-cta a:hover{text-decoration:underline}
+
+.section-divider{margin:8px 0 10px;padding:0 2px}
+.section-divider .label{display:inline-block;font-size:12px;font-weight:800;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:999px;padding:3px 11px;margin-bottom:7px}
+.section-divider p{margin:0;font-size:12px;color:var(--dim)}
+
+.donation{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);padding:15px 16px;margin-top:14px}
+.donation .name{font-size:14px;font-weight:700;margin-bottom:2px}
+.donation .note{font-size:12px;color:var(--dim);margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip-custom{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel-2);border-radius:999px;padding:5px 12px 5px 13px}
+.chip-custom span{font-size:12.5px;color:var(--dim)}
+.chip-custom input{width:70px;border:0;background:transparent;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.chip-custom input:focus{outline:none}
+.chip-custom input::placeholder{color:var(--faint);font-weight:400}
+
 .muted{color:var(--faint);font-size:12.5px}
 footer{margin-top:24px;font-size:12.5px;color:var(--faint);text-align:center}
 footer a{color:var(--blue)}
+
+.summary-bar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(20,42,82,.12);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.summary-inner{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.summary-total{flex:1;min-width:0}
+.summary-total .count{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.03em}
+.summary-total .amount{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--ink)}
+.summary-cta{flex:none;background:var(--faint);color:#fff;border:0;border-radius:11px;padding:13px 20px;font-size:14px;font-weight:800;font-family:inherit;cursor:default;white-space:nowrap}
+.summary-cta.active{background:var(--blue);box-shadow:0 4px 16px rgba(37,99,235,.28)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
-  <h1>HARIBOW単独公演 チケット購入</h1>
-  <p class="lead">世界一のダブルダッチパフォーマンスチーム「HARIBOW」、結成以来初の単独公演。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
+  <h1>チケットを選ぶ</h1>
+  <p class="lead">世界一のダブルダッチパフォーマンスチーム「HARIBOW」、結成以来初の単独公演。当てはまる区分の枚数を選ぶと、合計金額が自動で決まります。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
 
   <dl class="showinfo">
-    <dt>日時</dt>
-    <dd>2026年9月29日（火）19:30開演</dd>
-    <dt>会場</dt>
-    <dd>めぐろパーシモンホール 大ホール（目黒区八雲1-1-1・都立大学駅徒歩7分）</dd>
+    <div><dt>日時</dt><dd>2026年9月29日（火）19:30開演</dd></div>
+    <div><dt>会場</dt><dd>めぐろパーシモンホール 大ホール</dd></div>
   </dl>
 
-  <div class="tier">
-    <div class="tier-name">一般</div>
-    <div class="tier-price">¥4,000</div>
-    <p class="tier-note">一般来場者向けチケット</p>
-    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
+  <div class="period-bar"><span class="dot" aria-hidden="true"></span><span id="period-label"></span></div>
+
+  <h2 class="block-title">チケットを選ぶ</h2>
+  <div class="cart" id="base-cart"></div>
+
+  <div class="free-note"><b>未就学児：無料</b>　保護者の膝上でのご鑑賞を想定しています。座席が必要な場合は別途チケットのご購入をお願いする場合があります。</div>
+
+  <div class="group-cta">
+    <p class="gtitle">5名以上でまとめてお申込みの方へ</p>
+    <a href="circle.html">大学ダブルダッチサークルの方（サークル代表ヒアリング） →</a>
+    <a href="group.html">その他5名以上のグループの方（団体でのご来場ご相談） →</a>
   </div>
 
-  <div class="tier">
-    <div class="tier-name">学生（個人）</div>
-    <div class="tier-price">¥2,500</div>
-    <p class="tier-note">学生証提示等が必要です（サークル団体でのお申し込みは下記「団体・サークル券」をご利用ください）</p>
-    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
+  <div class="section-divider">
+    <span class="label">特典付きのチケット</span>
+    <p>一般・大学生チケットの「代わりに」選ぶ上位グレードです。追加ではないので、同じ方の分を一般と両方選ばないようご注意ください。</p>
+  </div>
+  <div class="cart" id="support-cart"></div>
+
+  <div class="donation">
+    <div class="name">応援金を追加する（任意）</div>
+    <p class="note">チケットの購入枚数とは関係なく、気持ちとして上乗せできます。特典はありません。</p>
+    <div class="chips" id="donation-chips" role="group" aria-label="上乗せ支援額を選ぶ"></div>
   </div>
 
-  <div class="tier">
-    <div class="tier-name">団体・サークル券</div>
-    <div class="tier-price">¥2,000</div>
-    <p class="tier-note">5名以上のまとまったお申し込み限定（大学ダブルダッチサークル等）</p>
-    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
-  </div>
-
-  <div class="tier">
-    <div class="tier-name">子供（小中学生）</div>
-    <div class="tier-price">¥1,500</div>
-    <p class="tier-note">小中学生向けチケット</p>
-    <a class="btn soon" href="#" aria-disabled="true">近日公開</a>
-  </div>
-
-  <div class="free">
-    <b>未就学児：無料</b><br>
-    保護者の膝上でのご鑑賞を想定しています。座席が必要な場合は別途チケットのご購入をお願いする場合があります。
-  </div>
-
-  <p class="muted">チケット購入受付は近日公開予定です。公開時期等のお問い合わせは info@haribow.com までお願いします。</p>
+  <p class="muted" style="margin-top:20px">チケット購入受付は近日公開予定です。公開時期等のお問い合わせは info@haribow.com までお願いします。</p>
 
   <footer>
     <a href="https://haribow.com/" target="_blank" rel="noopener">haribow.com</a>
   </footer>
 </div>
+
+<div class="summary-bar">
+  <div class="summary-inner">
+    <div class="summary-total">
+      <div class="count" id="summary-count">0枚選択中</div>
+      <div class="amount" id="summary-amount">¥0</div>
+    </div>
+    <button class="summary-cta" id="summary-cta" type="button" disabled>近日公開</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // 前売終了日が決まったら 'YYYY-MM-DD' で設定する。未定の間は前売価格を表示。
+  var PRESALE_END_DATE = null;
+
+  var PRICE = {
+    presale: { general: 3500, main: 4500 },
+    regular: { general: 4000, main: 5000 }
+  };
+  var SUPPORTER_PRICE = 15000;
+
+  function isPresale(){
+    if (!PRESALE_END_DATE) return true;
+    var end = new Date(PRESALE_END_DATE + "T23:59:59+09:00");
+    return new Date() <= end;
+  }
+
+  var state = {
+    period: isPresale() ? "presale" : "regular",
+    qty: { general: 0, student: 0, highschool: 0, child: 0, preschool: 0, main: 0, supporter: 0 },
+    donation: 0,
+    donationCustom: ""
+  };
+
+  var periodLabelEl = document.getElementById("period-label");
+  periodLabelEl.textContent = PRESALE_END_DATE
+    ? (state.period === "presale" ? "只今 前売期間中（〜" + PRESALE_END_DATE.replace(/-/g, "/") + "）" : "只今 通常期間中")
+    : "前売価格を表示中（前売終了日は決まり次第お知らせします）";
+
+  function yen(n){ return "¥" + n.toLocaleString("ja-JP"); }
+
+  function currentPrices(){
+    var p = PRICE[state.period];
+    return {
+      general: p.general,
+      student: p.general - 1000,
+      highschool: p.general,
+      child: p.general,
+      preschool: 0,
+      main: p.main,
+      supporter: SUPPORTER_PRICE
+    };
+  }
+
+  var BASE_ROWS = [
+    { key: "general",    name: "一般" },
+    { key: "student",    name: "大学生（学生証をお持ちの方）", badge: "-1,000円" },
+    { key: "highschool", name: "高校生",   note: "一般と同額です（割引はありません）" },
+    { key: "child",      name: "小中学生", note: "一般と同額です（割引はありません）" },
+    { key: "preschool",  name: "未就学児", free: true }
+  ];
+
+  var SUPPORT_ROWS = [
+    { key: "main",      name: "メインチケット", note: "限定オリジナルグッズ＋前方ゾーン指定席", badge: "一般の代わり", premium: true },
+    { key: "supporter", name: "サポーター券",   note: "前方ゾーン確保席・当日パンフレットへ名前掲載・終演後の記念撮影枠", badge: "一般の代わり", premium: true }
+  ];
+
+  var DONATION_STEPS = [500, 1000, 3000];
+
+  function buildRow(row, isPremium){
+    var wrap = document.createElement("div");
+    wrap.className = "row" + (isPremium ? " premium" : "");
+    wrap.dataset.key = row.key;
+
+    var name = document.createElement("div");
+    name.className = "name";
+    name.textContent = row.name;
+
+    var price = document.createElement("div");
+    price.className = "price" + (row.free ? " free" : "");
+
+    var note = document.createElement("p");
+    note.className = "note";
+    if (row.badge){
+      var b = document.createElement("span");
+      b.className = "badge" + (isPremium ? " gold" : "");
+      b.textContent = row.badge;
+      note.appendChild(b);
+    }
+    note.appendChild(document.createTextNode(row.note || (row.free ? "保護者の膝上でのご鑑賞を想定" : "")));
+
+    var stepper = document.createElement("div");
+    stepper.className = "stepper";
+
+    var minus = document.createElement("button");
+    minus.type = "button";
+    minus.textContent = "−";
+    minus.setAttribute("aria-label", row.name + "を減らす");
+
+    var qty = document.createElement("span");
+    qty.className = "qty";
+    qty.textContent = "0";
+
+    var plus = document.createElement("button");
+    plus.type = "button";
+    plus.textContent = "+";
+    plus.setAttribute("aria-label", row.name + "を増やす");
+
+    minus.addEventListener("click", function(){ changeQty(row.key, -1); });
+    plus.addEventListener("click", function(){ changeQty(row.key, 1); });
+
+    stepper.appendChild(minus);
+    stepper.appendChild(qty);
+    stepper.appendChild(plus);
+
+    wrap.appendChild(name);
+    wrap.appendChild(price);
+    wrap.appendChild(note);
+    wrap.appendChild(stepper);
+
+    return { wrap: wrap, priceEl: price, qtyEl: qty, minusEl: minus };
+  }
+
+  var rowRefs = {};
+
+  function mountRows(rows, containerId){
+    var container = document.getElementById(containerId);
+    rows.forEach(function(row){
+      var built = buildRow(row, !!row.premium);
+      container.appendChild(built.wrap);
+      rowRefs[row.key] = { ref: built, free: !!row.free };
+    });
+  }
+
+  mountRows(BASE_ROWS, "base-cart");
+  mountRows(SUPPORT_ROWS, "support-cart");
+
+  function changeQty(key, delta){
+    var next = state.qty[key] + delta;
+    if (next < 0) next = 0;
+    if (next > 20) next = 20;
+    state.qty[key] = next;
+    render();
+  }
+
+  var chipContainer = document.getElementById("donation-chips");
+  DONATION_STEPS.forEach(function(amount){
+    var chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = "+" + yen(amount);
+    chip.setAttribute("aria-pressed", "false");
+    chip.dataset.amount = amount;
+    chip.addEventListener("click", function(){
+      state.donation = (state.donation === amount) ? 0 : amount;
+      state.donationCustom = "";
+      render();
+    });
+    chipContainer.appendChild(chip);
+  });
+
+  var customWrap = document.createElement("label");
+  customWrap.className = "chip-custom";
+  var customSpan = document.createElement("span");
+  customSpan.textContent = "自由";
+  var customInput = document.createElement("input");
+  customInput.type = "number";
+  customInput.min = "0";
+  customInput.step = "100";
+  customInput.placeholder = "円";
+  customInput.setAttribute("aria-label", "上乗せ支援額を自由入力");
+  customInput.addEventListener("input", function(){
+    var v = parseInt(customInput.value, 10);
+    state.donationCustom = customInput.value;
+    state.donation = isNaN(v) || v < 0 ? 0 : v;
+    render(true);
+  });
+  customWrap.appendChild(customSpan);
+  customWrap.appendChild(customInput);
+  chipContainer.appendChild(customWrap);
+
+  function render(skipCustomSync){
+    var prices = currentPrices();
+    var totalYen = 0;
+    var totalCount = 0;
+
+    BASE_ROWS.concat(SUPPORT_ROWS).forEach(function(row){
+      var entry = rowRefs[row.key];
+      var price = prices[row.key];
+      var qty = state.qty[row.key];
+      entry.ref.priceEl.textContent = price === 0 ? "無料" : yen(price);
+      entry.ref.qtyEl.textContent = qty;
+      entry.ref.minusEl.disabled = qty === 0;
+      totalYen += price * qty;
+      totalCount += qty;
+    });
+
+    Array.prototype.forEach.call(chipContainer.querySelectorAll(".chip"), function(chip){
+      var amount = parseInt(chip.dataset.amount, 10);
+      chip.setAttribute("aria-pressed", String(state.donation === amount));
+    });
+    if (!skipCustomSync) { customInput.value = state.donationCustom; }
+
+    totalYen += state.donation;
+
+    document.getElementById("summary-count").textContent =
+      totalCount + "枚選択中（" + totalCount + "人分）" + (state.donation > 0 ? "・応援金あり" : "");
+    document.getElementById("summary-amount").textContent = yen(totalYen);
+
+    var cta = document.getElementById("summary-cta");
+    if (totalCount > 0 || state.donation > 0){
+      cta.classList.add("active");
+      cta.textContent = "近日公開";
+    } else {
+      cta.classList.remove("active");
+      cta.textContent = "近日公開";
+    }
+  }
+
+  render();
+})();
+</script>
 </body>
 </html>
