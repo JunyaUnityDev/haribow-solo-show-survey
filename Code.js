@@ -137,6 +137,7 @@ function doPost(e){
     else if(payload.survey==='member'){ submitMemberEstimate(payload); }
     else if(payload.survey==='circle'){ submitCircleInterest(payload); }
     else if(payload.survey==='group'){ submitGroupInterest(payload); }
+    else if(payload.survey==='groupticket'){ submitGroupTicketReservation(payload); }
     else if(payload.survey==='stream'){ submitStreamInterest(payload); }
     else if(payload.survey==='scene_current'){ submitSceneCurrent(payload); }
     else if(payload.survey==='scene_industry'){ submitSceneIndustry(payload); }
@@ -191,6 +192,25 @@ function submitGroupInterest(payload){
   sh.getRange(row,1,1,7).setValues([[
     payload.groupName||'', payload.groupType||'', payload.repName||'', payload.contact||'',
     payload.headcount||'', payload.note||'', ts
+  ]]);
+  return 'ok';
+}
+
+/** 団体予約(5名以上・大学DDサークル¥2,000/その他団体¥3,000)。ヒアリング系(circle/group)と違い
+ *  上書きせず追記していく実予約ログ。単価はpayload.groupType(circle/other)からサーバ側で決定し、
+ *  クライアント側の改ざんを許さない。ADR-003の団体券価格・ADR-004の予約フォーム設計に対応。 */
+function submitGroupTicketReservation(payload){
+  var sh = soloSs_().getSheetByName('団体予約');
+  var row = sh.getLastRow()+1;
+  var headcount = Number(payload.headcount)||0;
+  var unitPrice = payload.groupType==='circle' ? 2000 : 3000;
+  var total = unitPrice*headcount;
+  var ts = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+  sh.getRange(row,1,1,9).setValues([[
+    ts, payload.groupName||'',
+    payload.groupType==='circle' ? '大学ダブルダッチサークル' : 'その他の団体',
+    payload.repName||'', payload.contact||'', headcount, unitPrice, total,
+    '予約受付（決済案内待ち）'
   ]]);
   return 'ok';
 }

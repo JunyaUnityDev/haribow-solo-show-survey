@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARIBOW単独公演 団体予約</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--panel-2:#eef3fa;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--ok-soft:#e5f5ee;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+select,input{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+select:last-child,input:last-child{margin-bottom:0}
+.type-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.type-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:var(--panel-2);border-radius:10px;padding:11px 13px;cursor:pointer}
+.type-row input{width:auto;margin:0}
+.type-row .t{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.type-row .p{font-size:13px;font-weight:800;color:var(--blue);white-space:nowrap}
+.type-row.active{border-color:var(--blue);background:#eef3fd}
+.hint{font-size:12px;color:var(--faint);margin:-10px 0 14px}
+.total-card{background:var(--ok-soft);border:1px solid #bfe4d2;border-radius:14px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.total-card .label{font-size:12.5px;color:var(--dim);font-weight:700}
+.total-card .amount{font-size:24px;font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.muted{color:var(--faint);font-size:12.5px}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+.done .amount{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
+  <h1>団体予約</h1>
+  <p class="lead">2026年9月29日（火）19:30開演、めぐろパーシモンホールでHARIBOW初の単独公演を行います。5名以上でまとめてお申込みの方は、こちらから人数分の座席を予約できます。決済方法はご予約後、連絡先へ個別にご案内します。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
+
+  <div id="form">
+    <div class="card">
+      <label>団体名</label>
+      <input type="text" id="groupName" placeholder="例：〇〇大学ダブルダッチサークル、〇〇高校ダンス部">
+
+      <label>団体の種別</label>
+      <div class="type-group" id="typeGroup">
+        <label class="type-row" data-type="circle">
+          <span class="t"><input type="radio" name="groupType" value="circle">大学ダブルダッチサークル</span>
+          <span class="p">¥2,000／人</span>
+        </label>
+        <label class="type-row" data-type="other">
+          <span class="t"><input type="radio" name="groupType" value="other">その他の団体（学校・企業・スタジオ等）</span>
+          <span class="p">¥3,000／人</span>
+        </label>
+      </div>
+
+      <label>代表者名</label>
+      <input type="text" id="repName" placeholder="例：山田太郎">
+
+      <label>連絡先（LINE・電話番号・メールいずれか）</label>
+      <input type="text" id="contact" placeholder="例：LINE ID または電話番号">
+
+      <label>予約人数</label>
+      <input type="number" id="headcount" min="5" placeholder="例：15">
+      <p class="hint">団体予約は5名以上が対象です。4名以下の場合は個別にチケットをお選びください。</p>
+    </div>
+
+    <div class="total-card">
+      <span class="label" id="totalLabel">団体種別と人数を入力してください</span>
+      <span class="amount" id="totalAmount">¥0</span>
+    </div>
+
+    <div class="card">
+      <button class="btn" id="send">この内容で予約する</button>
+      <div class="err" id="err">未入力の項目があるか、人数が5名未満です。</div>
+      <p class="muted" style="margin:10px 0 0">送信後、決済方法について連絡先へご案内します。内容の変更はinfo@haribow.comまでご連絡ください。</p>
+    </div>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>予約を受け付けました！</h2>
+    <div class="amount" id="doneAmount"></div>
+    <p class="muted">決済方法は、追ってご連絡先へご案内します。</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+  var UNIT_PRICE = { circle: 2000, other: 3000 };
+
+  function yen(n){ return "¥" + n.toLocaleString("ja-JP"); }
+
+  var typeRows = Array.prototype.slice.call(document.querySelectorAll('.type-row'));
+  typeRows.forEach(function(row){
+    row.addEventListener('click', function(){
+      row.querySelector('input[type=radio]').checked = true;
+      updateTotal();
+    });
+  });
+  document.getElementById('headcount').addEventListener('input', updateTotal);
+
+  function selectedType(){
+    var checked = document.querySelector('input[name=groupType]:checked');
+    return checked ? checked.value : '';
+  }
+
+  function updateTotal(){
+    typeRows.forEach(function(row){
+      row.classList.toggle('active', row.querySelector('input').checked);
+    });
+    var type = selectedType();
+    var headcount = parseInt(document.getElementById('headcount').value, 10) || 0;
+    var label = document.getElementById('totalLabel');
+    var amount = document.getElementById('totalAmount');
+    if (!type){
+      label.textContent = '団体種別と人数を入力してください';
+      amount.textContent = yen(0);
+      return;
+    }
+    var unit = UNIT_PRICE[type];
+    var total = unit * headcount;
+    label.textContent = yen(unit) + '／人 × ' + headcount + '名';
+    amount.textContent = yen(total);
+  }
+
+  document.getElementById('send').addEventListener('click', function(){
+    var groupName = document.getElementById('groupName').value.trim();
+    var groupType = selectedType();
+    var repName = document.getElementById('repName').value.trim();
+    var contact = document.getElementById('contact').value.trim();
+    var headcount = parseInt(document.getElementById('headcount').value, 10) || 0;
+
+    if (!groupName || !groupType || !repName || !contact || headcount < 5){
+      document.getElementById('err').style.display = 'block';
+      window.scrollTo(0, document.body.scrollHeight);
+      return;
+    }
+    var total = UNIT_PRICE[groupType] * headcount;
+    var btn = document.getElementById('send');
+    btn.disabled = true;
+    btn.textContent = '送信中…';
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ survey: 'groupticket', groupName: groupName, groupType: groupType, repName: repName, contact: contact, headcount: headcount })
+    }).then(function(){
+      document.getElementById('doneAmount').textContent = '合計 ' + yen(total) + '（' + headcount + '名分）';
+      document.getElementById('form').style.display = 'none';
+      document.getElementById('done').style.display = 'block';
+      window.scrollTo(0, 0);
+    }).catch(function(e){
+      btn.disabled = false;
+      btn.textContent = 'この内容で予約する';
+      document.getElementById('err').textContent = '送信に失敗しました：' + e + ' もう一度お試しください。';
+      document.getElementById('err').style.display = 'block';
+    });
+  });
+
+  updateTotal();
+})();
+</script>
+</body>
+</html>
