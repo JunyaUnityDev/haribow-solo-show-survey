@@ -74,7 +74,22 @@ footer a{color:var(--blue)}
 .summary-total .count{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.03em}
 .summary-total .amount{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--ink)}
 .summary-cta{flex:none;background:var(--faint);color:#fff;border:0;border-radius:11px;padding:13px 20px;font-size:14px;font-weight:800;font-family:inherit;cursor:default;white-space:nowrap}
-.summary-cta.active{background:var(--blue);box-shadow:0 4px 16px rgba(37,99,235,.28)}
+.summary-cta.active{background:var(--blue);box-shadow:0 4px 16px rgba(37,99,235,.28);cursor:pointer}
+
+.checkout{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);padding:18px;margin-top:22px}
+.checkout h2{font-size:14px;font-weight:800;margin:0 0 12px}
+.checkout label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+.checkout input{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+.paymethods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.paymethod-btn{border:1px solid var(--line);background:var(--panel-2);border-radius:10px;padding:14px 10px;font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer;text-align:center;color:var(--ink)}
+.paymethod-btn:hover{border-color:var(--blue)}
+.paymethod-btn.active{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+.checkout .err{color:var(--warn);font-size:13px;margin-top:10px;display:none}
+.checkout .muted2{color:var(--faint);font-size:12px;margin:10px 0 0}
+.checkout-done{text-align:center;padding:30px 10px}
+.checkout-done .ck{font-size:36px;color:var(--ok);font-weight:800}
+.checkout-done h3{font-size:18px;margin:10px 0 6px}
+.checkout-done .bank{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:left;font-size:13.5px;margin:14px 0;line-height:1.8}
 </style>
 </head>
 <body>
@@ -112,7 +127,31 @@ footer a{color:var(--blue)}
     <div class="chips" id="donation-chips" role="group" aria-label="上乗せ支援額を選ぶ"></div>
   </div>
 
-  <p class="muted" style="margin-top:20px">チケット購入受付は近日公開予定です。公開時期等のお問い合わせは info@haribow.com までお願いします。</p>
+  <div class="checkout" id="checkoutSection" style="display:none">
+    <div id="checkoutForm">
+      <h2>ご注文者情報</h2>
+      <label>お名前</label>
+      <input type="text" id="buyerName" placeholder="例：山田太郎">
+      <label>連絡先（メールアドレス）</label>
+      <input type="email" id="buyerContact" placeholder="例：example@mail.com">
+
+      <label>お支払い方法</label>
+      <div class="paymethods" id="payMethods">
+        <button type="button" class="paymethod-btn" data-method="square">Squareでカード決済</button>
+        <button type="button" class="paymethod-btn" data-method="bank">銀行振込</button>
+      </div>
+      <div class="err" id="checkoutErr">入力に誤りがあります。もう一度ご確認ください。</div>
+      <p class="muted2">支払い方法を選ぶと、この内容で送信します。</p>
+    </div>
+    <div class="checkout-done" id="checkoutDone" style="display:none">
+      <div class="ck">✓</div>
+      <h3 id="doneTitle">受け付けました</h3>
+      <p class="muted" id="doneBody"></p>
+      <div class="bank" id="doneBank" style="display:none"></div>
+    </div>
+  </div>
+
+  <p class="muted" style="margin-top:20px">お問い合わせは info@haribow.com までお願いします。</p>
 
   <footer>
     <a href="https://haribow.com/" target="_blank" rel="noopener">haribow.com</a>
@@ -125,7 +164,7 @@ footer a{color:var(--blue)}
       <div class="count" id="summary-count">0枚選択中</div>
       <div class="amount" id="summary-amount">¥0</div>
     </div>
-    <button class="summary-cta" id="summary-cta" type="button" disabled>近日公開</button>
+    <button class="summary-cta" id="summary-cta" type="button">この内容で進む</button>
   </div>
 </div>
 
@@ -333,11 +372,106 @@ footer a{color:var(--blue)}
     var cta = document.getElementById("summary-cta");
     if (totalCount > 0 || state.donation > 0){
       cta.classList.add("active");
-      cta.textContent = "近日公開";
     } else {
       cta.classList.remove("active");
-      cta.textContent = "近日公開";
     }
+
+    currentOrder = buildOrderItems(prices, totalYen);
+  }
+
+  // ------------------------------------------------------------
+  // 注文情報の組み立て・送信（Square／銀行振込）
+  // ------------------------------------------------------------
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+  var currentOrder = null;
+
+  function buildOrderItems(prices, totalYen){
+    var items = [];
+    BASE_ROWS.concat(SUPPORT_ROWS).forEach(function(row){
+      var qty = state.qty[row.key];
+      if (qty > 0){
+        items.push({ label: row.name, qty: qty, price: prices[row.key] });
+      }
+    });
+    if (state.donation > 0){
+      items.push({ label: "応援金", qty: 1, price: state.donation });
+    }
+    return { items: items, total: totalYen };
+  }
+
+  document.getElementById("summary-cta").addEventListener("click", function(){
+    if (!this.classList.contains("active")) return;
+    document.getElementById("checkoutSection").style.display = "block";
+    document.getElementById("checkoutSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".paymethod-btn"), function(btn){
+    btn.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".paymethod-btn"), function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      submitOrder(btn.dataset.method, btn);
+    });
+  });
+
+  function submitOrder(method, btn){
+    var name = document.getElementById("buyerName").value.trim();
+    var contact = document.getElementById("buyerContact").value.trim();
+    var errEl = document.getElementById("checkoutErr");
+
+    if (!name || !contact || !currentOrder || !currentOrder.items.length){
+      errEl.style.display = "block";
+      return;
+    }
+    errEl.style.display = "none";
+
+    Array.prototype.forEach.call(document.querySelectorAll(".paymethod-btn"), function(b){ b.disabled = true; });
+    var originalText = btn.textContent;
+    btn.textContent = "送信中…";
+
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        survey: "ticket_order",
+        orderType: "individual",
+        name: name,
+        contact: contact,
+        items: currentOrder.items,
+        total: currentOrder.total,
+        method: method
+      })
+    }).then(function(res){ return res.json(); })
+      .then(function(result){
+        if (!result.ok){
+          Array.prototype.forEach.call(document.querySelectorAll(".paymethod-btn"), function(b){ b.disabled = false; });
+          btn.textContent = originalText;
+          if (result.error === "square_not_configured"){
+            errEl.textContent = "Square決済は現在準備中です。お手数ですが銀行振込をご利用ください。";
+          } else {
+            errEl.textContent = "送信に失敗しました。もう一度お試しください。";
+          }
+          errEl.style.display = "block";
+          return;
+        }
+        if (result.method === "square"){
+          window.location.href = result.url;
+          return;
+        }
+        document.getElementById("checkoutForm").style.display = "none";
+        document.getElementById("checkoutDone").style.display = "block";
+        document.getElementById("doneTitle").textContent = "ご予約を受け付けました";
+        document.getElementById("doneBody").textContent =
+          "合計 " + yen(currentOrder.total) + " のお振込みを、期限（" + result.deadline + "）までにお願いします。";
+        var bankEl = document.getElementById("doneBank");
+        bankEl.style.display = "block";
+        bankEl.textContent = "振込先の詳細は、ご入力いただいたメールアドレスに送信しました。";
+        window.scrollTo(0, document.body.scrollHeight);
+      }).catch(function(e){
+        Array.prototype.forEach.call(document.querySelectorAll(".paymethod-btn"), function(b){ b.disabled = false; });
+        btn.textContent = originalText;
+        errEl.textContent = "送信に失敗しました：" + e + " もう一度お試しください。";
+        errEl.style.display = "block";
+      });
   }
 
   render();

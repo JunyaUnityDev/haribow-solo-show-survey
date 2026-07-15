@@ -34,6 +34,11 @@ select:last-child,input:last-child{margin-bottom:0}
 .done .ck{font-size:40px;color:var(--ok);font-weight:800}
 .done h2{font-size:20px;margin:12px 0 6px}
 .done .amount{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;margin:6px 0}
+.done .bank{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:left;font-size:13.5px;margin:14px 0;line-height:1.8}
+.paymethods{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.paymethod-btn{border:1px solid var(--line);background:var(--panel-2);border-radius:10px;padding:14px 10px;font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer;text-align:center;color:var(--ink)}
+.paymethod-btn:hover{border-color:var(--blue)}
+.paymethod-btn.active{border-color:var(--blue);background:#eef3fd;color:var(--blue)}
 </style>
 </head>
 <body>
@@ -62,8 +67,8 @@ select:last-child,input:last-child{margin-bottom:0}
       <label>代表者名</label>
       <input type="text" id="repName" placeholder="例：山田太郎">
 
-      <label>連絡先（LINE・電話番号・メールいずれか）</label>
-      <input type="text" id="contact" placeholder="例：LINE ID または電話番号">
+      <label>連絡先（メールアドレス）</label>
+      <input type="email" id="contact" placeholder="例：example@mail.com">
 
       <label>予約人数</label>
       <input type="number" id="headcount" min="5" placeholder="例：15">
@@ -76,17 +81,22 @@ select:last-child,input:last-child{margin-bottom:0}
     </div>
 
     <div class="card">
-      <button class="btn" id="send">この内容で予約する</button>
+      <label>お支払い方法</label>
+      <div class="paymethods" id="payMethods">
+        <button type="button" class="paymethod-btn" data-method="square">Squareでカード決済</button>
+        <button type="button" class="paymethod-btn" data-method="bank">銀行振込</button>
+      </div>
       <div class="err" id="err">未入力の項目があるか、人数が5名未満です。</div>
-      <p class="muted" style="margin:10px 0 0">送信後、決済方法について連絡先へご案内します。内容の変更はinfo@haribow.comまでご連絡ください。</p>
+      <p class="muted" style="margin:10px 0 0">お支払い方法を選ぶと、この内容で送信します。内容の変更はinfo@haribow.comまでご連絡ください。</p>
     </div>
   </div>
 
   <div class="done" id="done" style="display:none">
     <div class="ck">✓</div>
-    <h2>予約を受け付けました！</h2>
+    <h2 id="doneTitle">予約を受け付けました！</h2>
     <div class="amount" id="doneAmount"></div>
-    <p class="muted">決済方法は、追ってご連絡先へご案内します。</p>
+    <p class="muted" id="doneBody"></p>
+    <div class="bank" id="doneBank" style="display:none"></div>
   </div>
 </div>
 
@@ -131,7 +141,15 @@ select:last-child,input:last-child{margin-bottom:0}
     amount.textContent = yen(total);
   }
 
-  document.getElementById('send').addEventListener('click', function(){
+  Array.prototype.forEach.call(document.querySelectorAll('.paymethod-btn'), function(btn){
+    btn.addEventListener('click', function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.paymethod-btn'), function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      submitReservation(btn.dataset.method, btn);
+    });
+  });
+
+  function submitReservation(method, btn){
     var groupName = document.getElementById('groupName').value.trim();
     var groupType = selectedType();
     var repName = document.getElementById('repName').value.trim();
@@ -143,26 +161,55 @@ select:last-child,input:last-child{margin-bottom:0}
       window.scrollTo(0, document.body.scrollHeight);
       return;
     }
+    document.getElementById('err').style.display = 'none';
     var total = UNIT_PRICE[groupType] * headcount;
-    var btn = document.getElementById('send');
-    btn.disabled = true;
+    var typeLabel = groupType === 'circle' ? '大学ダブルダッチサークル' : 'その他の団体';
+
+    Array.prototype.forEach.call(document.querySelectorAll('.paymethod-btn'), function(b){ b.disabled = true; });
+    var originalText = btn.textContent;
     btn.textContent = '送信中…';
+
     fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ survey: 'groupticket', groupName: groupName, groupType: groupType, repName: repName, contact: contact, headcount: headcount })
-    }).then(function(){
-      document.getElementById('doneAmount').textContent = '合計 ' + yen(total) + '（' + headcount + '名分）';
-      document.getElementById('form').style.display = 'none';
-      document.getElementById('done').style.display = 'block';
-      window.scrollTo(0, 0);
-    }).catch(function(e){
-      btn.disabled = false;
-      btn.textContent = 'この内容で予約する';
-      document.getElementById('err').textContent = '送信に失敗しました：' + e + ' もう一度お試しください。';
-      document.getElementById('err').style.display = 'block';
-    });
-  });
+      body: JSON.stringify({
+        survey: 'ticket_order',
+        orderType: 'group',
+        name: groupName + '（代表：' + repName + '）',
+        contact: contact,
+        items: [{ label: typeLabel, qty: headcount, price: UNIT_PRICE[groupType] }],
+        total: total,
+        method: method
+      })
+    }).then(function(res){ return res.json(); })
+      .then(function(result){
+        if (!result.ok){
+          Array.prototype.forEach.call(document.querySelectorAll('.paymethod-btn'), function(b){ b.disabled = false; });
+          btn.textContent = originalText;
+          document.getElementById('err').textContent =
+            result.error === 'square_not_configured'
+              ? 'Square決済は現在準備中です。お手数ですが銀行振込をご利用ください。'
+              : '送信に失敗しました。もう一度お試しください。';
+          document.getElementById('err').style.display = 'block';
+          return;
+        }
+        if (result.method === 'square'){
+          window.location.href = result.url;
+          return;
+        }
+        document.getElementById('doneAmount').textContent = '合計 ' + yen(total) + '（' + headcount + '名分）';
+        document.getElementById('doneBody').textContent =
+          '振込期限（' + result.deadline + '）までにお願いします。振込先の詳細はご登録のメールアドレスに送信しました。';
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('done').style.display = 'block';
+        window.scrollTo(0, 0);
+      }).catch(function(e){
+        Array.prototype.forEach.call(document.querySelectorAll('.paymethod-btn'), function(b){ b.disabled = false; });
+        btn.textContent = originalText;
+        document.getElementById('err').textContent = '送信に失敗しました：' + e + ' もう一度お試しください。';
+        document.getElementById('err').style.display = 'block';
+      });
+  }
 
   updateTotal();
 })();
