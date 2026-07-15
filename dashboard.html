@@ -228,15 +228,34 @@ function switchTab(tab){
   document.getElementById('tabBtnBusiness').classList.toggle('active', tab==='business');
 }
 
+var GOAL_MIN = 500;
+var GOAL_MAX = 1000;
+
 function renderBusiness(b){
   var el = document.getElementById('businessSummary');
   if(!b){ el.innerHTML = '<p class="muted">データを取得できませんでした。</p>'; return; }
   var f = b.forecast, a = b.actual;
   var plCls = f.profitLoss>=0 ? 'ok' : 'warn';
   var plText = (f.profitLoss>=0?'+':'') + Math.round(f.profitLoss).toLocaleString('ja-JP') + '円';
+  var forecastNum = Math.round(f.totalAttendance*10)/10;
+  var goalPct = Math.min(100, Math.round(forecastNum/GOAL_MAX*100));
+  var minPct = Math.round(GOAL_MIN/GOAL_MAX*100);
+  var toMin = GOAL_MIN - forecastNum;
+  var goalNote = toMin > 0
+    ? ('現在の見込みは最低ラインまであと'+Math.ceil(toMin)+'人')
+    : '最低ラインは見込みの範囲内です';
   el.innerHTML =
+    '<div class="summary-stat" style="margin-bottom:14px">'+
+      '<div class="label">動員目標</div>'+
+      '<div class="value">'+GOAL_MIN+'人（最低）〜'+GOAL_MAX+'人（目標）</div>'+
+      '<div class="progress-track" style="margin-top:10px">'+
+        '<div class="progress-seg-active" style="width:'+goalPct+'%"></div>'+
+        '<div class="progress-seg-open" style="width:'+(100-goalPct)+'%"></div>'+
+      '</div>'+
+      '<p class="muted" style="margin:8px 0 0">現在の見込み '+forecastNum+'人（'+goalNote+'）</p>'+
+    '</div>'+
     '<div class="summary-grid">'+
-      '<div class="summary-stat"><div class="label">総動員数見込み</div><div class="value">'+(Math.round(f.totalAttendance*10)/10)+'人</div></div>'+
+      '<div class="summary-stat"><div class="label">総動員数見込み</div><div class="value">'+forecastNum+'人</div></div>'+
       '<div class="summary-stat"><div class="label">収支予想</div><div class="value '+plCls+'">'+plText+'</div></div>'+
       '<div class="summary-stat"><div class="label">実際の申込み枚数</div><div class="value">'+a.ticketQty+'枚<span style="font-size:12px;font-weight:600;color:var(--faint)">（'+a.orderCount+'件）</span></div></div>'+
       '<div class="summary-stat"><div class="label">売上合計（申込みベース）</div><div class="value">'+Math.round(a.revenueTotal).toLocaleString('ja-JP')+'円</div></div>'+
