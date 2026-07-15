@@ -120,6 +120,7 @@ function doPost(e){
       else if(payload.action==='removetriggers'){ adminResult = listAndRemoveMailTriggers(); }
       else if(payload.action==='backfilllabels'){ adminResult = backfillMailMasterLabels(); }
       else if(payload.action==='setupsync'){ adminResult = setupSyncMasterTrigger(); }
+      else if(payload.action==='setuppaymenttrigger'){ adminResult = setupPaymentTrigger(); }
       else { sendVenueInquiryEmailTest(); }
       return ContentService.createTextOutput(JSON.stringify({ok:true, result:adminResult})).setMimeType(ContentService.MimeType.JSON);
     }
