@@ -114,6 +114,16 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .summary-stat .value.ok{color:var(--ok)}
 .summary-link{display:inline-block;margin-top:12px;font-size:13px;color:var(--blue);font-weight:700;text-decoration:none}
 .summary-link:hover{text-decoration:underline}
+/* 最優先ブロッカー */
+.blocker-h2{border-left-color:var(--warn)}
+.blocker-card{border-color:#eec3b7;background:linear-gradient(180deg,#fdf3ef,#fff)}
+.blocker-row{display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #f0ddd5}
+.blocker-row:last-child{border-bottom:none}
+.blocker-rank{width:26px;height:26px;border-radius:50%;background:var(--warn);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.blocker-body{flex:1;min-width:0}
+.blocker-title{font-weight:700;color:var(--ink);font-size:14.5px}
+.blocker-why{font-size:13px;color:var(--warn);margin:4px 0 5px;line-height:1.5}
+.blocker-meta{font-size:11.5px;color:var(--faint);font-weight:600}
 </style>
 </head>
 <body>
@@ -133,6 +143,9 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
   </div>
 
   <div id="content">
+    <h2 class="blocker-h2">いま全体を止めているブロッカー</h2>
+    <div class="card blocker-card" id="blockers"></div>
+
     <h2>全体進捗</h2>
     <div class="card" id="overview"></div>
 
@@ -406,6 +419,33 @@ function load(){
     var rows = data.rows.filter(function(r){ return r['プロジェクト名']; });
     window.__rowsByIdx = {};
     rows.forEach(function(r){ window.__rowsByIdx[r['_row']] = r; });
+
+    // ---- 最優先ブロッカー（優先度列に数字が入った未完了タスクをランク順に） ----
+    var blockers = rows.filter(function(r){
+      var p = parseInt(r['優先度'],10);
+      var b = statusBucket(r['ステータス']);
+      return !isNaN(p) && b!=='done' && b!=='excluded';
+    }).sort(function(a,b){ return parseInt(a['優先度'],10)-parseInt(b['優先度'],10); });
+    var blEl = document.getElementById('blockers');
+    if(blockers.length===0){
+      blEl.innerHTML = '<p class="muted">最優先ブロッカーは未登録です。WBSの「優先度」列に1・2・3…を入れると、ここにランク順で表示されます（「ブロッカー理由」列に一文を書くと理由も出ます）。</p>';
+    } else {
+      blEl.innerHTML = blockers.map(function(r){
+        var rank = parseInt(r['優先度'],10);
+        var d = parseDate(r['期限']);
+        var why = String(r['ブロッカー理由']||'').trim();
+        var owner = String(r['責任者']||'').trim();
+        var meta = [owner, d?fmtDate(d):''].filter(Boolean).join(' ・ ');
+        return '<div class="blocker-row">'+
+          '<div class="blocker-rank">'+rank+'</div>'+
+          '<div class="blocker-body">'+
+            '<div class="blocker-title">'+r['タスク名']+'</div>'+
+            (why?'<div class="blocker-why">'+why+'</div>':'')+
+            '<div class="blocker-meta">'+meta+'</div>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }
 
     // ---- 全体進捗（中止タスクは分母から除外） ----
     var liveRows = rows.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
