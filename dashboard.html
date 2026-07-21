@@ -142,7 +142,10 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <h2>直近の決定事項</h2>
     <div class="card" id="decisions"></div>
 
-    <h2>プロジェクト別の内訳</h2>
+    <h2>演目（パフォーマンス）別</h2>
+    <div id="performances"></div>
+
+    <h2>その他プロジェクト</h2>
     <div id="epics"></div>
 
     <h2>担当者別タスク</h2>
@@ -458,7 +461,7 @@ function load(){
       }).join('');
     }
 
-    // ---- プロジェクト別（親タスクを持つ行をエピックとして束ねる） ----
+    // ---- 演目（パフォーマンス）別 ＋ その他プロジェクト（親タスクで束ねる） ----
     var childrenByParent = {};
     rows.forEach(function(r){
       var parent = String(r['親タスク']||'').trim();
@@ -466,46 +469,69 @@ function load(){
       if(!childrenByParent[parent]) childrenByParent[parent] = [];
       childrenByParent[parent].push(r);
     });
-    var epicNames = Object.keys(childrenByParent);
-    var epicsEl = document.getElementById('epics');
-    if(epicNames.length===0){
-      epicsEl.innerHTML = '<p class="muted">「親タスク」が設定された行はまだありません。タスクの「編集」から親タスク名を入力すると、ここに内訳が表示されます。</p>';
-    } else {
-      epicsEl.innerHTML = epicNames.map(function(name, i){
-        var children = childrenByParent[name].slice().sort(function(a,b){
-          var da = parseDate(a['期限']), db = parseDate(b['期限']);
-          if(!da && !db) return 0;
-          if(!da) return 1;
-          if(!db) return -1;
-          return da-db;
-        });
-        var live = children.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
-        var done = live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
-        var active = live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
-        var open = live.length - done - active;
-        var etotal = live.length || 1;
-        var epct = Math.round(done/etotal*100);
-        var summaryRow = rows.filter(function(r){ return r['タスク名']===name; })[0];
-        var epicId = 'epic-'+i;
-        return '<div class="card epic-card" id="'+epicId+'">'+
-          '<div class="epic-header" onclick="this.closest(\'.epic-card\').classList.toggle(\'expanded\')">'+
-            '<span class="epic-arrow">▸</span>'+
-            '<span class="epic-title">'+name+'</span>'+
-            '<span class="person-count">未完了 '+(live.length-done)+'件 / 全'+live.length+'件</span>'+
+    // 「■演目制作」フェーズの行のタスク名＝演目名。演目とその他エピックを分ける
+    var performanceSet = {};
+    rows.forEach(function(r){
+      if(String(r['フェーズ']||'').trim()==='■演目制作'){
+        performanceSet[String(r['タスク名']||'').trim()] = true;
+      }
+    });
+    // 演目カードは進捗％バーを出さない（出すのは指名した数個だけなので割合が誤解を招く）＋最初から開く
+    function renderEpicCard(name, i, hideBar){
+      var children = childrenByParent[name].slice().sort(function(a,b){
+        var da = parseDate(a['期限']), db = parseDate(b['期限']);
+        if(!da && !db) return 0;
+        if(!da) return 1;
+        if(!db) return -1;
+        return da-db;
+      });
+      var live = children.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
+      var done = live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
+      var active = live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
+      var open = live.length - done - active;
+      var etotal = live.length || 1;
+      var epct = Math.round(done/etotal*100);
+      var summaryRow = rows.filter(function(r){ return r['タスク名']===name; })[0];
+      var epicId = 'epic-'+i;
+      var barHtml = hideBar ? '' :
+        '<div class="person-progress">'+
+          '<div class="ptrack">'+
+            '<div class="progress-seg-done" style="width:'+(done/etotal*100)+'%"></div>'+
+            '<div class="progress-seg-active" style="width:'+(active/etotal*100)+'%"></div>'+
+            '<div class="progress-seg-open" style="width:'+(open/etotal*100)+'%"></div>'+
           '</div>'+
-          '<div class="person-progress">'+
-            '<div class="ptrack">'+
-              '<div class="progress-seg-done" style="width:'+(done/etotal*100)+'%"></div>'+
-              '<div class="progress-seg-active" style="width:'+(active/etotal*100)+'%"></div>'+
-              '<div class="progress-seg-open" style="width:'+(open/etotal*100)+'%"></div>'+
-            '</div>'+
-            '<div class="ppct">'+epct+'%</div>'+
-          '</div>'+
-          (summaryRow && summaryRow['目的'] ? '<p class="epic-desc">'+summaryRow['目的']+'</p>' : '')+
-          '<div class="epic-hint">タップして内訳を開閉</div>'+
-          '<div class="epic-children">'+children.map(renderTask).join('')+'</div>'+
+          '<div class="ppct">'+epct+'%</div>'+
         '</div>';
-      }).join('');
+      var desc = summaryRow ? (hideBar ? (summaryRow['進捗詳細']||summaryRow['目的']||'') : (summaryRow['目的']||'')) : '';
+      var openCls = hideBar ? ' expanded' : '';
+      return '<div class="card epic-card'+openCls+'" id="'+epicId+'">'+
+        '<div class="epic-header" onclick="this.closest(\'.epic-card\').classList.toggle(\'expanded\')">'+
+          '<span class="epic-arrow">▸</span>'+
+          '<span class="epic-title">'+name+'</span>'+
+          '<span class="person-count">未完了 '+(live.length-done)+'件 / 全'+live.length+'件</span>'+
+        '</div>'+
+        barHtml+
+        (desc ? '<p class="epic-desc">'+desc+'</p>' : '')+
+        '<div class="epic-hint">タップして内訳を開閉</div>'+
+        '<div class="epic-children">'+children.map(renderTask).join('')+'</div>'+
+      '</div>';
+    }
+    var allEpicNames = Object.keys(childrenByParent);
+    var perfNames = allEpicNames.filter(function(n){ return performanceSet[n]; });
+    var otherNames = allEpicNames.filter(function(n){ return !performanceSet[n]; });
+
+    var perfEl = document.getElementById('performances');
+    if(perfNames.length===0){
+      perfEl.innerHTML = '<p class="muted">まだ演目に紐づくタスクがありません。タスクの「親タスク」に演目名（例：新Roar）を入れると、その演目のカードがここに出ます。</p>';
+    } else {
+      perfEl.innerHTML = perfNames.map(function(name, i){ return renderEpicCard(name, 'p'+i, true); }).join('');
+    }
+
+    var epicsEl = document.getElementById('epics');
+    if(otherNames.length===0){
+      epicsEl.innerHTML = '<p class="muted">演目以外で親タスクにまとめられた項目はありません。</p>';
+    } else {
+      epicsEl.innerHTML = otherNames.map(function(name, i){ return renderEpicCard(name, 'o'+i, false); }).join('');
     }
 
     // ---- 担当者別 ----
