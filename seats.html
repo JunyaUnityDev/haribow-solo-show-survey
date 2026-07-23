@@ -51,7 +51,10 @@
   .maptoggle:hover{border-color:var(--main)}
   .map{min-width:560px;display:flex;flex-direction:column;gap:3px;align-items:center}
   .map.big{min-width:0}
-  .map.big .seat{width:30px;height:30px;border-radius:6px}
+  .map.big .seat{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+  .sn{display:none;font-weight:800;color:#fff;pointer-events:none}
+  .map.big .sn{display:block;font-size:11px;line-height:1}
+  .map.big .seat.gen .sn,.map.big .seat.sup .sn,.map.big .seat.pick .sn{color:#0a0b0e}
   .map.big .rrow{gap:9px}
   .map.big .blk{gap:4px}
   .map.big .rlab{flex-basis:44px;font-size:12px}
@@ -355,6 +358,7 @@ function render(){
 function toggleAll(){ showAll=!showAll; render(); }
 function makeSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
+  s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
   if(SOLD[key]){ s.className+=' sold'; s.title='売切'; return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
@@ -488,6 +492,7 @@ function renderG(){
 }
 function makeGSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
+  s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
   if(SOLD[key]){ s.className+=' sold'; return s; }
   if(area==='group'){
