@@ -207,12 +207,7 @@
         <div class="map" id="gmap"></div>
         <p style="font-size:11px;color:var(--faint);margin:10px 0 0;text-align:center">左右のサイド席から選べます（中央は個人指定席）。8/16以降は空きが個人にも開放されます。</p>
       </div>
-      <label>お支払い方法</label>
-      <div class="paymethods">
-        <button type="button" class="pm gp" onclick="gPay('square',this)">Squareでカード決済</button>
-        <button type="button" class="pm gp" onclick="gPay('bank',this)">銀行振込</button>
-      </div>
-      <p class="buyer-note" style="margin-top:14px">※決済方法はご予約後、連絡先へ個別にご案内します。</p>
+      <p class="buyer-note" style="margin-top:14px;line-height:1.8">この段階では<b>お支払いは不要</b>です（お席の仮おさえのみ）。<br>・<b>8/16まで</b>：人数の増減は、ご予約後にお送りする管理ページでいつでも変更できます。<br>・<b>8/16</b>：最終人数を確定し、代表者の連絡先へ<b>お支払いのご案内（決済リンク）</b>をお送りします。<br>・8/16以降に空いたサイド席は、個人指定席として開放されます。</p>
       <div id="gResult" style="font-size:20px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">¥0 <small style="font-size:12px;color:var(--dim);font-weight:600">（人数を入力）</small></div>
       <button class="buy" id="gBuy" style="margin-top:12px;width:100%" disabled onclick="gCheckout()">団体予約を送信</button>
     </div>
@@ -311,11 +306,13 @@ function seatArea(row,n){
 var SELLABLE = {main:1,gen:1,sup:1};      // 個人が買う区分（中央帯）
 var GROUP_OPEN = new Date() >= new Date(2026,7,16); // 8/16以降サイドを個人開放
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-var SOLD = {};                            // seat_avail から動的取得（売却/ロック中）
+var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
+var GSOLD = {};                           // 団体マップ：takenGroup（団体保留/確定）
 function loadAvail(){
   fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
     SOLD={}; (d.taken||[]).forEach(function(id){ SOLD[id]=1; });
-    render();
+    GSOLD={}; (d.takenGroup||[]).forEach(function(id){ GSOLD[id]=1; });
+    render(); if(document.getElementById('gmap')) renderG();
   }).catch(function(){});
 }
 
@@ -506,7 +503,7 @@ function makeGSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
-  if(SOLD[key]){ s.className+=' sold'; return s; }
+  if(GSOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番（他の団体が予約済み）'; return s; }
   if(area==='group'){
     var gact=function(){ gToggle(row,n); };
     var gkey=function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); gact(); } };
@@ -523,14 +520,29 @@ function gCalc(){
   var sum=gUnit*num;
   res.innerHTML='¥'+sum.toLocaleString()+' <small style="font-size:12px;color:var(--dim);font-weight:600">('+(gUnit?'¥'+gUnit.toLocaleString()+'×':'')+num+'席'+(num>0&&num<5?' ⚠ 5席以上':'')+')</small>';
   var name=(document.getElementById('gName')||{}).value||'', rep=(document.getElementById('gRep')||{}).value||'', c=(document.getElementById('gContact')||{}).value||'';
-  btn.disabled=!(gTypeVal && num>=5 && name.trim() && rep.trim() && c.trim() && gPayVal);
+  btn.disabled=!(gTypeVal && num>=5 && name.trim() && rep.trim() && c.trim());
 }
 function gCheckout(){
   var keys=Object.keys(gpicked);
-  alert('【プロトタイプ・団体】\n'+document.getElementById('gName').value+'\n'+
-    (gTypeVal==='circle'?'大学DDサークル':'その他団体')+' ¥'+gUnit.toLocaleString()+'×'+keys.length+'席 ＝ ¥'+(gUnit*keys.length).toLocaleString()+
-    '\n'+keys.map(function(k){var a=k.split('-');return a[0]+'列'+a[1]+'番';}).join('・')+
-    '\n\n本番では送信 → 席を確保して個別にご連絡します。');
+  var btn=document.getElementById('gBuy'); btn.disabled=true; btn.textContent='送信中…';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'team_reserve',seatIds:keys,
+      groupName:document.getElementById('gName').value,
+      groupType:(gTypeVal==='circle'?'大学DDサークル':'その他団体'),
+      rep:document.getElementById('gRep').value,
+      contact:document.getElementById('gContact').value,
+      unit:gUnit})})
+  .then(function(r){return r.json();}).then(function(res){
+    if(!res.ok){
+      if(res.error==='min5'){ alert('団体は5席以上でお願いします。'); btn.textContent='団体予約を送信'; gCalc(); return; }
+      var c=(res.conflict||keys).map(fmtSeat).join('・');
+      alert('選んでいる間に '+c+' が他の団体に予約されました。\nお手数ですが選び直してください。');
+      gpicked={}; loadAvail(); btn.textContent='団体予約を送信'; gCalc(); return;
+    }
+    doneScreen('団体の仮予約を受け付けました。<br>予約ID：<b>'+res.resId+'</b><br><br>'
+      +'この時点でのお支払いは不要です。<b>8/16まで</b>は人数の調整ができます（ご予約IDと連絡先で管理ページにアクセスできます）。<br>'
+      +'<b>8/16</b>に最終人数を確定し、'+document.getElementById('gContact').value+' へお支払いのご案内をお送りします。');
+  }).catch(function(){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='団体予約を送信'; gCalc(); });
 }
 
 // ---- 配信タブ ----
