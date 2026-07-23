@@ -308,10 +308,12 @@ var GROUP_OPEN = new Date() >= new Date(2026,7,16); // 8/16以降サイドを個
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
 var GSOLD = {};                           // 団体マップ：takenGroup（団体保留/確定）
+var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を個人（一般料金）に開放
 function loadAvail(){
   fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
     SOLD={}; (d.taken||[]).forEach(function(id){ SOLD[id]=1; });
     GSOLD={}; (d.takenGroup||[]).forEach(function(id){ GSOLD[id]=1; });
+    SIDESOPEN = !!d.sidesOpen;
     render(); if(document.getElementById('gmap')) renderG();
   }).catch(function(){});
 }
@@ -360,7 +362,8 @@ function makeSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
-  if(SOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; s.setAttribute('aria-label',row+'列'+n+'番 売切'); return s; }
+  if(SIDESOPEN && area==='group') area='gen'; // 8/17以降：空きサイド席を一般席として個人開放
+  if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; s.setAttribute('aria-label',row+'列'+n+'番 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
   function act(){ toggle(row,n); }
   function keyact(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); act(); } }
