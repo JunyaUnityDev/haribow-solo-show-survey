@@ -97,6 +97,10 @@
       <div class="srow"><span class="k">お支払い予定額</span><span class="v amount" id="vAmount"></span></div>
     </div>
 
+    <div id="payBtnWrap" style="display:none;margin-top:14px">
+      <a id="payLink" href="#" class="buy" style="display:block;text-align:center;text-decoration:none">お支払いへ進む（カード決済）</a>
+    </div>
+
     <p class="notice" id="editNote"></p>
 
     <div id="editarea" style="display:none">
@@ -177,13 +181,22 @@ function showRes(){
   document.getElementById('vResId').textContent=RES.resId;
   document.getElementById('vName').textContent=RES.groupName;
   document.getElementById('vType').textContent=RES.groupType+'（¥'+RES.unit.toLocaleString()+'/人）';
-  document.getElementById('vStatus').innerHTML=(RES.status==='仮予約')
-    ? '<span class="badge hold">仮予約（未払い）</span>' : '<span class="badge fixed">'+RES.status+'</span>';
+  document.getElementById('vStatus').innerHTML=(RES.status==='未入金')
+    ? '<span class="badge hold">未入金（お支払い前）</span>'
+    : (RES.status==='入金済み') ? '<span class="badge fixed">入金済み</span>'
+    : '<span class="badge" style="color:var(--faint);background:rgba(255,255,255,.05)">キャンセル</span>';
   document.getElementById('vCount').textContent=RES.count+'席';
   document.getElementById('vAmount').textContent='¥'+RES.amount.toLocaleString();
 
+  // 未入金なら決済ボタンを表示
+  var pb=document.getElementById('payBtnWrap');
+  if(RES.status==='未入金' && RES.payLink){
+    pb.style.display='block';
+    document.getElementById('payLink').href=RES.payLink;
+  } else { pb.style.display='none'; }
+
   if(RES.editable){
-    document.getElementById('editNote').innerHTML='下のサイド席から、<b>お席の追加・削除</b>ができます（8/16まで）。変更後に「変更を保存」を押してください。';
+    document.getElementById('editNote').innerHTML='下のサイド席から、<b>お席の追加・削除</b>ができます（お支払い前・8/17まで）。変更すると金額が変わり、新しい決済リンクをメールでお送りします。';
     document.getElementById('editarea').style.display='block';
     document.getElementById('cart').style.display='block';
     picked={}; RES.seats.forEach(function(id){picked[id]=1;});
@@ -193,9 +206,11 @@ function showRes(){
       renderMap(); calc();
     }).catch(function(){ renderMap(); calc(); });
   } else {
-    document.getElementById('editNote').innerHTML=(RES.status!=='仮予約')
-      ? '<b>この予約は確定済みです。</b>変更が必要な場合は運営までご連絡ください。'
-      : '<b>変更受付は終了しました（8/16）。</b>お席の変更が必要な場合は運営までご連絡ください。';
+    document.getElementById('editNote').innerHTML=(RES.status==='入金済み')
+      ? '<b>お支払い済みです。</b>お席の変更が必要な場合は運営までご連絡ください。'
+      : (RES.status==='キャンセル')
+      ? '<b>この予約はキャンセルされています。</b>再度ご希望の場合はお手数ですが改めてご予約ください。'
+      : '変更できません。運営までご連絡ください。';
   }
 }
 
@@ -270,10 +285,21 @@ function mSave(){
   }).catch(function(){ btn.textContent='変更を保存'; alert('通信エラー。もう一度お試しください。'); calc(); });
 }
 
-// URLパラメータで予約IDを自動入力（?id=G...）
+// URLパラメータ：?id=で予約ID自動入力／?paid=で入金確定（Square決済後のredirect）
 (function(){
   var p=new URLSearchParams(location.search);
   if(p.get('id')) document.getElementById('mResId').value=p.get('id');
   if(p.get('c')) document.getElementById('mContact').value=p.get('c');
+  var paid=p.get('paid');
+  if(paid){
+    fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({survey:'team_paid',resId:paid})})
+    .then(function(r){return r.json();}).then(function(){
+      var b=document.createElement('div');
+      b.style.cssText='background:rgba(99,182,204,.14);border:1px solid var(--main);color:var(--main);border-radius:12px;padding:14px;font-weight:700;font-size:14px;margin-top:16px';
+      b.innerHTML='お支払いを受け付けました。ありがとうございます。<br><span style="font-weight:400;color:var(--dim);font-size:12.5px">登録メールアドレスを入力すると予約内容を確認できます。</span>';
+      document.getElementById('authbox').insertAdjacentElement('beforebegin', b);
+    }).catch(function(){});
+  }
 })();
 </script>
