@@ -52,9 +52,10 @@
   .map{min-width:560px;display:flex;flex-direction:column;gap:3px;align-items:center}
   .map.big{min-width:0}
   .map.big .seat{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center}
-  .sn{display:none;font-weight:800;color:#fff;pointer-events:none}
-  .map.big .sn{display:block;font-size:11px;line-height:1}
-  .map.big .seat.gen .sn,.map.big .seat.sup .sn,.map.big .seat.pick .sn{color:#0a0b0e}
+  .sn{display:block;font-size:8px;font-weight:700;color:rgba(255,255,255,.82);pointer-events:none;line-height:1}
+  .map.big .sn{font-size:11px}
+  .seat.gen .sn,.seat.sup .sn,.seat.pick .sn{color:#0a0b0e}
+  .seat.dead .sn,.seat.sold .sn,.seat.dim .sn{opacity:.35}
   .map.big .rrow{gap:9px}
   .map.big .blk{gap:4px}
   .map.big .rlab{flex-basis:44px;font-size:12px}
@@ -65,7 +66,7 @@
   .rlab{flex:0 0 40px;text-align:right;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
   .blk{display:flex;gap:2px}
   .gap{width:10px}
-  .seat{width:15px;height:15px;border-radius:3px;background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s}
+  .seat{width:18px;height:18px;border-radius:3px;background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s;display:flex;align-items:center;justify-content:center}
   .seat.buyable{cursor:pointer}
   .seat.buyable:hover{transform:scale(1.25);z-index:2}
   .seat.main{background:var(--main)}
