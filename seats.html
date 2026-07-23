@@ -69,6 +69,8 @@
   .seat{width:18px;height:18px;border-radius:3px;background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s;display:flex;align-items:center;justify-content:center}
   .seat.buyable{cursor:pointer}
   .seat.buyable:hover{transform:scale(1.25);z-index:2}
+  .seat:focus-visible{outline:2px solid var(--ink);outline-offset:2px;z-index:3}
+  @media (prefers-reduced-motion:reduce){ .seat{transition:none} .seat.buyable:hover{transform:none} }
   .seat.main{background:var(--main)}
   .seat.gen{background:var(--gen)}
   .seat.sup{background:var(--sup)}
@@ -361,12 +363,21 @@ function makeSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
-  if(SOLD[key]){ s.className+=' sold'; s.title='売切'; return s; }
+  if(SOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; s.setAttribute('aria-label',row+'列'+n+'番 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
-  // 売る席
-  if(picked[key]){ s.className+=' pick'; }
+  function act(){ toggle(row,n); }
+  function keyact(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); act(); } }
+  if(picked[key]){ // 選択中（再クリック/Enterで解除）
+    s.className+=' pick'; s.title=row+'列'+n+'番（選択中・押すと解除）';
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','true'); s.setAttribute('aria-label',row+'列'+n+'番 選択中');
+    s.onclick=act; s.onkeydown=keyact;
+  }
   else if(!curType){ s.className+=' '+area; } // 券種未選択：素の色
-  else if(area===curType.area){ s.className+=' '+area+' buyable'; s.title=row+'列'+n+'番'; s.onclick=function(){ toggle(row,n); }; }
+  else if(area===curType.area){ // 買える席
+    s.className+=' '+area+' buyable'; s.title=row+'列'+n+'番';
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','false'); s.setAttribute('aria-label',row+'列'+n+'番 空席');
+    s.onclick=act; s.onkeydown=keyact;
+  }
   else { s.className+=' dim'; } // 対応外エリアは減光
   return s;
 }
@@ -497,8 +508,11 @@ function makeGSeat(row,n){
   var area=seatArea(row,n); var key=row+'-'+n;
   if(SOLD[key]){ s.className+=' sold'; return s; }
   if(area==='group'){
-    if(gpicked[key]){ s.className+=' pick'; }
-    else { s.className+=' group buyable'; s.title=row+'列'+n+'番'; s.onclick=function(){ gToggle(row,n); }; }
+    var gact=function(){ gToggle(row,n); };
+    var gkey=function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); gact(); } };
+    if(gpicked[key]){ s.className+=' pick'; s.title=row+'列'+n+'番（選択中・押すと解除）'; s.setAttribute('aria-pressed','true'); }
+    else { s.className+=' group buyable'; s.title=row+'列'+n+'番'; s.setAttribute('aria-pressed','false'); }
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-label',row+'列'+n+'番 団体サイド席'); s.onclick=gact; s.onkeydown=gkey;
   } else { s.className+=' dim'; }  // 中央帯・非売は選べない
   return s;
 }
