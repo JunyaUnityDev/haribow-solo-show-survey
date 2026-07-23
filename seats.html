@@ -539,8 +539,10 @@ function gCheckout(){
       alert('選んでいる間に '+c+' が他の団体に予約されました。\nお手数ですが選び直してください。');
       gpicked={}; loadAvail(); btn.textContent='団体予約を送信'; gCalc(); return;
     }
+    var murl='https://junyaunitydev.github.io/haribow-solo-show-survey/manage.html?id='+encodeURIComponent(res.resId);
     doneScreen('団体の仮予約を受け付けました。<br>予約ID：<b>'+res.resId+'</b><br><br>'
-      +'この時点でのお支払いは不要です。<b>8/16まで</b>は人数の調整ができます（ご予約IDと連絡先で管理ページにアクセスできます）。<br>'
+      +'この時点でのお支払いは不要です。<b>8/16まで</b>は人数の調整ができます。<br>'
+      +'▶ <a href="'+murl+'" style="color:var(--main);font-weight:700">お席の確認・変更ページ</a>（予約IDと連絡先メールでアクセス）<br><br>'
       +'<b>8/16</b>に最終人数を確定し、'+document.getElementById('gContact').value+' へお支払いのご案内をお送りします。');
   }).catch(function(){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='団体予約を送信'; gCalc(); });
 }

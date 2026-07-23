@@ -1,0 +1,279 @@
+<title>団体予約の確認・変更｜Go Beyond</title>
+<style>
+  /* go-beyond ダーク・シネマティックに統一 */
+  :root{
+    --bg:#0a0b0e; --panel:#14161c; --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280; --line:#262a33;
+    --stage:#06222b;
+    --main:#63b6cc; --gen:#3d7683; --sup:#c9a24b; --group:#c8433a;
+    --sold:#24272e; --dead:#33373f; --dim-seat:#1a1d23;
+    --pick:#f0ece0; --shadow:0 8px 28px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:26px 16px 140px}
+  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0 0 5px}
+  h1{font-size:22px;font-weight:800;margin:0 0 3px}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 22px}
+
+  .buyerbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-top:18px}
+  .buyerbox label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin:0 0 6px}
+  .buyerbox input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+  .buyerbox input:focus{outline:2px solid var(--main);outline-offset:1px}
+  .buy{background:var(--main);color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+  .buy:disabled{background:var(--dead);color:var(--faint);cursor:not-allowed}
+  .err{color:var(--group);font-size:13px;font-weight:700;margin:6px 0 0;min-height:18px}
+
+  /* 予約サマリー */
+  .summary{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-top:18px}
+  .srow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .srow:last-child{border-bottom:none}
+  .srow .k{color:var(--dim)}
+  .srow .v{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .badge{display:inline-block;font-size:11px;font-weight:800;border-radius:20px;padding:3px 11px}
+  .badge.hold{color:var(--main);background:rgba(99,182,204,.14)}
+  .badge.fixed{color:var(--sup);background:rgba(201,162,75,.16)}
+  .amount{font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .notice{font-size:12.5px;color:var(--dim);line-height:1.8;margin:14px 2px 0}
+  .notice b{color:var(--ink)}
+
+  /* 座席マップ（seatsと共通） */
+  .maparea{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 12px 20px;box-shadow:var(--shadow);overflow-x:auto;margin-top:18px}
+  .stage{background:linear-gradient(180deg,#0d3947,var(--stage));color:#cfeaf2;text-align:center;font-size:13px;font-weight:800;letter-spacing:.5em;padding:12px;border-radius:8px;max-width:60%;margin:0 auto 12px;box-shadow:0 0 44px rgba(99,182,204,.28)}
+  .map{min-width:560px;display:flex;flex-direction:column;gap:3px;align-items:center}
+  .sn{display:block;font-size:8px;font-weight:700;color:rgba(255,255,255,.82);pointer-events:none;line-height:1}
+  .seat.gen .sn,.seat.sup .sn,.seat.pick .sn{color:#0a0b0e}
+  .seat.dead .sn,.seat.sold .sn,.seat.dim .sn{opacity:.35}
+  .rrow{display:flex;align-items:center;gap:6px;justify-content:center}
+  .rlab{flex:0 0 40px;text-align:right;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+  .blk{display:flex;gap:2px}
+  .gap{width:10px}
+  .seat{width:18px;height:18px;border-radius:3px;background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s;display:flex;align-items:center;justify-content:center}
+  .seat.buyable{cursor:pointer}
+  .seat.buyable:hover{transform:scale(1.25);z-index:2}
+  .seat:focus-visible{outline:2px solid var(--ink);outline-offset:2px;z-index:3}
+  @media (prefers-reduced-motion:reduce){ .seat{transition:none} .seat.buyable:hover{transform:none} }
+  .seat.group{background:var(--group)}
+  .seat.sold{background:var(--sold);opacity:.55;background-image:radial-gradient(rgba(255,255,255,.28) 1px,transparent 1.4px);background-size:5px 5px}
+  .seat.dim{background:var(--dim-seat)}
+  .seat.pick{background:var(--pick);box-shadow:0 0 0 2px var(--pick),0 0 0 4px rgba(47,143,107,.3)}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 15px;margin:14px 4px 0;font-size:11.5px;color:var(--dim)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend .sw{width:12px;height:12px;border-radius:3px}
+
+  .cart{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.4);padding:12px 16px;z-index:10}
+  .cart-in{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .cart-list{flex:1;min-width:180px;font-size:12.5px;color:var(--dim)}
+  .cart-list b{color:var(--ink)}
+  .cart-total{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cart-total small{font-size:12px;color:var(--dim);font-weight:600}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">HARIBOW 単独公演 · Go Beyond</p>
+  <h1>団体予約の確認・変更</h1>
+  <p class="sub">予約IDと登録メールアドレスで、8/16まで人数（お席）を調整できます。</p>
+
+  <!-- ① 本人確認 -->
+  <div class="buyerbox" id="authbox">
+    <label>予約ID</label>
+    <input id="mResId" placeholder="例：G260724001530" autocomplete="off">
+    <label>登録メールアドレス</label>
+    <input id="mContact" type="email" placeholder="ご予約時にご入力いただいたメール">
+    <button class="buy" style="width:100%" id="mLoad" onclick="mLoad()">予約を表示</button>
+    <p class="err" id="mErr"></p>
+  </div>
+
+  <!-- ② 予約サマリー + 変更 -->
+  <div id="resview" style="display:none">
+    <div class="summary">
+      <div class="srow"><span class="k">予約ID</span><span class="v" id="vResId"></span></div>
+      <div class="srow"><span class="k">団体名</span><span class="v" id="vName"></span></div>
+      <div class="srow"><span class="k">種別</span><span class="v" id="vType"></span></div>
+      <div class="srow"><span class="k">状態</span><span class="v" id="vStatus"></span></div>
+      <div class="srow"><span class="k">お席</span><span class="v" id="vCount"></span></div>
+      <div class="srow"><span class="k">お支払い予定額</span><span class="v amount" id="vAmount"></span></div>
+    </div>
+
+    <p class="notice" id="editNote"></p>
+
+    <div id="editarea" style="display:none">
+      <div class="maparea">
+        <div class="stage">STAGE</div>
+        <div class="map" id="mmap"></div>
+        <div class="legend">
+          <span><span class="sw" style="background:var(--pick)"></span>あなたの予約席</span>
+          <span><span class="sw" style="background:var(--group)"></span>選べるサイド席</span>
+          <span><span class="sw" style="background:var(--sold)"></span>他の団体が予約済み</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cart" id="cart" style="display:none">
+  <div class="cart-in">
+    <div class="cart-list" id="mList">お席を選んでください</div>
+    <div class="cart-total" id="mTotal">¥0</div>
+    <button class="buy" id="mSave" disabled onclick="mSave()">変更を保存</button>
+  </div>
+</div>
+
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var RES=null;            // 現在の予約
+var picked={};          // 選択中の席（key=row-n）
+var OTHERS={};          // 他団体が予約済みの席
+
+function seatArea(row,n){
+  if(row===1) return 'cam';
+  if(row===13) return 'wheel';
+  if((row===4||row===14) && n>=23&&n<=32) return 'reserve';
+  if(n<=10 || n>=23) return 'group';
+  if(row===2) return 'sup';
+  if(row>=3&&row<=12) return 'main';
+  if(row>=14&&row<=18) return 'gen';
+  if(row>=19&&row<=22) return 'proj';
+  return 'gen';
+}
+function seatNums(row){
+  var left,right;
+  if(row===1){left=[5,10];right=[23,28];}
+  else if(row===2){left=[3,10];right=[23,30];}
+  else if(row===3){left=[2,10];right=[23,31];}
+  else {left=[1,10];right=[23,32];}
+  var arr=[];
+  for(var n=left[0];n<=left[1];n++)arr.push({n:n,blk:'L'});
+  for(var n=11;n<=22;n++)arr.push({n:n,blk:'C'});
+  for(var n=right[0];n<=right[1];n++)arr.push({n:n,blk:'R'});
+  return arr;
+}
+function fmtSeat(k){var a=k.split('-');return a[0]+'列'+a[1]+'番';}
+
+function mLoad(){
+  var resId=document.getElementById('mResId').value.trim();
+  var contact=document.getElementById('mContact').value.trim();
+  var err=document.getElementById('mErr'); err.textContent='';
+  if(!resId||!contact){ err.textContent='予約IDとメールアドレスを入力してください。'; return; }
+  var btn=document.getElementById('mLoad'); btn.disabled=true; btn.textContent='照会中…';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'team_get',resId:resId,contact:contact})})
+  .then(function(r){return r.json();}).then(function(res){
+    btn.disabled=false; btn.textContent='予約を表示';
+    if(!res.ok){
+      err.textContent=(res.error==='not_found')?'その予約IDは見つかりませんでした。':
+        (res.error==='contact_mismatch')?'メールアドレスが一致しません。':'照会に失敗しました。';
+      return;
+    }
+    RES=res; showRes();
+  }).catch(function(){ btn.disabled=false; btn.textContent='予約を表示'; err.textContent='通信エラー。もう一度お試しください。'; });
+}
+
+function showRes(){
+  document.getElementById('authbox').style.display='none';
+  document.getElementById('resview').style.display='block';
+  document.getElementById('vResId').textContent=RES.resId;
+  document.getElementById('vName').textContent=RES.groupName;
+  document.getElementById('vType').textContent=RES.groupType+'（¥'+RES.unit.toLocaleString()+'/人）';
+  document.getElementById('vStatus').innerHTML=(RES.status==='仮予約')
+    ? '<span class="badge hold">仮予約（未払い）</span>' : '<span class="badge fixed">'+RES.status+'</span>';
+  document.getElementById('vCount').textContent=RES.count+'席';
+  document.getElementById('vAmount').textContent='¥'+RES.amount.toLocaleString();
+
+  if(RES.editable){
+    document.getElementById('editNote').innerHTML='下のサイド席から、<b>お席の追加・削除</b>ができます（8/16まで）。変更後に「変更を保存」を押してください。';
+    document.getElementById('editarea').style.display='block';
+    document.getElementById('cart').style.display='block';
+    picked={}; RES.seats.forEach(function(id){picked[id]=1;});
+    // 他団体の予約席を把握（takenGroup から自分の席を除外）
+    fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
+      OTHERS={}; (d.takenGroup||[]).forEach(function(id){ if(RES.seats.indexOf(id)<0) OTHERS[id]=1; });
+      renderMap(); calc();
+    }).catch(function(){ renderMap(); calc(); });
+  } else {
+    document.getElementById('editNote').innerHTML=(RES.status!=='仮予約')
+      ? '<b>この予約は確定済みです。</b>変更が必要な場合は運営までご連絡ください。'
+      : '<b>変更受付は終了しました（8/16）。</b>お席の変更が必要な場合は運営までご連絡ください。';
+  }
+}
+
+function makeSeat(row,n){
+  var s=document.createElement('div'); s.className='seat';
+  s.innerHTML='<span class="sn">'+n+'</span>';
+  var area=seatArea(row,n), key=row+'-'+n;
+  if(picked[key]){
+    s.className+=' pick'; s.title=row+'列'+n+'番（あなたの席・押すと外す）';
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','true');
+    s.setAttribute('aria-label',row+'列'+n+'番 あなたの予約席');
+    s.onclick=function(){toggle(row,n);}; s.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(row,n);}};
+    return s;
+  }
+  if(OTHERS[key]){ s.className+=' sold'; s.title=row+'列'+n+'番（他の団体が予約済み）'; return s; }
+  if(area==='group'){
+    s.className+=' group buyable'; s.title=row+'列'+n+'番';
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','false');
+    s.setAttribute('aria-label',row+'列'+n+'番 サイド席');
+    s.onclick=function(){toggle(row,n);}; s.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(row,n);}};
+  } else { s.className+=' dim'; }
+  return s;
+}
+function renderMap(){
+  var map=document.getElementById('mmap'); map.innerHTML='';
+  for(var row=1;row<=22;row++){
+    var rr=document.createElement('div'); rr.className='rrow';
+    var lab=document.createElement('div'); lab.className='rlab'; lab.textContent=row+'列'; rr.appendChild(lab);
+    if(row===13){ var w=document.createElement('div'); w.className='blk';
+      for(var k=0;k<26;k++){var s=document.createElement('div');s.className='seat dim';w.appendChild(s);} rr.appendChild(w); map.appendChild(rr); continue; }
+    var nums=seatNums(row), curBlk='', blkEl=null;
+    nums.forEach(function(o){
+      if(o.blk!==curBlk){ if(curBlk==='L'||curBlk==='C'){var g=document.createElement('div');g.className='gap';rr.appendChild(g);} blkEl=document.createElement('div');blkEl.className='blk';rr.appendChild(blkEl);curBlk=o.blk; }
+      blkEl.appendChild(makeSeat(row,o.n));
+    });
+    map.appendChild(rr);
+  }
+}
+function toggle(row,n){ var key=row+'-'+n; if(picked[key])delete picked[key]; else picked[key]=1; renderMap(); calc(); }
+function calc(){
+  var keys=Object.keys(picked), num=keys.length, sum=RES.unit*num;
+  document.getElementById('mList').innerHTML='<b>'+num+'席</b>'+(num>0&&num<5?'（<b style="color:var(--group)">5席以上必要</b>）':'')
+    +(num?'：'+keys.map(fmtSeat).join('・'):'');
+  document.getElementById('mTotal').innerHTML='¥'+sum.toLocaleString()+' <small>('+num+'席)</small>';
+  var changed=(num!==RES.count)||keys.some(function(k){return RES.seats.indexOf(k)<0;});
+  document.getElementById('mSave').disabled=!(num>=5 && changed);
+}
+function mSave(){
+  var keys=Object.keys(picked);
+  var btn=document.getElementById('mSave'); btn.disabled=true; btn.textContent='保存中…';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'team_update',resId:RES.resId,contact:RES.contact,seatIds:keys})})
+  .then(function(r){return r.json();}).then(function(res){
+    btn.textContent='変更を保存';
+    if(!res.ok){
+      if(res.error==='min5'){ alert('5席以上でお願いします。'); calc(); return; }
+      if(res.error==='closed'){ alert('変更受付は終了しました（8/16）。'); return; }
+      if(res.conflict){ alert('選んでいる間に '+res.conflict.map(fmtSeat).join('・')+' が他の団体に予約されました。選び直してください。');
+        // 他団体在庫を取り直して再描画
+        fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
+          OTHERS={}; (d.takenGroup||[]).forEach(function(id){ if(RES.seats.indexOf(id)<0) OTHERS[id]=1; });
+          renderMap(); calc();
+        }); return;
+      }
+      alert('保存に失敗しました。もう一度お試しください。'); calc(); return;
+    }
+    RES.seats=res.seats; RES.count=res.count; RES.amount=res.amount;
+    document.getElementById('vCount').textContent=res.count+'席';
+    document.getElementById('vAmount').textContent='¥'+res.amount.toLocaleString();
+    alert('変更を保存しました。\n現在 '+res.count+'席（¥'+res.amount.toLocaleString()+'）です。');
+    calc();
+  }).catch(function(){ btn.textContent='変更を保存'; alert('通信エラー。もう一度お試しください。'); calc(); });
+}
+
+// URLパラメータで予約IDを自動入力（?id=G...）
+(function(){
+  var p=new URLSearchParams(location.search);
+  if(p.get('id')) document.getElementById('mResId').value=p.get('id');
+  if(p.get('c')) document.getElementById('mContact').value=p.get('c');
+})();
+</script>
