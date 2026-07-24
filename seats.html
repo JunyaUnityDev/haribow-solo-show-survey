@@ -170,7 +170,7 @@
     <label>お支払い方法</label>
     <div class="paymethods">
       <button type="button" class="pm" onclick="selectPay('square',this)">Squareでカード決済</button>
-      <button type="button" class="pm" onclick="selectPay('bank',this)">銀行振込</button>
+      <button type="button" class="pm" id="payBank" onclick="selectPay('bank',this)">銀行振込</button>
     </div>
   </div>
 
@@ -225,7 +225,7 @@
       <label>お支払い方法</label>
       <div class="paymethods">
         <button type="button" class="pm sp" onclick="sPay('square',this)">Squareでカード決済</button>
-        <button type="button" class="pm sp" onclick="sPay('bank',this)">銀行振込</button>
+        <button type="button" class="pm sp" id="sPayBank" onclick="sPay('bank',this)">銀行振込</button>
       </div>
       <div id="sResult" style="font-size:20px;font-weight:800;margin-top:14px;font-variant-numeric:tabular-nums">¥0</div>
       <button class="buy" id="sBuy" style="margin-top:12px;width:100%" disabled onclick="sCheckout()">配信チケットを購入</button>
@@ -314,6 +314,9 @@ function loadAvail(){
     SOLD={}; (d.taken||[]).forEach(function(id){ SOLD[id]=1; });
     GSOLD={}; (d.takenGroup||[]).forEach(function(id){ GSOLD[id]=1; });
     SIDESOPEN = !!d.sidesOpen;
+    var bankOpen = (d.bankOpen!==false);
+    var pbk=document.getElementById('payBank'); if(pbk) pbk.style.display=bankOpen?'':'none';
+    var spbk=document.getElementById('sPayBank'); if(spbk) spbk.style.display=bankOpen?'':'none';
     render(); if(document.getElementById('gmap')) renderG();
   }).catch(function(){});
 }
