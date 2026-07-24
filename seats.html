@@ -64,6 +64,15 @@
   .map.big .rrow{gap:9px}
   .map.big .blk{gap:4px}
   .map.big .rlab{flex-basis:44px;font-size:12px}
+  /* スマホ：フォーカス表示(中央12席)が横スクロール無しで収まるよう縮小 */
+  @media (max-width:430px){
+    .map.big .seat{width:24px;height:24px;border-radius:5px}
+    .map.big .sn{font-size:10px}
+    .map.big .rrow{gap:6px}
+    .map.big .blk{gap:3px}
+    .map.big .rlab{flex-basis:30px;font-size:11px}
+    .maparea{padding:14px 8px 16px}
+  }
   /* 色以外の区別（アクセシビリティ）: 非売=斜線 / 売切=ドット */
   .seat.dead{background:var(--dead);background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,0,0,.28) 3px,rgba(0,0,0,.28) 4px)}
   .seat.sold{background:var(--sold);background-image:radial-gradient(rgba(255,255,255,.28) 1px,transparent 1.4px);background-size:5px 5px}
@@ -353,6 +362,15 @@ function render(){
       for(var k=0;k<26;k++){ var s=document.createElement('div'); s.className='seat dead'; w.appendChild(s); }
       var note=document.createElement('div'); note.style.cssText='font-size:9px;color:var(--faint);align-self:center;margin-left:4px'; note.textContent='車椅子席';
       rr.appendChild(w); rr.appendChild(note);
+    } else if(focus){
+      // フォーカス時：買える席（券種エリア一致）だけを1ブロックで表示→スマホでも横幅に収まる
+      var fnums=seatNums(row), fblk=document.createElement('div'); fblk.className='blk';
+      fnums.forEach(function(o){
+        var a=seatArea(row,o.n); if(SIDESOPEN && a==='group') a='gen';
+        if(a!==curType.area) return; // 対象外エリアは描かない（ダミー席で横幅を膨らませない）
+        fblk.appendChild(makeSeat(row,o.n));
+      });
+      rr.appendChild(fblk);
     } else {
       var nums=seatNums(row), curBlk='', blkEl=null;
       nums.forEach(function(o){
