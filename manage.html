@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>団体予約の確認・変更｜Go Beyond</title>
 <style>
   /* go-beyond ダーク・シネマティックに統一 */
@@ -19,7 +24,7 @@
 
   .buyerbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-top:18px}
   .buyerbox label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin:0 0 6px}
-  .buyerbox input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+  .buyerbox input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:16px;font-family:inherit;margin-bottom:14px}
   .buyerbox input:focus{outline:2px solid var(--main);outline-offset:1px}
   .buy{background:var(--main);color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
   .buy:disabled{background:var(--dead);color:var(--faint);cursor:not-allowed}
@@ -70,11 +75,13 @@
   .cart-total{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
   .cart-total small{font-size:12px;color:var(--dim);font-weight:600}
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <p class="eyebrow">HARIBOW 単独公演 · Go Beyond</p>
   <h1>団体予約の確認・変更</h1>
-  <p class="sub">予約IDと登録メールアドレスで、8/16まで人数（お席）を調整できます。</p>
+  <p class="sub">予約IDと登録メールアドレスで、お支払い前（8/17まで）は人数（お席）を調整できます。</p>
 
   <!-- ① 本人確認 -->
   <div class="buyerbox" id="authbox">
@@ -172,6 +179,15 @@ function mLoad(){
       return;
     }
     RES=res; showRes();
+    // Square決済から戻ってきた場合（?paid=）、本人確認済みのこのタイミングで入金確定を試みる
+    if(window.__paidResId && String(window.__paidResId)===String(resId) && res.status==='未入金'){
+      fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({survey:'team_paid',resId:resId,contact:contact})})
+      .then(function(r){return r.json();}).then(function(pr){
+        if(pr && pr.ok){ RES.status='入金済み'; showRes(); alert('お支払いを確認しました。お席が確定しました。'); }
+        else if(pr && pr.error==='not_paid_yet'){ alert('お支払いの確認に少しお時間がかかっています。確定しましたらメールでお知らせします。'); }
+      }).catch(function(){});
+    }
   }).catch(function(){ btn.disabled=false; btn.textContent='予約を表示'; err.textContent='通信エラー。もう一度お試しください。'; });
 }
 
@@ -267,7 +283,7 @@ function mSave(){
     btn.textContent='変更を保存';
     if(!res.ok){
       if(res.error==='min5'){ alert('5席以上でお願いします。'); calc(); return; }
-      if(res.error==='closed'){ alert('変更受付は終了しました（8/16）。'); return; }
+      if(res.error==='closed'||res.error==='not_editable'){ alert('変更の受付は終了しました（お支払い済み、または8/17を過ぎています）。'); return; }
       if(res.conflict){ alert('選んでいる間に '+res.conflict.map(fmtSeat).join('・')+' が他の団体に予約されました。選び直してください。');
         // 他団体在庫を取り直して再描画
         fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
@@ -285,21 +301,21 @@ function mSave(){
   }).catch(function(){ btn.textContent='変更を保存'; alert('通信エラー。もう一度お試しください。'); calc(); });
 }
 
-// URLパラメータ：?id=で予約ID自動入力／?paid=で入金確定（Square決済後のredirect）
+// URLパラメータ：?id=で予約ID自動入力／?paid=で入金確定案内（Square決済後のredirect）
+// team_paidは本人確認(メール)＋Square実決済照合が必要なため、メール入力後に確定する。
+// 入力し忘れても日次バッチ(checkTeamDeadlines)がSquareを照合して自動確定する。
 (function(){
   var p=new URLSearchParams(location.search);
   if(p.get('id')) document.getElementById('mResId').value=p.get('id');
   if(p.get('c')) document.getElementById('mContact').value=p.get('c');
-  var paid=p.get('paid');
-  if(paid){
-    fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({survey:'team_paid',resId:paid})})
-    .then(function(r){return r.json();}).then(function(){
-      var b=document.createElement('div');
-      b.style.cssText='background:rgba(99,182,204,.14);border:1px solid var(--main);color:var(--main);border-radius:12px;padding:14px;font-weight:700;font-size:14px;margin-top:16px';
-      b.innerHTML='お支払いを受け付けました。ありがとうございます。<br><span style="font-weight:400;color:var(--dim);font-size:12.5px">登録メールアドレスを入力すると予約内容を確認できます。</span>';
-      document.getElementById('authbox').insertAdjacentElement('beforebegin', b);
-    }).catch(function(){});
+  window.__paidResId = p.get('paid') || '';
+  if(window.__paidResId){
+    var b=document.createElement('div');
+    b.style.cssText='background:rgba(99,182,204,.14);border:1px solid var(--main);color:var(--main);border-radius:12px;padding:14px;font-weight:700;font-size:14px;margin-top:16px';
+    b.innerHTML='お支払いありがとうございます。<br><span style="font-weight:400;color:var(--dim);font-size:12.5px">確認のため、登録メールアドレスを入力して「予約を確認する」を押してください。確定するとメールでお知らせします。</span>';
+    document.getElementById('authbox').insertAdjacentElement('beforebegin', b);
   }
 })();
 </script>
+</body>
+</html>
