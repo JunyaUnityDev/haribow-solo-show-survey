@@ -40,13 +40,20 @@
 
   /* 券種選択 */
   .types{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 26px}
-  .type{flex:1 1 130px;min-width:120px;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;
+  .type{flex:1 1 calc(50% - 5px);min-width:0;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;
     padding:11px 13px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);transition:border-color .12s,box-shadow .12s;box-shadow:var(--shadow)}
   .type:hover{border-color:var(--main)}
   .type.active{border-color:var(--main);box-shadow:0 0 0 2px var(--main)}
   .type .tn{font-size:14px;font-weight:800}
   .type .tp{font-size:12px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums}
   .type .ta{font-size:11px;color:var(--faint);margin-top:3px}
+  /* サポーター券：一番上・全幅・2倍サイズ */
+  .type.big{flex-basis:100%;padding:20px 22px;border-color:var(--sup);background:linear-gradient(180deg,rgba(232,196,106,.08),var(--panel))}
+  .type.big.active{border-color:var(--sup);box-shadow:0 0 0 2px var(--sup)}
+  .type.big:hover{border-color:var(--sup)}
+  .type.big .tn{font-size:20px}
+  .type.big .tp{font-size:15px;margin-top:5px}
+  .type.big .ta{font-size:13px;margin-top:5px}
 
   /* 座席マップ */
   .maparea{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 12px 20px;box-shadow:var(--shadow);overflow-x:auto}
@@ -205,13 +212,17 @@
 
   <div id="tab-group" style="display:none">
     <div class="buyerbox">
-      <p class="don-note">団体は<b>5名以上</b>が対象。<b>下のサイド席（左右）からお好きな席を選べます</b>。4名以下は「個人・指定席」からお選びください。</p>
+      <p class="don-note">団体は<b>5名以上</b>が対象。<b>後方の左右サイド席から選べます</b>（前方サイド・中央は個人指定席）。4名以下は「個人・指定席」からお選びください。</p>
       <label>団体名</label>
       <input id="gName" placeholder="例：〇〇大学ダブルダッチサークル" oninput="gCalc()">
       <label>団体の種別</label>
       <div class="paymethods">
         <button type="button" class="pm gt" onclick="gType('circle',this,2000)">大学DDサークル ¥2,000/人</button>
         <button type="button" class="pm gt" onclick="gType('other',this,3000)">その他団体 ¥3,000/人</button>
+      </div>
+      <div id="gCommonBox" style="display:none">
+        <label style="margin-top:14px;display:block">団体の共通点（その他団体の方）</label>
+        <input id="gCommon" placeholder="例：過去に組んだチーム／同じ区在住／同じ会社 など" oninput="gCalc()">
       </div>
       <label style="margin-top:14px;display:block">代表者名</label>
       <input id="gRep" placeholder="例：山田太郎" oninput="gCalc()">
@@ -221,7 +232,7 @@
       <div class="maparea" style="margin:0 0 14px">
         <div class="stage" style="max-width:50%">STAGE</div>
         <div class="map" id="gmap"></div>
-        <p style="font-size:11px;color:var(--faint);margin:10px 0 0;text-align:center">左右のサイド席から選べます（中央は個人指定席）。8/17以降は空きが個人にも開放されます。</p>
+        <p style="font-size:11px;color:var(--faint);margin:10px 0 0;text-align:center">後方の左右サイド席から選べます（前方サイド・中央は個人指定席）。8/17以降は空きが個人にも開放されます。</p>
       </div>
       <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内（決済リンク）</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わると新しいリンクを再送します）。<br>・<b>8/17</b>までにご入金がない場合は、お席を解放いたします。<br>・8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
       <div id="gResult" style="font-size:20px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">¥0 <small style="font-size:12px;color:var(--dim);font-weight:600">（人数を入力）</small></div>
@@ -277,11 +288,11 @@ document.getElementById('phase').textContent = isAdvance
 
 // ---- 券種（前売, 通常, 対象エリア） ----
 var TYPES = [
-  {id:'ippan',   name:'一般',        adv:3500, reg:4000, area:'gen', note:'14列目以降'},
-  {id:'gakusei', name:'大学生',      adv:2500, reg:3000, area:'gen', note:'学生証提示・14列以降'},
-  {id:'kodomo',  name:'高校生以下',  adv:3500, reg:4000, area:'gen', note:'小中高生・14列以降'},
-  {id:'main',    name:'メイン特典付',adv:4500, reg:5000, area:'main',note:'2〜12列＋サンクス動画'},
-  {id:'sup',     name:'サポーター券',adv:15000,reg:15000,area:'sup', note:'2列中央・特典付'}
+  {id:'sup',     name:'来場サポーター券',adv:15000,reg:15000,area:'sup', note:'2列中央・特典付', big:true},
+  {id:'main',    name:'一般S席(特典付)',adv:4500, reg:5000, area:'main',note:'3〜12列中央＋サンクス動画'},
+  {id:'ippan',   name:'一般A席',        adv:3500, reg:4000, area:'gen', note:'14〜18列中央・前方サイド'},
+  {id:'kodomo',  name:'高校生以下',      adv:3500, reg:4000, area:'gen', note:'一般Aエリア・割引なし'},
+  {id:'gakusei', name:'大学生',          adv:2500, reg:3000, area:'gen', note:'学生証提示・一般Aから-1,000'}
 ];
 var curType = null;
 var picked = {}; // key "row-num" -> true
@@ -306,20 +317,20 @@ function seatNums(row){
   for(var n=right[0];n<=right[1];n++) arr.push({n:n,blk:'R'});
   return arr;
 }
-// ---- 席の区分（中央帯11〜22=個人券種／サイド=団体） ----
+// ---- 席の区分（中央帯11〜22=個人／サイド=前方個人(一般A)・後方団体） ----
 function seatArea(row,n){
   if(row===1) return 'cam';               // 1列=カメラマン(非売)
   if(row===13) return 'wheel';            // 13列=車椅子(非売)
   if((row===4||row===14) && n>=23&&n<=32) return 'reserve'; // 補欠
-  if(n<=10 || n>=23) return 'group';      // ★サイド=団体先取り
+  if(n<=10 || n>=23) return (row>=2&&row<=12) ? 'gen' : 'group'; // 前方サイド=個人一般A／後方サイド=団体
   // ここから中央帯(11〜22番)
   if(row===2) return 'sup';               // 2列中央=サポーター
-  if(row>=3&&row<=12) return 'main';       // 3〜12列中央=メイン
-  if(row>=14&&row<=18) return 'gen';       // 14〜18列中央=一般
+  if(row>=3&&row<=12) return 'main';       // 3〜12列中央=一般S(特典付)
+  if(row>=14&&row<=18) return 'gen';       // 14〜18列中央=一般A
   if(row>=19&&row<=22) return 'proj';      // 19〜22列中央=プロジェクター(非売)
   return 'gen';
 }
-var SELLABLE = {main:1,gen:1,sup:1};      // 個人が買う区分（中央帯）
+var SELLABLE = {main:1,gen:1,sup:1};      // 個人が買う区分
 var GROUP_OPEN = new Date() >= new Date(2026,7,17); // 8/17以降サイドを個人開放（実挙動はサーバーのsidesOpen=SIDESOPENが正）
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
@@ -339,8 +350,8 @@ function loadAvail(){
 
 var showAll=false;
 function rowInArea(row,area){
-  if(area==='main') return row>=3 && row<=12;   // メイン
-  if(area==='gen')  return row>=14 && row<=18;  // 一般
+  if(area==='main') return row>=3 && row<=12;   // 一般S(特典付)
+  if(area==='gen')  return (row>=2 && row<=12) || (row>=14 && row<=18); // 一般A=中央後方＋前方サイド
   if(area==='sup')  return row===2;             // サポーター
   return true;
 }
@@ -502,8 +513,9 @@ function doneScreen(msg){
 // 券種ボタン描画
 var tc=document.getElementById('types');
 TYPES.forEach(function(t){
-  var b=document.createElement('button'); b.className='type'; b.dataset.id=t.id;
-  b.innerHTML='<div class="tn">'+t.name+'</div><div class="tp">前売¥'+t.adv.toLocaleString()+' / 通常¥'+t.reg.toLocaleString()+'</div><div class="ta">'+t.note+'</div>';
+  var b=document.createElement('button'); b.className='type'+(t.big?' big':''); b.dataset.id=t.id;
+  var priceLine = (t.adv===t.reg) ? ('¥'+t.adv.toLocaleString()) : ('前売¥'+t.adv.toLocaleString()+' / 通常¥'+t.reg.toLocaleString());
+  b.innerHTML='<div class="tn">'+t.name+'</div><div class="tp">'+priceLine+'</div><div class="ta">'+t.note+'</div>';
   b.onclick=function(){ selectType(t); };
   tc.appendChild(b);
 });
@@ -521,7 +533,9 @@ function showTab(t,el){
 
 // ---- 団体タブ ----
 var gTypeVal=null, gUnit=0, gPayVal=null, gpicked={};
-function gType(id,el,unit){ gTypeVal=id; gUnit=unit; document.querySelectorAll('.gt').forEach(function(b){b.classList.toggle('active',b===el);}); gCalc(); }
+function gType(id,el,unit){ gTypeVal=id; gUnit=unit; document.querySelectorAll('.gt').forEach(function(b){b.classList.toggle('active',b===el);});
+  var cb=document.getElementById('gCommonBox'); if(cb) cb.style.display=(id==='other')?'':'none'; gCalc(); }
+function gCommon(){ return (document.getElementById('gCommon')||{}).value||''; }
 function gPay(m,el){ gPayVal=m; document.querySelectorAll('.gp').forEach(function(b){b.classList.toggle('active',b===el);}); gCalc(); }
 function renderG(){
   var map=document.getElementById('gmap'); if(!map) return;
@@ -561,7 +575,8 @@ function gCalc(){
   var sum=gUnit*num;
   res.innerHTML='¥'+sum.toLocaleString()+' <small style="font-size:12px;color:var(--dim);font-weight:600">('+(gUnit?'¥'+gUnit.toLocaleString()+'×':'')+num+'席'+(num>0&&num<5?' ⚠ 5席以上':'')+')</small>';
   var name=(document.getElementById('gName')||{}).value||'', rep=(document.getElementById('gRep')||{}).value||'', c=(document.getElementById('gContact')||{}).value||'';
-  btn.disabled=!(gTypeVal && num>=5 && name.trim() && rep.trim() && c.trim());
+  var commonOk = (gTypeVal!=='other') || gCommon().trim(); // その他団体は共通点必須
+  btn.disabled=!(gTypeVal && num>=5 && name.trim() && rep.trim() && c.trim() && commonOk);
 }
 function gCheckout(){
   var keys=Object.keys(gpicked);
@@ -571,6 +586,7 @@ function gCheckout(){
       groupName:document.getElementById('gName').value,
       groupType:(gTypeVal==='circle'?'大学DDサークル':'その他団体'),
       teamTypeId:gTypeVal,
+      commonality:gCommon(),
       rep:document.getElementById('gRep').value,
       contact:document.getElementById('gContact').value})})
   .then(function(r){return r.json();}).then(function(res){
