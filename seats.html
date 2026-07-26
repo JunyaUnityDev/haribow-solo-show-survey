@@ -226,7 +226,7 @@
   <div id="creditBox" style="display:none">
     <p class="step"><b>STEP 5</b>　お名前の掲載について</p>
     <div class="buyerbox">
-      <p class="don-note">サポーター券・応援金をいただいた方のお名前を、<b>当日パンフレット</b>と<b>ホワイエの横断幕</b>に掲載します。掲載を希望されない場合は「掲載しない」をお選びください。</p>
+      <p class="don-note">サポーター券・応援金をいただいた方のお名前を、<b>デジタルパンフレット</b>と<b>ホワイエの横断幕</b>に掲載します。掲載を希望されない場合は「掲載しない」をお選びください。</p>
       <div class="paymethods" id="creditRow">
         <button type="button" class="pm" onclick="setCredit('掲載する',this)">掲載する</button>
         <button type="button" class="pm" onclick="setCredit('掲載しない',this)">掲載しない</button>
@@ -234,7 +234,7 @@
       <div id="creditNameBox" style="display:none">
         <label style="margin-top:14px;display:block">掲載するお名前</label>
         <input id="creditName" placeholder="空欄の場合はお申込みのお名前を掲載します" oninput="updateCart()">
-        <p class="buyer-note">※印刷物のため、掲載後の修正はできません。表記をご確認ください。</p>
+        <p class="buyer-note">※ホワイエの横断幕は印刷物のため、製作開始後の変更には対応できません。表記をご確認ください。</p>
       </div>
     </div>
   </div>
@@ -546,7 +546,7 @@ function checkout(){
       else {
         var msg = o.error==='bad_phone' ? 'お電話番号の形式をご確認ください（10〜11桁）。'
                 : o.error==='need_tshirt' ? 'Tシャツのサイズをお選びください。'
-                : o.error==='need_credit' ? 'パンフレットへのお名前掲載の可否をお選びください。'
+                : o.error==='need_credit' ? 'お名前掲載の可否をお選びください。'
                 : o.error==='bad_email' ? 'メールアドレスの形式をご確認ください。'
                 : o.error==='seats_lost' ? '選んでいる間にお席が確保できませんでした。選び直してください。'
                 : o.error==='bank_closed' ? '銀行振込の受付は終了しました（公演2日前まで）。クレジットカードをご利用ください。'
