@@ -112,6 +112,12 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .summary-stat .value{font-size:22px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
 .summary-stat .value.warn{color:var(--warn)}
 .summary-stat .value.ok{color:var(--ok)}
+.seatmap{margin-top:12px;display:flex;flex-direction:column;gap:3px}
+.seatrow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.seatrow-label{width:34px;text-align:right;flex:none;color:var(--faint);font-weight:700}
+.seatrow-track{flex:1;height:9px;background:#e6ecf5;border-radius:5px;overflow:hidden}
+.seatrow-fill{display:block;height:100%;background:var(--ok);border-radius:5px}
+.seatrow-num{width:52px;flex:none;color:var(--faint)}
 .summary-link{display:inline-block;margin-top:12px;font-size:13px;color:var(--blue);font-weight:700;text-decoration:none}
 .summary-link:hover{text-decoration:underline}
 /* 最優先ブロッカー */
@@ -244,40 +250,83 @@ function switchTab(tab){
   document.getElementById('tabBtnBusiness').classList.toggle('active', tab==='business');
 }
 
-var GOAL_MIN = 500;
-var GOAL_MAX = 1000;
+/* 動員目標はハードコードしない（2026-07-27）。
+   以前は GOAL_MIN=500 / GOAL_MAX=1000 を直書きしていたが、予算を直すたびに
+   実際の必要来場人数とズレて表示が嘘になっていた。集客収支シミュレーターが
+   算出する「必要来場人数（収支トントン）」を唯一の目標値として使う。 */
+function fmtNum(n){ return Math.round(Number(n)||0).toLocaleString('ja-JP'); }
 
 function renderBusiness(b){
   var el = document.getElementById('businessSummary');
   if(!b){ el.innerHTML = '<p class="muted">データを取得できませんでした。</p>'; return; }
-  var f = b.forecast, a = b.actual;
-  var plCls = f.profitLoss>=0 ? 'ok' : 'warn';
-  var plText = (f.profitLoss>=0?'+':'') + Math.round(f.profitLoss).toLocaleString('ja-JP') + '円';
-  var forecastNum = Math.round(f.totalAttendance*10)/10;
-  var goalPct = Math.min(100, Math.round(forecastNum/GOAL_MAX*100));
-  var minPct = Math.round(GOAL_MIN/GOAL_MAX*100);
-  var toMin = GOAL_MIN - forecastNum;
-  var goalNote = toMin > 0
-    ? ('現在の見込みは最低ラインまであと'+Math.ceil(toMin)+'人')
-    : '最低ラインは見込みの範囲内です';
-  el.innerHTML =
+  var f = b.forecast, a = b.actual, s = b.seats;
+
+  var forecastNum = Math.round((Number(f.totalAttendance)||0)*10)/10;
+  var goal = Number(f.requiredAttendance)||0;
+  var hasGoal = goal > 0;
+  var goalPct = hasGoal ? Math.min(100, Math.round(forecastNum/goal*100)) : 0;
+  var toGoal = hasGoal ? Math.ceil(goal - forecastNum) : 0;
+  var goalNote = !hasGoal
+    ? '目標値を取得できませんでした（シミュレーターの「必要来場人数」行を確認してください）'
+    : (toGoal > 0
+        ? ('見込みは目標まであと'+fmtNum(toGoal)+'人')
+        : '見込みは目標に届いています');
+
+  var html =
     '<div class="summary-stat" style="margin-bottom:14px">'+
-      '<div class="label">動員目標</div>'+
-      '<div class="value">'+GOAL_MIN+'人（最低）〜'+GOAL_MAX+'人（目標）</div>'+
+      '<div class="label">収支トントンに必要な来場人数</div>'+
+      '<div class="value">'+(hasGoal?fmtNum(goal)+'人':'—')+'</div>'+
       '<div class="progress-track" style="margin-top:10px">'+
         '<div class="progress-seg-active" style="width:'+goalPct+'%"></div>'+
         '<div class="progress-seg-open" style="width:'+(100-goalPct)+'%"></div>'+
       '</div>'+
       '<p class="muted" style="margin:8px 0 0">現在の見込み '+forecastNum+'人（'+goalNote+'）</p>'+
-    '</div>'+
+    '</div>';
+
+  /* 客席の埋まり具合。金額より空席の方が出演者の手は動く。 */
+  if(s && s.ok && s.sellable > 0){
+    var seatPct = Math.round(s.taken/s.sellable*100);
+    var indiv = s.byArea && s.byArea['個人'] ? s.byArea['個人'] : null;
+    var grp   = s.byArea && s.byArea['団体'] ? s.byArea['団体'] : null;
+    var rowsHtml = (s.rows||[]).map(function(r){
+      var pct = r.sellable ? Math.round(r.taken/r.sellable*100) : 0;
+      return '<div class="seatrow" title="'+r.row+'列：'+r.taken+'/'+r.sellable+'席">'+
+               '<span class="seatrow-label">'+r.row+'列</span>'+
+               '<span class="seatrow-track"><span class="seatrow-fill" style="width:'+pct+'%"></span></span>'+
+               '<span class="seatrow-num">'+r.taken+'/'+r.sellable+'</span>'+
+             '</div>';
+    }).join('');
+    html +=
+      '<div class="summary-stat" style="margin-bottom:14px">'+
+        '<div class="label">客席の埋まり具合</div>'+
+        '<div class="value">'+fmtNum(s.taken)+' / '+fmtNum(s.sellable)+'席'+
+          '<span style="font-size:12px;font-weight:600;color:var(--faint)">（'+seatPct+'%）</span></div>'+
+        '<div class="progress-track" style="margin-top:10px">'+
+          '<div class="progress-seg-done" style="width:'+seatPct+'%"></div>'+
+          '<div class="progress-seg-open" style="width:'+(100-seatPct)+'%"></div>'+
+        '</div>'+
+        (indiv||grp ? '<p class="muted" style="margin:8px 0 0">'+
+          (indiv?'個人 '+indiv.taken+'/'+indiv.sellable+'席':'')+
+          (indiv&&grp?'　／　':'')+
+          (grp?'団体 '+grp.taken+'/'+grp.sellable+'席':'')+'</p>' : '')+
+        '<div class="seatmap">'+rowsHtml+'</div>'+
+      '</div>';
+  }
+
+  var plCls = f.profitLoss>=0 ? 'ok' : 'warn';
+  var plText = (f.profitLoss>=0?'+':'') + fmtNum(f.profitLoss) + '円';
+  html +=
     '<div class="summary-grid">'+
       '<div class="summary-stat"><div class="label">総動員数見込み</div><div class="value">'+forecastNum+'人</div></div>'+
       '<div class="summary-stat"><div class="label">収支予想</div><div class="value '+plCls+'">'+plText+'</div></div>'+
       '<div class="summary-stat"><div class="label">実際の申込み枚数</div><div class="value">'+a.ticketQty+'枚<span style="font-size:12px;font-weight:600;color:var(--faint)">（'+a.orderCount+'件）</span></div></div>'+
-      '<div class="summary-stat"><div class="label">売上合計（申込みベース）</div><div class="value">'+Math.round(a.revenueTotal).toLocaleString('ja-JP')+'円</div></div>'+
+      '<div class="summary-stat"><div class="label">売上合計（申込みベース）</div><div class="value">'+fmtNum(a.revenueTotal)+'円</div></div>'+
     '</div>'+
-    '<p class="muted">うち入金確認済み：'+Math.round(a.revenueConfirmed).toLocaleString('ja-JP')+'円</p>'+
-    '<a class="summary-link" href="'+b.simulatorUrl+'" target="_blank" rel="noopener">集客収支シミュレーターを開く →</a>';
+    '<p class="muted">うち入金確認済み：'+fmtNum(a.revenueConfirmed)+'円</p>'+
+    '<a class="summary-link" href="'+b.simulatorUrl+'" target="_blank" rel="noopener">集客収支シミュレーターを開く →</a>'+
+    (b.budgetUrl ? '<a class="summary-link" style="margin-left:16px" href="'+b.budgetUrl+'" target="_blank" rel="noopener">予算案（何にいくら使えるか）を開く →</a>' : '');
+
+  el.innerHTML = html;
 }
 
 function toast(msg){
