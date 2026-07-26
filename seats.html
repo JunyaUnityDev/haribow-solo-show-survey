@@ -487,8 +487,18 @@ function checkout(){
 }
 function fmtSeat(k){ var a=k.split('-'); return a[0]+'列'+a[1]+'番'; }
 function doneScreen(msg){
+  // メールが唯一の連絡手段なので、不達時の逃げ道を必ず出す（キャリアメールは落ちやすい）
+  var help = '<div style="margin-top:26px;padding:14px 16px;border:1px solid #2a2d35;border-radius:10px;text-align:left;'
+    + 'color:#a7adba;font-size:13px;line-height:1.9">'
+    + '<b style="color:#f3f1ea">メールが届かない場合</b><br>'
+    + '迷惑メールフォルダをご確認ください。数分たっても届かない場合は、'
+    + 'お手数ですが <a href="mailto:info@haribow.com" style="color:#8fb7c9">info@haribow.com</a> までご連絡ください。'
+    + '携帯キャリアのメールアドレス（docomo / au / SoftBank）は受信拒否設定で届かないことがあります。'
+    + '</div>'
+    + '<p style="color:#6f7684;font-size:12px;margin-top:20px;line-height:1.8">'
+    + '2026年9月29日(火) 開場18:30（予定）／開演19:30<br>めぐろパーシモンホール 大ホール</p>';
   document.body.style.background='#0a0b0e';
-  document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:26px;text-align:center;color:#f3f1ea;font-family:-apple-system,\'Hiragino Sans\',sans-serif"><h2 style="font-size:20px">お申し込みを受け付けました</h2><p style="color:#a7adba;line-height:1.8">'+msg+'</p></div>';
+  document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:26px;text-align:center;color:#f3f1ea;font-family:-apple-system,\'Hiragino Sans\',sans-serif"><h2 style="font-size:20px">お申し込みを受け付けました</h2><p style="color:#a7adba;line-height:1.8">'+msg+'</p>'+help+'</div>';
 }
 // 決済から戻ってきたら確定（?confirm=決済トークン）。サーバーがSquare実決済を照合してから席を確定。
 (function(){
