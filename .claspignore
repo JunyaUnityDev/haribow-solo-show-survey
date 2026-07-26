@@ -3,6 +3,9 @@
 !Config.js
 !Payments.js
 !Cast.js
+!Seats.js
+!Tickets.js
+!Operator.js
 !solo_interest.html
 !solo_interest_en.html
 !appsscript.json
