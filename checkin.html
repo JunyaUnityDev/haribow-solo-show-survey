@@ -157,12 +157,27 @@ function startCam(){
     var caps = track.getCapabilities ? track.getCapabilities() : {};
     if(caps && caps.torch) document.getElementById('torchBtn').style.display='';
     document.getElementById('camBtn').textContent='カメラ起動中（かざすだけで次々読めます）';
-    scanning=true; requestAnimationFrame(tick);
+    scanning=true; keepAwake(); requestAnimationFrame(tick);
   })
   .catch(function(){
     showVerdict('ng','カメラを起動できません','','ブラウザのカメラ許可をご確認ください。お名前検索でも受付できます。');
   });
 }
+/* ⑬ 受付中に画面が自動で消えないようにする（対応端末のみ） */
+var wakeLock=null;
+function keepAwake(){
+  try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){ wakeLock=w; }).catch(function(){}); }catch(e){}
+}
+/* ⑤ アプリ切替や画面ロックから戻った時にカメラを復帰させる */
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState!=='visible') return;
+  keepAwake();
+  if(!scanning) return;
+  if(video.srcObject && video.paused){ video.play().catch(function(){}); }
+  var tracks = video.srcObject ? video.srcObject.getVideoTracks() : [];
+  if(!tracks.length || tracks[0].readyState==='ended'){ startCam(); }  // ストリームが切れていたら取り直す
+});
+
 function toggleTorch(){
   if(!track) return;
   torchOn=!torchOn;
@@ -173,7 +188,10 @@ function toggleTorch(){
 function tick(){
   if(!scanning) return;
   if(!busy && video.readyState===video.HAVE_ENOUGH_DATA){
-    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    // 解析は最大640pxに縮小（フルHDのまま解析すると古い端末で数fpsまで落ちる）
+    var vw=video.videoWidth, vh=video.videoHeight;
+    var scale=Math.min(1, 640/Math.max(vw,vh));
+    canvas.width=Math.round(vw*scale); canvas.height=Math.round(vh*scale);
     ctx.drawImage(video,0,0,canvas.width,canvas.height);
     var img=ctx.getImageData(0,0,canvas.width,canvas.height);
     var code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
@@ -227,6 +245,7 @@ function doCheckin(token, fromSearch){
 }
 
 function undo(token){
+  if(!confirm('入場の記録を取り消します。よろしいですか？')) return;
   post('checkin_undo',{token:token}).then(function(r){
     if(r.ok){
       feedback('warn');
