@@ -3,47 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HARIBOW単独公演 進捗ダッシュボード</title>
+<title>GO BEYOND ｜ 進捗ダッシュボード</title>
 <style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--amber:#c07a12;--shadow:0 6px 20px rgba(20,42,82,.10)}
+:root{
+  --bg:#0a0b0e; --panel:#14161c; --panel2:#1a1d25; --line:rgba(255,255,255,.09);
+  --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280;
+  --teal:#63b6cc; --cream:#f0ece0;
+  --red:#c8433a; --amber:#c08f4a; --green:#6ba583;
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:760px;margin:0 auto;padding:22px 16px 80px}
-.logo{height:48px;width:auto;display:block;margin:4px 0 12px}
-h1{font-size:20px;font-weight:800;margin:0 0 4px}
-.updated{color:var(--faint);font-size:12px;margin:0 0 20px}
-h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-left:4px solid var(--blue)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
-.progress-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
-.progress-track{flex:1;height:14px;background:#eef3fa;border-radius:7px;overflow:hidden;display:flex}
-.progress-seg-done{background:var(--ok)}
-.progress-seg-active{background:var(--blue)}
-.progress-seg-open{background:#c3ccdb}
-.progress-pct{font-size:20px;font-weight:800;color:var(--blue);white-space:nowrap}
-.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.deadline-row{padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.deadline-row:last-child{border-bottom:none}
-.deadline-task{color:var(--ink);font-weight:600}
-.deadline-owner{color:var(--faint);font-size:11.5px}
-.deadline-date{white-space:nowrap;font-weight:700;font-size:12.5px}
-.deadline-date.soon{color:var(--warn)}
-.decision-row{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
-.decision-row:last-child{border-bottom:none}
-.decision-cat{display:inline-block;font-size:10px;font-weight:700;color:var(--blue);background:#e8f0ff;border-radius:6px;padding:1px 7px;margin-right:6px}
-.decision-text{color:var(--ink)}
-.decision-meta{font-size:11px;color:var(--faint);margin-top:2px}
-.person-progress{display:flex;align-items:center;gap:8px;margin:0 0 10px}
-.person-progress .ptrack{flex:1;height:8px;background:#eef3fa;border-radius:5px;overflow:hidden;display:flex}
-.person-progress .ppct{font-size:12px;font-weight:800;color:var(--blue);white-space:nowrap}
-.jumpnav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
-.jumpnav button{font-size:12px;font-weight:700;color:var(--blue);background:#e8f0ff;border:1px solid #cddcfb;border-radius:100px;padding:5px 12px;cursor:pointer;font-family:inherit}
-.jumpnav button.unassigned{color:var(--amber);background:#fdf2df;border-color:#f0dcb8}
-.jumpnav button .n{opacity:.7;font-weight:600;margin-left:2px}
-.person{margin-bottom:16px;scroll-margin-top:14px}
-.person-name{font-size:14.5px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
-.person-count{font-size:11px;font-weight:700;color:var(--faint);background:#eef3fa;border-radius:10px;padding:2px 9px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 90px}
+
+/* ---------- ヘッダー ---------- */
+.top{padding:20px 0 6px}
+.logo{height:34px;width:auto;display:block;opacity:.92}
+.eyebrow{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:14px 0 6px}
+h1{font-size:23px;font-weight:800;margin:0 0 3px;letter-spacing:.02em}
+.venue{color:var(--dim);font-size:12.5px;margin:0}
+.updated{color:var(--faint);font-size:11px;margin:10px 0 0;line-height:1.5}
+
+.sticky{position:sticky;top:0;z-index:30;background:rgba(10,11,14,.86);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);margin:14px -16px 0;padding:9px 16px;
+  display:flex;align-items:center;gap:14px;font-size:12px}
+.sticky .dday{font-weight:800;font-size:15px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.sticky .dday small{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.08em;margin-right:5px}
+.sticky .seatmini{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
+.sticky .seatmini b{color:var(--teal);font-size:14px}
+
+h2{font-size:13px;font-weight:800;margin:34px 0 12px;letter-spacing:.05em;
+  display:flex;align-items:center;gap:9px;color:var(--cream)}
+h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0}
+h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:auto;text-align:right}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:12px}
+.muted{color:var(--faint);font-size:12.5px}
+
+/* ---------- ① 客席ヒーロー ---------- */
+.hero{background:linear-gradient(170deg,#161a22,#101217 60%);border:1px solid rgba(99,182,204,.20);
+  border-radius:16px;padding:20px 18px;box-shadow:var(--shadow);margin-bottom:12px}
+.hero-lead{font-size:13px;color:var(--dim);margin:0 0 3px;letter-spacing:.02em}
+.hero-big{font-size:clamp(26px,7vw,38px);font-weight:800;line-height:1.15;margin:0 0 4px;
+  letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.hero-big .unit{font-size:.5em;font-weight:700;color:var(--dim);margin-left:3px}
+.hero-sub{font-size:12.5px;color:var(--dim);margin:0}
+.hero-sub b{color:var(--cream)}
+
+.stage{margin:20px 0 11px;text-align:center}
+.stage-bar{display:inline-block;width:56%;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--teal),transparent);opacity:.75}
+.stage-label{font-size:9.5px;letter-spacing:.34em;color:var(--teal);text-transform:uppercase;margin-top:6px;font-weight:700}
+.seatmap{display:flex;flex-direction:column;gap:3px;margin:12px 0 4px}
+.seatrow{display:flex;gap:2px;justify-content:center;align-items:center}
+.seat{flex:1 1 0;max-width:13px;height:7px;border-radius:1.5px;background:rgba(255,255,255,.055)}
+.seat.taken{background:var(--teal);box-shadow:0 0 5px rgba(99,182,204,.75)}
+.seatmap-cap{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0;line-height:1.5}
+
+.scale{margin:20px 0 0}
+.scale-track{position:relative;height:9px;border-radius:5px;background:rgba(255,255,255,.06)}
+.scale-fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--teal)}
+.scale-fill.forecast{background:rgba(99,182,204,.26)}
+.scale-mark{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);border-radius:1px}
+.scale-legend{display:flex;justify-content:space-between;gap:8px;margin-top:9px;font-size:11px;color:var(--faint)}
+.scale-legend b{display:block;font-size:14px;color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums}
+.scale-legend .l-mid{text-align:center}
+.scale-legend .l-mid b{color:var(--teal)}
+.scale-legend .l-end{text-align:right}
+.scale-legend .l-end b{color:var(--red)}
+
+.paceband{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:17px}
+.pace{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.pace .k{font-size:10px;letter-spacing:.09em;color:var(--faint);font-weight:700;text-transform:uppercase}
+.pace .v{font-size:19px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
+.pace .v small{font-size:11.5px;font-weight:600;color:var(--dim);margin-left:2px}
+.pace.danger .v{color:var(--red)}
+
+.hero-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.hero-links a{font-size:11.5px;font-weight:700;color:var(--teal);text-decoration:none;
+  border:1px solid rgba(99,182,204,.3);border-radius:100px;padding:5px 12px}
+.hero-links a:hover{background:rgba(99,182,204,.1)}
+
+.truthline{margin-top:15px;padding:11px 13px;border-radius:10px;
+  background:rgba(200,67,58,.10);border:1px solid rgba(200,67,58,.28);
+  font-size:12.5px;color:#f0c9c4;line-height:1.55}
+.truthline b{color:#fff}
+
+.kpi2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kpi2 .k{font-size:10px;letter-spacing:.09em;color:var(--faint);font-weight:700;text-transform:uppercase}
+.kpi2 .v{font-size:18px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi2 .v span{font-size:11.5px;font-weight:600;color:var(--faint)}
+
+/* ---------- ② 持ち場 ---------- */
+.ownerbar{display:flex;flex-wrap:wrap;gap:6px}
+.ownerbar button{font-size:12px;font-weight:700;color:var(--dim);background:var(--panel2);
+  border:1px solid var(--line);border-radius:100px;padding:6px 13px;cursor:pointer;font-family:inherit;transition:.12s}
+.ownerbar button:hover{color:var(--ink);border-color:rgba(255,255,255,.2)}
+.ownerbar button.on{background:var(--teal);border-color:var(--teal);color:#06222b}
+.ownerbar button.na{color:var(--amber);border-color:rgba(192,143,74,.35)}
+.ownerbar button.na.on{background:var(--amber);color:#1c1204;border-color:var(--amber)}
+.ownerbar button .n{opacity:.65;font-weight:600;margin-left:4px;font-variant-numeric:tabular-nums}
+
+.mine{border:1px solid rgba(99,182,204,.28);background:linear-gradient(170deg,#151b21,#111318)}
+.mine-h{font-size:13px;font-weight:800;margin:0 0 3px;color:var(--teal);letter-spacing:.03em}
+.mine-sub{font-size:11.5px;color:var(--faint);margin:0 0 11px}
+.mine-more{font-size:11.5px;color:var(--faint);margin:11px 0 0}
+
+/* ---------- 進捗バー ---------- */
+.pbar{display:flex;align-items:center;gap:11px;margin:0 0 9px}
+.ptrack{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;display:flex}
+.sg-done{background:var(--green)}
+.sg-active{background:var(--teal)}
+.sg-open{background:rgba(255,255,255,.12)}
+.ppct{font-size:12px;font-weight:800;color:var(--dim);white-space:nowrap;
+  font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+
+.phase{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line)}
+.phase:last-child{border-bottom:none}
+.phase-name{font-size:12.5px;font-weight:600;width:31%;flex-shrink:0;color:var(--dim)}
+.phase.hot .phase-name{color:var(--ink)}
+.phase-n{font-size:11px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+
+/* ---------- 今週の前進 ---------- */
+.wins{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.win{background:rgba(107,165,131,.09);border:1px solid rgba(107,165,131,.24);border-radius:10px;padding:11px 13px}
+.win .k{font-size:10px;letter-spacing:.09em;color:var(--faint);font-weight:700;text-transform:uppercase}
+.win .v{font-size:21px;font-weight:800;margin-top:2px;color:var(--green);font-variant-numeric:tabular-nums}
+.win .v small{font-size:11.5px;color:var(--dim);font-weight:600;margin-left:2px}
+.move{display:flex;gap:9px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.move:last-child{border-bottom:none}
+.move-d{font-size:10.5px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums;min-width:34px}
+.move-n{flex:1;min-width:0;color:var(--dim)}
+.move-n b{color:var(--ink);font-weight:600}
+.move-o{font-size:10.5px;color:var(--faint);white-space:nowrap}
+
+/* ---------- 止まっているもの ---------- */
+.jam-h2::before{background:var(--red)}
+.jam-note{font-size:12px;color:var(--dim);margin:0 0 10px;line-height:1.55;
+  padding-left:10px;border-left:2px solid rgba(200,67,58,.4)}
+.jam-note b{color:var(--cream)}
+.overdue-tag{display:inline-block;font-size:10px;font-weight:800;color:#f0c9c4;background:rgba(200,67,58,.2);
+  border-radius:5px;padding:1px 6px;margin-right:6px;font-variant-numeric:tabular-nums}
+.blk{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.blk:last-child{border-bottom:none}
+.blk-rank{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.blk.solved .blk-rank{background:rgba(255,255,255,.1);color:var(--faint)}
+.blk-body{flex:1;min-width:0}
+.blk-t{font-weight:700;font-size:14px}
+.blk.solved .blk-t{color:var(--faint);text-decoration:line-through}
+.blk-w{font-size:12.5px;color:#e0a49c;margin:4px 0 5px;line-height:1.5}
+.blk.solved .blk-w{color:var(--faint)}
+.blk-m{font-size:11px;color:var(--faint);font-weight:600}
+
+/* ---------- タスク（従来仕様を維持） ---------- */
 .task{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
 .task:last-child{border-bottom:none}
 .task-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -51,125 +167,153 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
 .task-name .arrow{display:inline-block;color:var(--faint);font-size:11px;margin-right:5px;transition:transform .15s}
 .task.expanded .task-name .arrow{transform:rotate(90deg)}
 .task-meta{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.status-select{font-size:10.5px;font-weight:700;border-radius:8px;padding:2px 6px;border:none;background:#f3eadd;color:var(--amber);font-family:inherit;cursor:pointer;-webkit-appearance:none;appearance:none;max-width:110px}
-.status-select.st-done{background:#e4f6ee;color:var(--ok)}
-.status-select.st-active{background:#e8f0ff;color:var(--blue)}
-.status-select.st-open{background:#f3eadd;color:var(--amber)}
-.status-select.st-hold{background:#efe8fa;color:#7a4fd1}
-.status-select.st-cancel{background:#eef0f3;color:var(--faint)}
-.task-subline{font-size:11.5px;color:var(--dim);margin:2px 0 0;padding-left:1px;white-space:pre-wrap;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.status-select{font-size:10.5px;font-weight:700;border-radius:7px;padding:3px 6px;border:none;
+  background:rgba(192,143,74,.16);color:var(--amber);font-family:inherit;cursor:pointer;
+  -webkit-appearance:none;appearance:none;max-width:110px}
+.status-select.st-done{background:rgba(107,165,131,.16);color:var(--green)}
+.status-select.st-active{background:rgba(99,182,204,.16);color:var(--teal)}
+.status-select.st-open{background:rgba(192,143,74,.16);color:var(--amber)}
+.status-select.st-hold{background:rgba(143,129,174,.18);color:#b3a6cd}
+.status-select.st-cancel{background:rgba(255,255,255,.06);color:var(--faint)}
+.task-subline{font-size:11.5px;color:var(--dim);margin:2px 0 0;white-space:pre-wrap;overflow:hidden;
+  text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .task.is-cancel .task-name{color:var(--faint);text-decoration:line-through}
-.epic-card{cursor:default}
-.epic-header{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14.5px;font-weight:800;margin:0 0 8px}
-.epic-arrow{color:var(--faint);font-size:11px;transition:transform .15s;flex-shrink:0}
-.epic-card.expanded .epic-arrow{transform:rotate(90deg)}
-.epic-title{flex:1}
-.epic-desc{margin:0 0 10px;font-size:12.5px;color:var(--dim)}
-.epic-children{display:none;margin-top:6px}
-.epic-card.expanded .epic-children{display:block}
-.epic-hint{font-size:11px;color:var(--faint);margin:0 0 2px}
-.task-date{font-size:11px;color:var(--faint);white-space:nowrap}
-.edit-btn{font-size:10.5px;color:var(--faint);background:#eef3fa;border:1px solid var(--line);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:inherit}
-.edit-btn:hover{color:var(--blue);border-color:var(--blue)}
-.task-detail{display:none;margin-top:8px;padding:10px 12px;background:#f5f8fd;border-radius:9px;font-size:12px;color:var(--dim)}
+.task-date{font-size:11px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
+.task-date.soon{color:var(--amber)}
+.task-date.over{color:var(--red);font-weight:700}
+.edit-btn{font-size:10.5px;color:var(--faint);background:rgba(255,255,255,.05);border:1px solid var(--line);
+  border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit}
+.edit-btn:hover{color:var(--teal);border-color:var(--teal)}
+.task-detail{display:none;margin-top:8px;padding:11px 13px;background:rgba(255,255,255,.03);
+  border-radius:9px;font-size:12px;color:var(--dim)}
 .task.expanded .task-detail{display:block}
-.task-detail dt{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:8px}
+.task-detail dt{font-size:9.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.09em;font-weight:700;margin-top:9px}
 .task-detail dt:first-child{margin-top:0}
-.task-detail dd{margin:1px 0 0;white-space:pre-wrap;line-height:1.6}
-.task-detail a{color:var(--blue)}
-.owner-select{font-size:11.5px;font-family:inherit;border:1px solid var(--line);border-radius:6px;padding:1px 4px;background:#fff;color:var(--dim)}
-.memo-list{margin:4px 0 8px;max-height:140px;overflow-y:auto}
-.memo-item{font-size:11.5px;padding:5px 0;border-bottom:1px dashed var(--line);white-space:pre-wrap}
+.task-detail dd{margin:2px 0 0;white-space:pre-wrap;line-height:1.6;color:var(--ink);font-size:12.5px}
+.task-detail a{color:var(--teal);word-break:break-all}
+.owner-select{font-size:12px;font-family:inherit;border:1px solid var(--line);border-radius:6px;
+  padding:3px 6px;background:var(--panel2);color:var(--ink)}
+.memo-list{margin:4px 0 8px;max-height:150px;overflow-y:auto}
+.memo-item{font-size:11.5px;padding:5px 0;border-bottom:1px dashed var(--line);white-space:pre-wrap;color:var(--dim)}
 .memo-item:last-child{border-bottom:none}
-.memo-add{display:flex;gap:6px;margin-top:4px}
-.memo-add textarea{flex:1;font-family:inherit;font-size:12px;border:1px solid var(--line);border-radius:7px;padding:6px 8px;resize:vertical;min-height:32px}
-.memo-add button{background:var(--blue);color:#fff;border:0;border-radius:7px;padding:0 12px;font-size:12px;font-weight:700;cursor:pointer}
-.person.unassigned{border:1.5px dashed var(--amber);background:#fdf8f0}
+.memo-add{display:flex;gap:6px;margin-top:5px}
+.memo-add textarea{flex:1;font-family:inherit;font-size:12px;border:1px solid var(--line);border-radius:7px;
+  padding:7px 9px;resize:vertical;min-height:34px;background:var(--panel2);color:var(--ink)}
+.memo-add button{background:var(--teal);color:#06222b;border:0;border-radius:7px;padding:0 13px;
+  font-size:12px;font-weight:800;cursor:pointer}
+
+/* 演目 / エピック */
+.epic{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:9px}
+.epic-h{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:14px;font-weight:700}
+.epic-arrow{color:var(--faint);font-size:11px;transition:transform .15s;flex-shrink:0}
+.epic.expanded .epic-arrow{transform:rotate(90deg)}
+.epic-title{flex:1;min-width:0}
+.epic.cancelled .epic-title{color:var(--faint);text-decoration:line-through}
+.pill{font-size:10px;font-weight:800;border-radius:20px;padding:3px 9px;white-space:nowrap;letter-spacing:.02em}
+.pill.st-done{background:rgba(107,165,131,.16);color:var(--green)}
+.pill.st-active{background:rgba(99,182,204,.16);color:var(--teal)}
+.pill.st-open{background:rgba(192,143,74,.16);color:var(--amber)}
+.pill.st-hold{background:rgba(143,129,174,.18);color:#b3a6cd}
+.pill.st-cancel{background:rgba(255,255,255,.06);color:var(--faint)}
+.epic-meta{font-size:11.5px;color:var(--faint);margin:7px 0 0;display:flex;gap:12px;flex-wrap:wrap}
+.epic-desc{margin:8px 0 0;font-size:12px;color:var(--dim);line-height:1.55}
+.epic-kids{display:none;margin-top:9px;padding-top:4px;border-top:1px solid var(--line)}
+.epic.expanded .epic-kids{display:block}
+
+.person{margin-bottom:11px;scroll-margin-top:64px}
+.person-name{font-size:14px;font-weight:800;margin:0 0 9px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.person-count{font-size:10.5px;font-weight:700;color:var(--faint);background:rgba(255,255,255,.06);
+  border-radius:20px;padding:3px 10px}
+.person.unassigned{border-color:rgba(192,143,74,.35);background:rgba(192,143,74,.05)}
 .person.unassigned .person-name{color:var(--amber)}
-.muted{color:var(--faint);font-size:12.5px}
-.err{color:var(--warn);text-align:center;padding:40px 20px}
-.saving{opacity:.5;pointer-events:none}
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:12.5px;padding:8px 16px;border-radius:20px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
-.toast.show{opacity:.92}
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(20,42,82,.45);z-index:40;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+
+.dec{padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.dec:last-child{border-bottom:none}
+.dec-cat{display:inline-block;font-size:9.5px;font-weight:800;color:var(--teal);background:rgba(99,182,204,.13);
+  border-radius:5px;padding:2px 7px;margin-right:7px;letter-spacing:.04em}
+.dec-meta{font-size:10.5px;color:var(--faint);margin-top:3px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--cream);color:#0a0b0e;
+  font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:22px;opacity:0;transition:opacity .2s;
+  pointer-events:none;z-index:60}
+.toast.show{opacity:.97}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(5,6,8,.72);z-index:50;
+  align-items:flex-start;justify-content:center;padding:34px 16px;overflow-y:auto;backdrop-filter:blur(3px)}
 .modal-bg.show{display:flex}
-.modal{background:#fff;border-radius:14px;max-width:520px;width:100%;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-.modal h3{margin:0 0 14px;font-size:16px}
-.modal label{display:block;font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:12px 0 5px}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:520px;width:100%;
+  padding:20px;box-shadow:var(--shadow)}
+.modal h3{margin:0 0 15px;font-size:15px;letter-spacing:.03em}
+.modal label{display:block;font-size:9.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.09em;
+  font-weight:700;margin:13px 0 5px}
 .modal label:first-of-type{margin-top:0}
-.modal input,.modal select,.modal textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit}
+.modal input,.modal select,.modal textarea{width:100%;border:1px solid var(--line);border-radius:8px;
+  padding:9px 11px;font-size:14px;font-family:inherit;background:var(--panel2);color:var(--ink)}
 .modal textarea{resize:vertical;min-height:56px}
-.modal-actions{display:flex;gap:8px;margin-top:18px}
-.modal-actions button{flex:1;border:0;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-.btn-save{background:var(--blue);color:#fff}
-.btn-cancel{background:#eef3fa;color:var(--dim)}
-.tabbar{display:flex;gap:8px;margin:0 0 20px}
-.tab-btn{font-size:13px;font-weight:700;padding:8px 16px;border-radius:100px;border:1px solid var(--line);background:var(--panel);color:var(--dim);cursor:pointer;font-family:inherit}
-.tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
-.summary-stat{background:var(--bg);border-radius:10px;padding:12px 14px}
-.summary-stat .label{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-.summary-stat .value{font-size:22px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
-.summary-stat .value.warn{color:var(--warn)}
-.summary-stat .value.ok{color:var(--ok)}
-.seatmap{margin-top:12px;display:flex;flex-direction:column;gap:3px}
-.seatrow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
-.seatrow-label{width:34px;text-align:right;flex:none;color:var(--faint);font-weight:700}
-.seatrow-track{flex:1;height:9px;background:#e6ecf5;border-radius:5px;overflow:hidden}
-.seatrow-fill{display:block;height:100%;background:var(--ok);border-radius:5px}
-.seatrow-num{width:52px;flex:none;color:var(--faint)}
-.summary-link{display:inline-block;margin-top:12px;font-size:13px;color:var(--blue);font-weight:700;text-decoration:none}
-.summary-link:hover{text-decoration:underline}
-/* 最優先ブロッカー */
-.blocker-h2{border-left-color:var(--warn)}
-.blocker-card{border-color:#eec3b7;background:linear-gradient(180deg,#fdf3ef,#fff)}
-.blocker-row{display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #f0ddd5}
-.blocker-row:last-child{border-bottom:none}
-.blocker-rank{width:26px;height:26px;border-radius:50%;background:var(--warn);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.blocker-body{flex:1;min-width:0}
-.blocker-title{font-weight:700;color:var(--ink);font-size:14.5px}
-.blocker-why{font-size:13px;color:var(--warn);margin:4px 0 5px;line-height:1.5}
-.blocker-meta{font-size:11.5px;color:var(--faint);font-weight:600}
+.modal-actions{display:flex;gap:8px;margin-top:19px}
+.modal-actions button{flex:1;border:0;border-radius:9px;padding:12px;font-size:14px;font-weight:800;
+  cursor:pointer;font-family:inherit}
+.btn-save{background:var(--teal);color:#06222b}
+.btn-cancel{background:rgba(255,255,255,.07);color:var(--dim)}
+.err{color:var(--red);text-align:center;padding:44px 20px}
+
+@media(max-width:430px){
+  .phase-name{width:40%}
+  .paceband,.wins,.kpi2{grid-template-columns:1fr}
+  .seat{height:6px}
+  h2{flex-wrap:wrap}
+  h2 .h2note{margin-left:25px;width:100%;text-align:left}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
-  <h1>単独公演 進捗ダッシュボード</h1>
-  <p class="updated" id="updated">読み込み中...</p>
 
-  <div class="tabbar">
-    <button class="tab-btn active" id="tabBtnProgress" onclick="switchTab('progress')">進捗</button>
-    <button class="tab-btn" id="tabBtnBusiness" onclick="switchTab('business')">集客・収支</button>
+  <div class="top">
+    <img class="logo" src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
+    <p class="eyebrow">Solo Show 2026 — Ops</p>
+    <h1>GO BEYOND ／ 進捗ダッシュボード</h1>
+    <p class="venue">2026.9.29（火）夜　めぐろパーシモンホール 大ホール</p>
+    <p class="updated" id="updated">読み込み中…</p>
   </div>
 
-  <div id="businessTab" style="display:none">
-    <h2>集客・収支サマリー</h2>
-    <div class="card" id="businessSummary"></div>
+  <div class="sticky">
+    <div class="dday" id="dday"><small>本番まで</small>—</div>
+    <div class="seatmini" id="seatmini"></div>
   </div>
 
   <div id="content">
-    <h2 class="blocker-h2">いま全体を止めているブロッカー</h2>
-    <div class="card blocker-card" id="blockers"></div>
 
-    <h2>全体進捗</h2>
-    <div class="card" id="overview"></div>
+    <h2>いま、この公演はどうなっているか</h2>
+    <div id="hero"></div>
 
-    <h2>直近の期限</h2>
+    <h2>あなたの持ち場<span class="h2note">名前を押すと自分のタスクだけになります</span></h2>
+    <div class="ownerbar" id="ownerbar"></div>
+    <div id="mine"></div>
+
+    <h2>今週なにが動いたか<span class="h2note">直近7日</span></h2>
+    <div class="card" id="wins"></div>
+
+    <h2 class="jam-h2">止まっているもの</h2>
+    <div id="jam"></div>
+
+    <h2>フェーズごとの進み具合</h2>
+    <div class="card" id="phases"></div>
+
+    <h2>これから2週間の期限</h2>
     <div class="card" id="deadlines"></div>
 
-    <h2>直近の決定事項</h2>
-    <div class="card" id="decisions"></div>
-
-    <h2>演目（パフォーマンス）別</h2>
+    <h2>演目<span class="h2note">タップで内訳・編集</span></h2>
     <div id="performances"></div>
 
-    <h2>その他プロジェクト</h2>
+    <h2>そのほかのプロジェクト</h2>
     <div id="epics"></div>
 
-    <h2>担当者別タスク</h2>
-    <div class="jumpnav" id="jumpnav"></div>
+    <h2>担当者別<span class="h2note" id="personNote"></span></h2>
     <div id="byPerson"></div>
+
+    <h2>決まったこと</h2>
+    <div class="card" id="decisions"></div>
+
   </div>
 </div>
 
@@ -188,9 +332,6 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
     <input id="m_合格基準">
     <label>責任者</label>
     <input id="m_責任者" list="ownerList">
-    <datalist id="ownerList">
-      <option value="坂田潤弥"><option value="海野鷹幸"><option value="加藤周平"><option value="三輪卓海"><option value="前田航希"><option value="松澤竜介"><option value="井端真秀">
-    </datalist>
     <label>期限</label>
     <input id="m_期限" type="date">
     <label>関連URL</label>
@@ -206,491 +347,649 @@ h2{font-size:15px;font-weight:800;margin:28px 0 12px;padding-left:10px;border-le
   </div>
 </div>
 
+<datalist id="ownerList"></datalist>
+<datalist id="ownerListInline"></datalist>
+
 <script>
+/* =========================================================================
+ * HARIBOW単独公演「GO BEYOND」進捗ダッシュボード
+ *
+ * 2026-07-27 全面改修。運営が「何が起きているか分からない／やる気が出ない」状態への対処。
+ * 設計方針＝運営が知りたい5つの問いに、上から順に答える：
+ *   ① 間に合うのか        → D-day ＋ 客席の埋まり具合（このページの主語）
+ *   ② 一番ヤバいのは何か  → 実売／見込み／黒字ライン の3点スケール
+ *   ③ 今週なにが動いたか  → 更新日ベースの差分（やる気の燃料は到達点でなく前進）
+ *   ④ 自分は何をするか    → 名前クリックで自分の持ち場だけに絞る
+ *   ⑤ 何で止まっているか  → 期限超過／ブロッカー／担当未定／保留 を1か所に集約
+ *
+ * 全体進捗の単一％バーは廃止した。演目タスクの期限が本番前日に集中している構造上、
+ * 完了率は直前まで上がりようがなく、毎回「22%」を見せられるのは士気に対して逆効果のため。
+ * 代わりにフェーズ別の進みと「今週の前進」で、動いている実感を出す。
+ *
+ * 集客・収支は別タブをやめて最上段に統合した。この公演の主語はタスク数ではなく人数のため。
+ *
+ * データ：GASの ?page=dashboard が返す { rows, decisions, business } のみを使う。
+ *         WBSシートの内容・構造には手を入れていない（表示の組み替えだけ）。
+ * ========================================================================= */
+
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var ENDPOINT = BASE + '?page=dashboard';
 var ADMIN_SECRET = 'hbw-2026-solo-admin-9f3k2x';
-var OWNER_OPTIONS = ['坂田潤弥','海野鷹幸','周平','卓海'];
+var TICKET_URL = 'https://junyaunitydev.github.io/haribow-solo-show-survey/seats.html';
+
+var SHOW_DATE = new Date(2026, 8, 29);   // 2026-09-29 めぐろパーシモンホール 大ホール
 var latestData = null;
+var selectedOwner = null;                // null = 全員
+
+/* 担当者フィルタは端末に覚えさせる（毎回自分を選び直させない） */
+try { selectedOwner = localStorage.getItem('hbw_owner') || null; } catch(e){}
 
 var STATUS_OPTIONS = ['未着手','進行中','保留','完了','中止'];
 var STATUS_META = {
-  '未着手': {bucket:'open', cls:'st-open'},
-  '進行中': {bucket:'active', cls:'st-active'},
-  '保留':   {bucket:'open', cls:'st-hold'},
-  '完了':   {bucket:'done', cls:'st-done'},
+  '未着手': {bucket:'open',     cls:'st-open'},
+  '進行中': {bucket:'active',   cls:'st-active'},
+  '保留':   {bucket:'open',     cls:'st-hold'},
+  '完了':   {bucket:'done',     cls:'st-done'},
   '中止':   {bucket:'excluded', cls:'st-cancel'}
 };
-function statusBucket(status){
-  var m = STATUS_META[String(status||'').trim()];
-  return m ? m.bucket : 'active';
-}
-function statusCls(status){
-  var m = STATUS_META[String(status||'').trim()];
-  return m ? m.cls : 'st-active';
-}
-function parseDate(v){
-  if(!v) return null;
-  var d = new Date(v);
-  return isNaN(d.getTime()) ? null : d;
-}
+/* WBS「フェーズ」列の並び順。■系が現行、P0〜P4は旧採番だが現役タスクを含むので残す。 */
+var PHASE_ORDER = ['■企画確定','■会場確定','■お金設計','■集客設計','■集客実行','■演目制作',
+                   '■制作(演出)','■ホワイエ設計(物販)','■本番準備','■当日運営',
+                   'P0','P1','P2','P3','P4','運営'];
+
+function statusBucket(s){ var m=STATUS_META[String(s||'').trim()]; return m?m.bucket:'active'; }
+function statusCls(s){ var m=STATUS_META[String(s||'').trim()]; return m?m.cls:'st-active'; }
+function isLive(r){ return statusBucket(r['ステータス'])!=='excluded'; }
+function isOpen(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; }
+function ownerOf(r){ return String(r['責任者']||'').trim() || '未定'; }
+
+function parseDate(v){ if(!v) return null; var d=new Date(v); return isNaN(d.getTime())?null:d; }
 function fmtDate(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
-function scrollToPerson(id){
-  var el = document.getElementById(id);
-  if(!el) return;
-  el.scrollIntoView({behavior:'smooth', block:'start'});
-  el.style.transition = 'box-shadow .2s';
-  el.style.boxShadow = '0 0 0 3px var(--blue)';
-  setTimeout(function(){ el.style.boxShadow = ''; }, 900);
-}
-function switchTab(tab){
-  document.getElementById('content').style.display = tab==='progress' ? '' : 'none';
-  document.getElementById('businessTab').style.display = tab==='business' ? '' : 'none';
-  document.getElementById('tabBtnProgress').classList.toggle('active', tab==='progress');
-  document.getElementById('tabBtnBusiness').classList.toggle('active', tab==='business');
-}
-
-/* 動員目標はハードコードしない（2026-07-27）。
-   以前は GOAL_MIN=500 / GOAL_MAX=1000 を直書きしていたが、予算を直すたびに
-   実際の必要来場人数とズレて表示が嘘になっていた。集客収支シミュレーターが
-   算出する「必要来場人数（収支トントン）」を唯一の目標値として使う。 */
-function fmtNum(n){ return Math.round(Number(n)||0).toLocaleString('ja-JP'); }
-
-function renderBusiness(b){
-  var el = document.getElementById('businessSummary');
-  if(!b){ el.innerHTML = '<p class="muted">データを取得できませんでした。</p>'; return; }
-  var f = b.forecast, a = b.actual, s = b.seats;
-
-  var forecastNum = Math.round((Number(f.totalAttendance)||0)*10)/10;
-  var goal = Number(f.requiredAttendance)||0;
-  var hasGoal = goal > 0;
-  var goalPct = hasGoal ? Math.min(100, Math.round(forecastNum/goal*100)) : 0;
-  var toGoal = hasGoal ? Math.ceil(goal - forecastNum) : 0;
-  var goalNote = !hasGoal
-    ? '目標値を取得できませんでした（シミュレーターの「必要来場人数」行を確認してください）'
-    : (toGoal > 0
-        ? ('見込みは目標まであと'+fmtNum(toGoal)+'人')
-        : '見込みは目標に届いています');
-
-  var html =
-    '<div class="summary-stat" style="margin-bottom:14px">'+
-      '<div class="label">収支トントンに必要な来場人数</div>'+
-      '<div class="value">'+(hasGoal?fmtNum(goal)+'人':'—')+'</div>'+
-      '<div class="progress-track" style="margin-top:10px">'+
-        '<div class="progress-seg-active" style="width:'+goalPct+'%"></div>'+
-        '<div class="progress-seg-open" style="width:'+(100-goalPct)+'%"></div>'+
-      '</div>'+
-      '<p class="muted" style="margin:8px 0 0">現在の見込み '+forecastNum+'人（'+goalNote+'）</p>'+
-    '</div>';
-
-  /* 客席の埋まり具合。金額より空席の方が出演者の手は動く。 */
-  if(s && s.ok && s.sellable > 0){
-    var seatPct = Math.round(s.taken/s.sellable*100);
-    var indiv = s.byArea && s.byArea['個人'] ? s.byArea['個人'] : null;
-    var grp   = s.byArea && s.byArea['団体'] ? s.byArea['団体'] : null;
-    var rowsHtml = (s.rows||[]).map(function(r){
-      var pct = r.sellable ? Math.round(r.taken/r.sellable*100) : 0;
-      return '<div class="seatrow" title="'+r.row+'列：'+r.taken+'/'+r.sellable+'席">'+
-               '<span class="seatrow-label">'+r.row+'列</span>'+
-               '<span class="seatrow-track"><span class="seatrow-fill" style="width:'+pct+'%"></span></span>'+
-               '<span class="seatrow-num">'+r.taken+'/'+r.sellable+'</span>'+
-             '</div>';
-    }).join('');
-    html +=
-      '<div class="summary-stat" style="margin-bottom:14px">'+
-        '<div class="label">客席の埋まり具合</div>'+
-        '<div class="value">'+fmtNum(s.taken)+' / '+fmtNum(s.sellable)+'席'+
-          '<span style="font-size:12px;font-weight:600;color:var(--faint)">（'+seatPct+'%）</span></div>'+
-        '<div class="progress-track" style="margin-top:10px">'+
-          '<div class="progress-seg-done" style="width:'+seatPct+'%"></div>'+
-          '<div class="progress-seg-open" style="width:'+(100-seatPct)+'%"></div>'+
-        '</div>'+
-        (indiv||grp ? '<p class="muted" style="margin:8px 0 0">'+
-          (indiv?'個人 '+indiv.taken+'/'+indiv.sellable+'席':'')+
-          (indiv&&grp?'　／　':'')+
-          (grp?'団体 '+grp.taken+'/'+grp.sellable+'席':'')+'</p>' : '')+
-        '<div class="seatmap">'+rowsHtml+'</div>'+
-      '</div>';
-  }
-
-  var plCls = f.profitLoss>=0 ? 'ok' : 'warn';
-  var plText = (f.profitLoss>=0?'+':'') + fmtNum(f.profitLoss) + '円';
-  html +=
-    '<div class="summary-grid">'+
-      '<div class="summary-stat"><div class="label">総動員数見込み</div><div class="value">'+forecastNum+'人</div></div>'+
-      '<div class="summary-stat"><div class="label">収支予想</div><div class="value '+plCls+'">'+plText+'</div></div>'+
-      '<div class="summary-stat"><div class="label">実際の申込み枚数</div><div class="value">'+a.ticketQty+'枚<span style="font-size:12px;font-weight:600;color:var(--faint)">（'+a.orderCount+'件）</span></div></div>'+
-      '<div class="summary-stat"><div class="label">売上合計（申込みベース）</div><div class="value">'+fmtNum(a.revenueTotal)+'円</div></div>'+
-    '</div>'+
-    '<p class="muted">うち入金確認済み：'+fmtNum(a.revenueConfirmed)+'円</p>'+
-    '<a class="summary-link" href="'+b.simulatorUrl+'" target="_blank" rel="noopener">集客収支シミュレーターを開く →</a>'+
-    (b.budgetUrl ? '<a class="summary-link" style="margin-left:16px" href="'+b.budgetUrl+'" target="_blank" rel="noopener">予算案（何にいくら使えるか）を開く →</a>' : '');
-
-  el.innerHTML = html;
-}
+function today0(){ var t=new Date(); t.setHours(0,0,0,0); return t; }
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function num(n){ return Math.round(Number(n)||0).toLocaleString('ja-JP'); }
 
 function toast(msg){
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },1800);
 }
 
+/* ------------------------------------------------------------------ 書き込み */
 function postUpdate(body){
-  return fetch(BASE, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(body)
-  }).then(function(r){ return r.json(); });
+  return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(body)}).then(function(r){ return r.json(); });
 }
-
 function saveField(rowIndex, field, value, onDone){
-  postUpdate({survey:'wbs_update', secret:ADMIN_SECRET, rowIndex:rowIndex, field:field, value:value})
+  postUpdate({survey:'wbs_update',secret:ADMIN_SECRET,rowIndex:rowIndex,field:field,value:value})
     .then(function(res){
-      if(res.ok){ toast('保存しました'); if(onDone) onDone(); }
+      if(res.ok){ if(onDone) onDone(); }
       else toast('保存失敗：'+res.error);
     }).catch(function(e){ toast('通信エラー：'+e); });
 }
-
-function onStatusSelectChange(sel, rowIndex){
-  saveField(rowIndex, 'ステータス', sel.value, function(){ load(); });
+/* 編集したら「更新日」に今日を自動で入れる。
+   これが空だと「今週なにが動いたか」が出せない（改修前は97行中69行が空だった）。 */
+function stampUpdated(rowIndex, onDone){
+  var t=new Date();
+  var ymd=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
+  saveField(rowIndex,'更新日',ymd,onDone);
 }
-function onOwnerChange(input, rowIndex){
-  saveField(rowIndex, '責任者', input.value.trim(), function(){ load(); });
+function onStatusSelectChange(sel,rowIndex){
+  saveField(rowIndex,'ステータス',sel.value,function(){
+    stampUpdated(rowIndex,function(){ toast('保存しました'); load(); });
+  });
+}
+function onOwnerChange(input,rowIndex){
+  saveField(rowIndex,'責任者',input.value.trim(),function(){
+    stampUpdated(rowIndex,function(){ toast('保存しました'); load(); });
+  });
 }
 
-var editingRow = null;
+var MODAL_FIELDS = ['タスク名','目的','成果物','合格基準','責任者','関連URL','進捗詳細','親タスク'];
+var editingRow=null;
 function openModal(r){
-  editingRow = r['_row'];
-  document.getElementById('m_タスク名').value = r['タスク名']||'';
-  document.getElementById('m_目的').value = r['目的']||'';
-  document.getElementById('m_成果物').value = r['成果物']||'';
-  document.getElementById('m_合格基準').value = r['合格基準']||'';
-  document.getElementById('m_責任者').value = r['責任者']||'';
-  document.getElementById('m_関連URL').value = r['関連URL']||'';
-  document.getElementById('m_進捗詳細').value = r['進捗詳細']||'';
-  document.getElementById('m_親タスク').value = r['親タスク']||'';
-  var d = parseDate(r['期限']);
-  document.getElementById('m_期限').value = d ? d.toISOString().slice(0,10) : '';
+  editingRow=r['_row'];
+  MODAL_FIELDS.forEach(function(k){ document.getElementById('m_'+k).value = r[k]||''; });
+  var d=parseDate(r['期限']);
+  document.getElementById('m_期限').value =
+    d ? new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10) : '';
   document.getElementById('modalBg').classList.add('show');
 }
 function closeModal(){ document.getElementById('modalBg').classList.remove('show'); editingRow=null; }
 function saveModal(){
   if(!editingRow) return;
-  var fields = {
-    'タスク名': document.getElementById('m_タスク名').value.trim(),
-    '目的': document.getElementById('m_目的').value.trim(),
-    '成果物': document.getElementById('m_成果物').value.trim(),
-    '合格基準': document.getElementById('m_合格基準').value.trim(),
-    '責任者': document.getElementById('m_責任者').value.trim(),
-    '関連URL': document.getElementById('m_関連URL').value.trim(),
-    '進捗詳細': document.getElementById('m_進捗詳細').value.trim(),
-    '親タスク': document.getElementById('m_親タスク').value.trim(),
-    '期限': document.getElementById('m_期限').value
-  };
-  var row = editingRow;
-  var keys = Object.keys(fields);
+  var fields={};
+  MODAL_FIELDS.forEach(function(k){ fields[k]=document.getElementById('m_'+k).value.trim(); });
+  fields['期限']=document.getElementById('m_期限').value;
+  var row=editingRow, keys=Object.keys(fields);
   function next(i){
-    if(i>=keys.length){ closeModal(); toast('保存しました'); load(); return; }
-    saveField(row, keys[i], fields[keys[i]], function(){ next(i+1); });
+    if(i>=keys.length){ stampUpdated(row,function(){ closeModal(); toast('保存しました'); load(); }); return; }
+    saveField(row,keys[i],fields[keys[i]],function(){ next(i+1); });
   }
   next(0);
 }
-function addMemo(btn, rowIndex){
-  var ta = btn.previousElementSibling;
-  var text = ta.value.trim();
+function addMemo(btn,rowIndex){
+  var ta=btn.previousElementSibling, text=ta.value.trim();
   if(!text) return;
-  btn.disabled = true;
-  postUpdate({survey:'wbs_memo', secret:ADMIN_SECRET, rowIndex:rowIndex, text:text, author:''})
+  btn.disabled=true;
+  postUpdate({survey:'wbs_memo',secret:ADMIN_SECRET,rowIndex:rowIndex,text:text,author:''})
     .then(function(res){
-      btn.disabled = false;
-      if(res.ok){ ta.value=''; toast('追加しました'); load(); }
+      btn.disabled=false;
+      if(res.ok){ ta.value=''; stampUpdated(rowIndex,function(){ toast('追加しました'); load(); }); }
       else toast('失敗：'+res.error);
     }).catch(function(e){ btn.disabled=false; toast('通信エラー：'+e); });
 }
 
-function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+/* ------------------------------------------------- タスク1行（従来仕様を維持） */
 function renderStatusSelect(r){
-  var cur = r['ステータス']||'未着手';
-  var opts = STATUS_OPTIONS.map(function(o){
+  var cur=r['ステータス']||'未着手';
+  var opts=STATUS_OPTIONS.map(function(o){
     return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+o+'</option>';
   }).join('');
-  return '<select class="status-select '+statusCls(cur)+'" '+
-    'onclick="event.stopPropagation()" onchange="event.stopPropagation();onStatusSelectChange(this,'+r['_row']+')">'+opts+'</select>';
+  return '<select class="status-select '+statusCls(cur)+'" onclick="event.stopPropagation()" '+
+    'onchange="event.stopPropagation();onStatusSelectChange(this,'+r['_row']+')">'+opts+'</select>';
 }
-
 function renderDetail(r){
-  var parts = [];
-  if(r['目的']) parts.push('<dt>目的</dt><dd>'+r['目的']+'</dd>');
-  if(r['成果物']) parts.push('<dt>成果物</dt><dd>'+r['成果物']+'</dd>');
-  if(r['合格基準']) parts.push('<dt>合格基準</dt><dd>'+r['合格基準']+'</dd>');
-  if(r['タスク属性']) parts.push('<dt>分類</dt><dd>'+r['タスク属性']+'</dd>');
-  if(r['進捗詳細']) parts.push('<dt>進捗詳細</dt><dd>'+r['進捗詳細']+'</dd>');
-  if(r['親タスク']) parts.push('<dt>所属プロジェクト</dt><dd>'+r['親タスク']+'</dd>');
-  parts.push('<dt>責任者</dt><dd><input class="owner-select" list="ownerListInline" value="'+(r['責任者']||'')+'" onclick="event.stopPropagation()" onchange="onOwnerChange(this,'+r['_row']+')" placeholder="未定"></dd>');
-  if(r['関連URL']) parts.push('<dt>関連URL</dt><dd><a href="'+r['関連URL']+'" target="_blank" rel="noopener">'+r['関連URL']+'</a></dd>');
+  var parts=[];
+  if(r['目的'])           parts.push('<dt>目的</dt><dd>'+esc(r['目的'])+'</dd>');
+  if(r['成果物'])         parts.push('<dt>成果物</dt><dd>'+esc(r['成果物'])+'</dd>');
+  if(r['合格基準'])       parts.push('<dt>合格基準</dt><dd>'+esc(r['合格基準'])+'</dd>');
+  if(r['タスク属性'])     parts.push('<dt>分類</dt><dd>'+esc(r['タスク属性'])+'</dd>');
+  if(r['進捗詳細'])       parts.push('<dt>進捗詳細</dt><dd>'+esc(r['進捗詳細'])+'</dd>');
+  if(r['リスク発生条件']) parts.push('<dt>リスク発生条件</dt><dd>'+esc(r['リスク発生条件'])+'</dd>');
+  if(r['対策'])           parts.push('<dt>対策</dt><dd>'+esc(r['対策'])+'</dd>');
+  if(r['親タスク'])       parts.push('<dt>所属プロジェクト</dt><dd>'+esc(r['親タスク'])+'</dd>');
+  parts.push('<dt>責任者</dt><dd><input class="owner-select" list="ownerListInline" value="'+esc(r['責任者']||'')+
+    '" onclick="event.stopPropagation()" onchange="onOwnerChange(this,'+r['_row']+')" placeholder="未定"></dd>');
+  if(r['関連URL']) parts.push('<dt>関連URL</dt><dd><a href="'+esc(r['関連URL'])+'" target="_blank" rel="noopener">'+
+    esc(r['関連URL'])+'</a></dd>');
 
-  var memoRaw = String(r['メモ・質問・提案']||'').trim();
-  var memoItems = memoRaw ? memoRaw.split('\n').filter(Boolean) : [];
-  var memoHtml = '<dt>メモ・質問・提案</dt><dd>'+
-    '<div class="memo-list">'+(memoItems.length ? memoItems.map(function(m){ return '<div class="memo-item">'+m+'</div>'; }).join('') : '<span class="muted">まだありません</span>')+'</div>'+
+  var memoRaw=String(r['メモ・質問・提案']||'').trim();
+  var items=memoRaw?memoRaw.split('\n').filter(Boolean):[];
+  parts.push('<dt>メモ・質問・提案</dt><dd>'+
+    '<div class="memo-list">'+(items.length
+        ? items.map(function(m){ return '<div class="memo-item">'+esc(m)+'</div>'; }).join('')
+        : '<span class="muted">まだありません</span>')+'</div>'+
     '<div class="memo-add" onclick="event.stopPropagation()">'+
       '<textarea placeholder="質問・提案・進度メモを書く"></textarea>'+
       '<button onclick="addMemo(this,'+r['_row']+')">追加</button>'+
-    '</div></dd>';
-  parts.push(memoHtml);
-
+    '</div></dd>');
   return '<dl class="task-detail">'+parts.join('')+'</dl>';
 }
-
 function renderTask(r){
-  var d = parseDate(r['期限']);
-  var isCancel = statusBucket(r['ステータス'])==='excluded';
-  return '<div class="task'+(isCancel?' is-cancel':'')+'" id="task-'+r['_row']+'">'+
+  var d=parseDate(r['期限']);
+  var cancel=statusBucket(r['ステータス'])==='excluded';
+  var cls='', tag='';
+  if(d && isOpen(r)){
+    var diff=daysBetween(today0(),d);
+    if(diff<0){ cls=' over'; tag='<span class="overdue-tag">'+(-diff)+'日超過</span>'; }
+    else if(diff<=7){ cls=' soon'; }
+  }
+  return '<div class="task'+(cancel?' is-cancel':'')+'" id="task-'+r['_row']+'">'+
     '<div class="task-row">'+
-      '<div class="task-name" onclick="this.closest(\'.task\').classList.toggle(\'expanded\')"><span class="arrow">▸</span>'+r['タスク名']+'</div>'+
+      '<div class="task-name" onclick="this.closest(\'.task\').classList.toggle(\'expanded\')">'+
+        '<span class="arrow">▸</span>'+tag+esc(r['タスク名'])+'</div>'+
       '<div class="task-meta">'+
-        (d ? '<span class="task-date">'+fmtDate(d)+'</span>' : '')+
+        (d?'<span class="task-date'+cls+'">'+fmtDate(d)+'</span>':'')+
         renderStatusSelect(r)+
         '<button class="edit-btn" onclick="event.stopPropagation();openModal(window.__rowsByIdx['+r['_row']+'])">編集</button>'+
       '</div>'+
     '</div>'+
-    (r['進捗詳細'] ? '<div class="task-subline">'+r['進捗詳細']+'</div>' : '')+
+    (r['進捗詳細']?'<div class="task-subline">'+esc(r['進捗詳細'])+'</div>':'')+
     renderDetail(r)+
   '</div>';
 }
-
-function load(){
-  fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
-    latestData = data;
-    document.getElementById('updated').textContent = '最終更新：'+data.updatedAt+'（ステータス・責任者はここから編集すると即シートに反映されます）';
-    renderBusiness(data.business);
-    var rows = data.rows.filter(function(r){ return r['プロジェクト名']; });
-    window.__rowsByIdx = {};
-    rows.forEach(function(r){ window.__rowsByIdx[r['_row']] = r; });
-
-    // ---- 最優先ブロッカー（優先度列に数字が入った未完了タスクをランク順に） ----
-    var blockers = rows.filter(function(r){
-      var p = parseInt(r['優先度'],10);
-      var b = statusBucket(r['ステータス']);
-      return !isNaN(p) && b!=='done' && b!=='excluded';
-    }).sort(function(a,b){ return parseInt(a['優先度'],10)-parseInt(b['優先度'],10); });
-    var blEl = document.getElementById('blockers');
-    if(blockers.length===0){
-      blEl.innerHTML = '<p class="muted">最優先ブロッカーは未登録です。WBSの「優先度」列に1・2・3…を入れると、ここにランク順で表示されます（「ブロッカー理由」列に一文を書くと理由も出ます）。</p>';
-    } else {
-      blEl.innerHTML = blockers.map(function(r){
-        var rank = parseInt(r['優先度'],10);
-        var d = parseDate(r['期限']);
-        var why = String(r['ブロッカー理由']||'').trim();
-        var owner = String(r['責任者']||'').trim();
-        var meta = [owner, d?fmtDate(d):''].filter(Boolean).join(' ・ ');
-        return '<div class="blocker-row">'+
-          '<div class="blocker-rank">'+rank+'</div>'+
-          '<div class="blocker-body">'+
-            '<div class="blocker-title">'+r['タスク名']+'</div>'+
-            (why?'<div class="blocker-why">'+why+'</div>':'')+
-            '<div class="blocker-meta">'+meta+'</div>'+
-          '</div>'+
-        '</div>';
-      }).join('');
-    }
-
-    // ---- 全体進捗（中止タスクは分母から除外） ----
-    var liveRows = rows.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
-    var counts = {done:0, active:0, open:0};
-    liveRows.forEach(function(r){ counts[statusBucket(r['ステータス'])]++; });
-    var total = liveRows.length || 1;
-    var ov = document.getElementById('overview');
-    var pct = Math.round(counts.done/total*100);
-    ov.innerHTML =
-      '<div class="progress-row">'+
-        '<div class="progress-track">'+
-          '<div class="progress-seg-done" style="width:'+(counts.done/total*100)+'%"></div>'+
-          '<div class="progress-seg-active" style="width:'+(counts.active/total*100)+'%"></div>'+
-          '<div class="progress-seg-open" style="width:'+(counts.open/total*100)+'%"></div>'+
-        '</div>'+
-        '<div class="progress-pct">'+pct+'%</div>'+
-      '</div>'+
-      '<div class="legend">'+
-        '<span><span class="dot" style="background:#1a9b66"></span>完了 '+counts.done+'件</span>'+
-        '<span><span class="dot" style="background:#2563eb"></span>対応中 '+counts.active+'件</span>'+
-        '<span><span class="dot" style="background:#c3ccdb"></span>未着手 '+counts.open+'件</span>'+
-        '<span>全'+total+'件中</span>'+
-      '</div>';
-
-    // ---- 直近の期限（詳細・編集可） ----
-    var now = new Date();
-    var withDeadline = rows
-      .filter(function(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; })
-      .map(function(r){ return {row:r, date:parseDate(r['期限'])}; })
-      .filter(function(x){ return x.date; })
-      .sort(function(a,b){ return a.date - b.date; })
-      .slice(0,8);
-    var dl = document.getElementById('deadlines');
-    if(withDeadline.length===0){
-      dl.innerHTML = '<p class="muted">日付付きの期限は登録されていません。タスクの「編集」から期限を追加できます。</p>';
-    } else {
-      dl.innerHTML = withDeadline.map(function(x){ return renderTask(x.row); }).join('');
-    }
-
-    // ---- 直近の決定事項 ----
-    var dec = document.getElementById('decisions');
-    var decisions = (data.decisions||[]).slice(0,8);
-    if(decisions.length===0){
-      dec.innerHTML = '<p class="muted">決定事項一覧シートにまだ記録がありません。</p>';
-    } else {
-      dec.innerHTML = decisions.map(function(d){
-        var dt = parseDate(d['決定日']);
-        return '<div class="decision-row">'+
-          (d['カテゴリ'] ? '<span class="decision-cat">'+d['カテゴリ']+'</span>' : '')+
-          '<span class="decision-text">'+(d['決定事項']||'')+'</span>'+
-          '<div class="decision-meta">'+(dt?fmtDate(dt)+'　':'')+(d['決定者']||'')+(d['備考']?'　・　'+d['備考']:'')+'</div>'+
-        '</div>';
-      }).join('');
-    }
-
-    // ---- 演目（パフォーマンス）別 ＋ その他プロジェクト（親タスクで束ねる） ----
-    var childrenByParent = {};
-    rows.forEach(function(r){
-      var parent = String(r['親タスク']||'').trim();
-      if(!parent) return;
-      if(!childrenByParent[parent]) childrenByParent[parent] = [];
-      childrenByParent[parent].push(r);
-    });
-    // 「■演目制作」フェーズの行のタスク名＝演目名。演目とその他エピックを分ける
-    var performanceSet = {};
-    rows.forEach(function(r){
-      if(String(r['フェーズ']||'').trim()==='■演目制作'){
-        performanceSet[String(r['タスク名']||'').trim()] = true;
-      }
-    });
-    // 演目カードは進捗％バーを出さない（出すのは指名した数個だけなので割合が誤解を招く）＋最初から開く
-    function renderEpicCard(name, i, hideBar){
-      var children = childrenByParent[name].slice().sort(function(a,b){
-        var da = parseDate(a['期限']), db = parseDate(b['期限']);
-        if(!da && !db) return 0;
-        if(!da) return 1;
-        if(!db) return -1;
-        return da-db;
-      });
-      var live = children.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
-      var done = live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
-      var active = live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
-      var open = live.length - done - active;
-      var etotal = live.length || 1;
-      var epct = Math.round(done/etotal*100);
-      var summaryRow = rows.filter(function(r){ return r['タスク名']===name; })[0];
-      var epicId = 'epic-'+i;
-      var barHtml = hideBar ? '' :
-        '<div class="person-progress">'+
-          '<div class="ptrack">'+
-            '<div class="progress-seg-done" style="width:'+(done/etotal*100)+'%"></div>'+
-            '<div class="progress-seg-active" style="width:'+(active/etotal*100)+'%"></div>'+
-            '<div class="progress-seg-open" style="width:'+(open/etotal*100)+'%"></div>'+
-          '</div>'+
-          '<div class="ppct">'+epct+'%</div>'+
-        '</div>';
-      var desc = summaryRow ? (hideBar ? (summaryRow['進捗詳細']||summaryRow['目的']||'') : (summaryRow['目的']||'')) : '';
-      var openCls = hideBar ? ' expanded' : '';
-      return '<div class="card epic-card'+openCls+'" id="'+epicId+'">'+
-        '<div class="epic-header" onclick="this.closest(\'.epic-card\').classList.toggle(\'expanded\')">'+
-          '<span class="epic-arrow">▸</span>'+
-          '<span class="epic-title">'+name+'</span>'+
-          '<span class="person-count">未完了 '+(live.length-done)+'件 / 全'+live.length+'件</span>'+
-        '</div>'+
-        barHtml+
-        (desc ? '<p class="epic-desc">'+desc+'</p>' : '')+
-        '<div class="epic-hint">タップして内訳を開閉</div>'+
-        '<div class="epic-children">'+children.map(renderTask).join('')+'</div>'+
-      '</div>';
-    }
-    var allEpicNames = Object.keys(childrenByParent);
-    var perfNames = allEpicNames.filter(function(n){ return performanceSet[n]; });
-    var otherNames = allEpicNames.filter(function(n){ return !performanceSet[n]; });
-
-    var perfEl = document.getElementById('performances');
-    if(perfNames.length===0){
-      perfEl.innerHTML = '<p class="muted">まだ演目に紐づくタスクがありません。タスクの「親タスク」に演目名（例：新Roar）を入れると、その演目のカードがここに出ます。</p>';
-    } else {
-      perfEl.innerHTML = perfNames.map(function(name, i){ return renderEpicCard(name, 'p'+i, true); }).join('');
-    }
-
-    var epicsEl = document.getElementById('epics');
-    if(otherNames.length===0){
-      epicsEl.innerHTML = '<p class="muted">演目以外で親タスクにまとめられた項目はありません。</p>';
-    } else {
-      epicsEl.innerHTML = otherNames.map(function(name, i){ return renderEpicCard(name, 'o'+i, false); }).join('');
-    }
-
-    // ---- 担当者別 ----
-    var byPerson = {};
-    rows.forEach(function(r){
-      var owner = String(r['責任者']||'未定').trim() || '未定';
-      if(!byPerson[owner]) byPerson[owner]=[];
-      byPerson[owner].push(r);
-    });
-    function isOpenTask(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; }
-    var owners = Object.keys(byPerson).sort(function(a,b){
-      if(a==='未定') return 1;
-      if(b==='未定') return -1;
-      var openA = byPerson[a].filter(isOpenTask).length;
-      var openB = byPerson[b].filter(isOpenTask).length;
-      return openB - openA;
-    });
-    var byPersonEl = document.getElementById('byPerson');
-    var personIds = {};
-    owners.forEach(function(owner, i){ personIds[owner] = 'person-'+i; });
-
-    document.getElementById('jumpnav').innerHTML = owners.map(function(owner){
-      var openCount = byPerson[owner].filter(isOpenTask).length;
-      var isUnassigned = owner==='未定';
-      var label = isUnassigned ? '未定' : owner;
-      return '<button class="'+(isUnassigned?'unassigned':'')+'" onclick="scrollToPerson(\''+personIds[owner]+'\')">'+label+'<span class="n">'+openCount+'</span></button>';
-    }).join('');
-
-    byPersonEl.innerHTML = owners.map(function(owner){
-      var tasks = byPerson[owner].slice().sort(function(a,b){
-        var da = parseDate(a['期限']), db = parseDate(b['期限']);
-        if(!da && !db) return 0;
-        if(!da) return 1;
-        if(!db) return -1;
-        return da-db;
-      });
-      var liveTasks = tasks.filter(function(r){ return statusBucket(r['ステータス'])!=='excluded'; });
-      var pdone = liveTasks.filter(function(r){return statusBucket(r['ステータス'])==='done';}).length;
-      var pactive = liveTasks.filter(function(r){return statusBucket(r['ステータス'])==='active';}).length;
-      var popen = liveTasks.length - pdone - pactive;
-      var openCount = liveTasks.length - pdone;
-      var rowsHtml = tasks.map(renderTask).join('');
-      var isUnassigned = owner==='未定';
-      var label = isUnassigned ? '担当者未定（割り当てが必要）' : owner;
-      var ptotal = liveTasks.length || 1;
-      var ppct = Math.round(pdone/ptotal*100);
-      var progressHtml = '<div class="person-progress">'+
-        '<div class="ptrack">'+
-          '<div class="progress-seg-done" style="width:'+(pdone/ptotal*100)+'%"></div>'+
-          '<div class="progress-seg-active" style="width:'+(pactive/ptotal*100)+'%"></div>'+
-          '<div class="progress-seg-open" style="width:'+(popen/ptotal*100)+'%"></div>'+
-        '</div>'+
-        '<div class="ppct">'+ppct+'%</div>'+
-      '</div>';
-      return '<div class="card person'+(isUnassigned?' unassigned':'')+'" id="'+personIds[owner]+'">'+
-        '<div class="person-name">'+label+' <span class="person-count">未完了 '+openCount+'件 / 全'+liveTasks.length+'件</span></div>'+
-        (isUnassigned ? '' : progressHtml)+
-        rowsHtml+
-      '</div>';
-    }).join('');
-
-  }).catch(function(e){
-    document.getElementById('content').innerHTML = '<div class="err">読み込みに失敗しました：'+e+'</div>';
-  });
+function byDeadline(a,b){
+  var da=parseDate(a['期限']), db=parseDate(b['期限']);
+  if(!da&&!db) return 0; if(!da) return 1; if(!db) return -1; return da-db;
 }
 
+/* ============================================================ ① 客席ヒーロー */
+function renderHero(b){
+  var el=document.getElementById('hero');
+  var daysLeft=Math.max(0, daysBetween(today0(), SHOW_DATE));
+  document.getElementById('dday').innerHTML='<small>本番まで</small>'+daysLeft+'日';
+
+  if(!b){
+    el.innerHTML='<div class="card"><p class="muted">集客・収支データを取得できませんでした。</p></div>';
+    return;
+  }
+  var f=b.forecast||{}, a=b.actual||{}, s=b.seats;
+  var hasSeats = !!(s && s.ok && s.sellable>0);
+  var sellable = hasSeats ? s.sellable : 0;
+  var taken    = hasSeats ? s.taken    : (Number(a.ticketQty)||0);
+
+  /* 目標はハードコードしない。集客収支シミュレーターが算出する
+     「必要来場人数（収支トントン）」を唯一の目標値として使う。 */
+  var need = Number(f.requiredAttendance)||0;
+  var hasGoal = need>0;
+  var fore = Number(f.totalAttendance)||0;
+  var occ  = (f.requiredOccupancy!=null) ? Number(f.requiredOccupancy)
+            : (hasGoal && sellable ? need/sellable : 0);
+  var pl   = (f.profitLoss!=null) ? Number(f.profitLoss) : null;
+
+  document.getElementById('seatmini').innerHTML =
+    hasSeats ? ('客席 <b>'+taken+'</b> / '+sellable+'席') : '';
+
+  /* --- 客席図：金額より「空席」の方が出演者の手は動く --- */
+  var seatmap='';
+  if(hasSeats && s.rows && s.rows.length){
+    seatmap = s.rows.map(function(row){
+      var cells='';
+      for(var i=0;i<row.sellable;i++) cells+='<div class="seat'+(i<row.taken?' taken':'')+'"></div>';
+      return '<div class="seatrow" title="'+esc(row.row)+'列：'+row.taken+'/'+row.sellable+'席">'+cells+'</div>';
+    }).join('');
+  }
+
+  /* --- 実売 / 見込み / 黒字ライン の3点スケール ---
+     「見込み」はアンケート・自己申告の柔らかい数字、「実売」は硬い数字。
+     この2つを同じ物差しに並べないと、348人という見込みが安心材料になってしまう。 */
+  var scaleHtml='';
+  if(hasGoal){
+    var scaleMax=Math.max(need, fore, taken, 1)*1.04;
+    scaleHtml=
+    '<div class="scale">'+
+      '<div class="scale-track">'+
+        '<div class="scale-fill forecast" style="width:'+(fore/scaleMax*100)+'%"></div>'+
+        '<div class="scale-fill" style="width:'+(taken/scaleMax*100)+'%"></div>'+
+        '<div class="scale-mark" style="left:'+(need/scaleMax*100)+'%"></div>'+
+      '</div>'+
+      '<div class="scale-legend">'+
+        '<div class="l-start"><b>'+taken+'</b>実際に売れた</div>'+
+        '<div class="l-mid"><b>'+(Math.round(fore*10)/10)+'</b>見込み（申告・アンケート）</div>'+
+        '<div class="l-end"><b>'+num(need)+'</b>黒字ライン</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  /* --- 必要ペース：残りを日数で割る。「あと552席」より「毎日8.6席」の方が動ける --- */
+  var paceHtml='';
+  if(hasGoal){
+    var gap=Math.max(0, need-taken);
+    var perDay=gap/Math.max(1,daysLeft);
+    var perWeek=gap/Math.max(1,daysLeft/7);
+    paceHtml=
+    '<div class="paceband">'+
+      '<div class="pace danger"><div class="k">あと必要</div>'+
+        '<div class="v">'+num(Math.ceil(gap))+'<small>人</small></div></div>'+
+      '<div class="pace"><div class="k">必要ペース</div>'+
+        '<div class="v">'+(Math.round(perDay*10)/10)+'<small>人/日 ＝ '+Math.ceil(perWeek)+'人/週</small></div></div>'+
+      (pl!=null?'<div class="pace'+(pl<0?' danger':'')+'"><div class="k">いまの収支予想</div>'+
+        '<div class="v">'+(pl>=0?'+':'−')+num(Math.abs(pl))+'<small>円</small></div></div>':'')+
+      '<div class="pace"><div class="k">必要稼働率</div>'+
+        '<div class="v">'+(Math.round(occ*1000)/10)+'<small>%</small></div></div>'+
+    '</div>';
+  }
+
+  var truth='';
+  if(hasGoal && hasSeats){
+    truth='<div class="truthline">販売可能な'+sellable+'席に対して、黒字ラインが'+num(need)+'人。'+
+      (occ>=0.9?'<b>ほぼ満席で、ようやく±0</b>です。':'')+
+      '席を売るだけでなく、原価（衣装・舞台設営・照明）を下げるか、'+
+      '物販・ドリンクの単価前提を見直さないと構造的に届きません。</div>';
+  }
+
+  el.innerHTML=
+  '<div class="hero">'+
+    '<p class="hero-lead">実際に売れた席</p>'+
+    '<p class="hero-big">'+taken+(hasSeats?'<span class="unit">/ '+sellable+'席</span>':'<span class="unit">席</span>')+'</p>'+
+    '<p class="hero-sub">'+
+      (hasGoal?'黒字ラインは <b>'+num(need)+'人</b>。':'')+
+      (hasSeats?'　いま埋まっているのは <b>'+(Math.round(taken/sellable*1000)/10)+'%</b>。':'')+
+    '</p>'+
+    (seatmap?
+      '<div class="stage"><div class="stage-bar"></div><div class="stage-label">Stage</div></div>'+
+      '<div class="seatmap">'+seatmap+'</div>'+
+      '<p class="seatmap-cap">販売可能席のみ（個人'+
+        ((s.byArea&&s.byArea['個人'])?s.byArea['個人'].sellable:'—')+'席＋団体'+
+        ((s.byArea&&s.byArea['団体'])?s.byArea['団体'].sellable:'—')+'席）／非売席・補欠は含みません</p>'
+    :'')+
+    scaleHtml+
+    paceHtml+
+    truth+
+    '<div class="hero-links">'+
+      (b.simulatorUrl?'<a href="'+esc(b.simulatorUrl)+'" target="_blank" rel="noopener">集客収支シミュレーター →</a>':'')+
+      (b.budgetUrl?'<a href="'+esc(b.budgetUrl)+'" target="_blank" rel="noopener">予算の内訳 →</a>':'')+
+      '<a href="'+TICKET_URL+'" target="_blank" rel="noopener">チケット販売ページ →</a>'+
+    '</div>'+
+  '</div>'+
+  '<div class="card kpi2">'+
+    '<div><div class="k">申込み</div><div class="v">'+num(a.ticketQty)+'枚 <span>（'+num(a.orderCount)+'件）</span></div></div>'+
+    '<div><div class="k">売上（うち入金済）</div><div class="v">'+num(a.revenueTotal)+'円 <span>（'+num(a.revenueConfirmed)+'円）</span></div></div>'+
+  '</div>';
+}
+
+/* ============================================== ② 担当者フィルタ・自分の持ち場 */
+function setOwner(name){
+  selectedOwner = (selectedOwner===name) ? null : name;
+  try{
+    if(selectedOwner) localStorage.setItem('hbw_owner',selectedOwner);
+    else localStorage.removeItem('hbw_owner');
+  }catch(e){}
+  renderOwnerViews();
+  var h=document.getElementById('mine');
+  if(selectedOwner && h) h.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderOwnerViews(){
+  if(!latestData) return;
+  var rows=window.__rows;
+
+  var byPerson={};
+  rows.forEach(function(r){ var o=ownerOf(r); (byPerson[o]=byPerson[o]||[]).push(r); });
+  var owners=Object.keys(byPerson).sort(function(a,b){
+    if(a==='未定') return 1; if(b==='未定') return -1;
+    return byPerson[b].filter(isOpen).length - byPerson[a].filter(isOpen).length;
+  });
+  if(selectedOwner && !byPerson[selectedOwner]) selectedOwner=null;
+
+  document.getElementById('ownerbar').innerHTML=
+    '<button class="'+(selectedOwner===null?'on':'')+'" onclick="setOwner(null)">全員</button>'+
+    owners.map(function(o){
+      var n=byPerson[o].filter(isOpen).length;
+      return '<button class="'+(o==='未定'?'na ':'')+(selectedOwner===o?'on':'')+'" '+
+        'onclick="setOwner(\''+esc(o).replace(/'/g,"\\'")+'\')">'+esc(o)+'<span class="n">'+n+'</span></button>';
+    }).join('');
+
+  /* 自分の「次にやる3つ」。27件を一度に見せても人は動けない。 */
+  var mineEl=document.getElementById('mine');
+  if(selectedOwner && byPerson[selectedOwner]){
+    var open=byPerson[selectedOwner].filter(isOpen).sort(byDeadline);
+    var top3=open.slice(0,3);
+    var over=open.filter(function(r){ var d=parseDate(r['期限']); return d && d<today0(); }).length;
+    mineEl.innerHTML='<div class="card mine">'+
+      '<p class="mine-h">'+esc(selectedOwner)+' が次にやる3つ</p>'+
+      '<p class="mine-sub">未完了 '+open.length+'件'+(over?'　／　期限超過 '+over+'件':'')+'　・　期限が近い順</p>'+
+      (top3.length?top3.map(renderTask).join(''):'<p class="muted">未完了のタスクはありません。</p>')+
+      (open.length>3?'<p class="mine-more">残り '+(open.length-3)+'件は下の「担当者別」に出ています。</p>':'')+
+    '</div>';
+  } else {
+    mineEl.innerHTML='';
+  }
+
+  /* 担当者別（フィルタ連動） */
+  var shown = selectedOwner ? [selectedOwner] : owners;
+  document.getElementById('personNote').textContent =
+    selectedOwner ? (selectedOwner+' で絞り込み中') : '';
+
+  document.getElementById('byPerson').innerHTML = shown.map(function(owner){
+    var tasks=(byPerson[owner]||[]).slice().sort(byDeadline);
+    var live=tasks.filter(isLive);
+    var done=live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
+    var act =live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
+    var opn =live.length-done-act;
+    var t=live.length||1;
+    var na=owner==='未定';
+    return '<div class="card person'+(na?' unassigned':'')+'">'+
+      '<div class="person-name">'+(na?'担当者が決まっていない':esc(owner))+
+        '<span class="person-count">未完了 '+(live.length-done)+' / 全'+live.length+'</span></div>'+
+      (na?'':'<div class="pbar"><div class="ptrack">'+
+        '<div class="sg-done" style="width:'+(done/t*100)+'%"></div>'+
+        '<div class="sg-active" style="width:'+(act/t*100)+'%"></div>'+
+        '<div class="sg-open" style="width:'+(opn/t*100)+'%"></div>'+
+      '</div><div class="ppct">'+Math.round(done/t*100)+'%</div></div>')+
+      tasks.map(renderTask).join('')+
+    '</div>';
+  }).join('');
+}
+
+/* ==================================================== ③ 今週なにが動いたか */
+function renderWins(rows){
+  var el=document.getElementById('wins');
+  var limit=new Date(today0().getTime()-7*86400000);
+  var moved=rows.filter(function(r){
+    var u=parseDate(r['更新日']); return u && u>=limit;
+  }).sort(function(a,b){ return parseDate(b['更新日'])-parseDate(a['更新日']); });
+  var doneThisWeek=moved.filter(function(r){ return statusBucket(r['ステータス'])==='done'; });
+  var stale=rows.filter(function(r){ return isOpen(r) && !r['更新日']; }).length;
+  var staleNote = stale
+    ? '<p class="muted" style="margin-top:11px">※ 未完了のうち '+stale+
+      '件は「更新日」が空のままで、動いたかどうか追えません。この画面から編集すれば自動で入ります。</p>'
+    : '';
+
+  if(!moved.length){
+    el.innerHTML='<p class="muted">直近7日に動いた記録がありません。'+
+      'ステータスや内容をこの画面から更新すると「更新日」が自動で入り、ここに前進が並びます。</p>'+staleNote;
+    return;
+  }
+  el.innerHTML=
+    '<div class="wins">'+
+      '<div class="win"><div class="k">今週 動いた</div><div class="v">'+moved.length+'<small>件</small></div></div>'+
+      '<div class="win"><div class="k">今週 完了した</div><div class="v">'+doneThisWeek.length+'<small>件</small></div></div>'+
+    '</div>'+
+    moved.slice(0,10).map(function(r){
+      var u=parseDate(r['更新日']);
+      return '<div class="move">'+
+        '<span class="move-d">'+fmtDate(u)+'</span>'+
+        '<span class="move-n"><b>'+esc(r['タスク名'])+'</b> — '+esc(r['ステータス']||'')+'</span>'+
+        '<span class="move-o">'+esc(ownerOf(r))+'</span>'+
+      '</div>';
+    }).join('')+
+    (moved.length>10?'<p class="muted" style="margin-top:9px">ほか '+(moved.length-10)+'件</p>':'')+
+    staleNote;
+}
+
+/* ================================================== ④ 止まっているもの */
+function renderJam(rows){
+  var el=document.getElementById('jam'), t0=today0();
+
+  var overdue=rows.filter(function(r){
+    var d=parseDate(r['期限']); return isOpen(r) && d && d<t0;
+  }).sort(byDeadline);
+
+  /* 優先度列に数字が入った未完了＝ブロッカー。
+     ブロッカー理由に「解消」と書かれたものは解決済みとして畳む。
+     （改修前は解決済みの項目が最優先ブロッカーとして出続け、この欄の信頼を落としていた） */
+  var blockers=rows.filter(function(r){
+    var p=parseInt(r['優先度'],10); return !isNaN(p) && isOpen(r);
+  }).sort(function(a,b){ return parseInt(a['優先度'],10)-parseInt(b['優先度'],10); });
+  var live=blockers.filter(function(r){ return !/解消/.test(String(r['ブロッカー理由']||'')); });
+  var solved=blockers.filter(function(r){ return /解消/.test(String(r['ブロッカー理由']||'')); });
+
+  var unassigned=rows.filter(function(r){ return isOpen(r) && ownerOf(r)==='未定'; }).sort(byDeadline);
+  var held=rows.filter(function(r){ return String(r['ステータス']||'').trim()==='保留'; }).sort(byDeadline);
+  var heldPerf=held.filter(function(r){ return String(r['フェーズ']||'').trim()==='■演目制作'; });
+
+  var html='';
+
+  html+='<div class="card">'+
+    '<div class="person-name" style="margin-bottom:9px">これが片付かないと下流が止まる'+
+      '<span class="person-count">'+live.length+'件</span></div>'+
+    (live.length
+      ? live.map(function(r){
+          var d=parseDate(r['期限']);
+          return '<div class="blk">'+
+            '<div class="blk-rank">'+parseInt(r['優先度'],10)+'</div>'+
+            '<div class="blk-body">'+
+              '<div class="blk-t">'+esc(r['タスク名'])+'</div>'+
+              (r['ブロッカー理由']?'<div class="blk-w">'+esc(r['ブロッカー理由'])+'</div>':'')+
+              '<div class="blk-m">'+[esc(ownerOf(r)), d?fmtDate(d):''].filter(Boolean).join('　・　')+'</div>'+
+            '</div></div>';
+        }).join('')
+      : '<p class="muted">未解決のブロッカーはありません。</p>')+
+    solved.map(function(r){
+      return '<div class="blk solved"><div class="blk-rank">✓</div><div class="blk-body">'+
+        '<div class="blk-t">'+esc(r['タスク名'])+'</div>'+
+        '<div class="blk-w">'+esc(r['ブロッカー理由'])+'</div>'+
+        '<div class="blk-m">解消済み — WBSの「優先度」列の数字を消すと、ここから消えます</div>'+
+      '</div></div>';
+    }).join('')+
+  '</div>';
+
+  html+='<div class="card">'+
+    '<div class="person-name" style="margin-bottom:7px">期限を過ぎている'+
+      '<span class="person-count">'+overdue.length+'件</span></div>'+
+    (overdue.length?overdue.map(renderTask).join(''):'<p class="muted">ありません。</p>')+
+  '</div>';
+
+  html+='<div class="card person unassigned">'+
+    '<div class="person-name">誰の仕事にもなっていない'+
+      '<span class="person-count">'+unassigned.length+'件</span></div>'+
+    '<p class="jam-note" style="border-color:rgba(192,143,74,.5)">'+
+      '責任者が空のままのタスク。行を開いて名前を入れると、その人の持ち場に移ります。</p>'+
+    (unassigned.length?unassigned.map(renderTask).join(''):'<p class="muted">ありません。</p>')+
+  '</div>';
+
+  html+='<div class="card">'+
+    '<div class="person-name">保留のまま止まっている'+
+      '<span class="person-count">'+held.length+'件</span></div>'+
+    (heldPerf.length?'<p class="jam-note">うち <b>'+heldPerf.length+'件が演目</b>。'+
+      '期限が本番前日に置かれているので、期限だけ見ても危険が見えません。'+
+      '動き出したものは「進行中」に変えると、上の「今週なにが動いたか」に出ます。</p>':'')+
+    (held.length?held.map(renderTask).join(''):'<p class="muted">ありません。</p>')+
+  '</div>';
+
+  el.innerHTML=html;
+}
+
+/* ================================================== ⑤ フェーズごとの進み具合 */
+function renderPhases(rows){
+  var g={};
+  rows.forEach(function(r){
+    var p=String(r['フェーズ']||'').trim()||'（未分類）';
+    (g[p]=g[p]||[]).push(r);
+  });
+  var names=Object.keys(g).sort(function(a,b){
+    var ia=PHASE_ORDER.indexOf(a), ib=PHASE_ORDER.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+  document.getElementById('phases').innerHTML=names.map(function(p){
+    var live=g[p].filter(isLive);
+    var done=live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
+    var act =live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
+    var opn =live.length-done-act;
+    var t=live.length||1;
+    return '<div class="phase'+(act>0?' hot':'')+'">'+
+      '<div class="phase-name">'+esc(p.replace(/^■/,''))+'</div>'+
+      '<div class="ptrack">'+
+        '<div class="sg-done" style="width:'+(done/t*100)+'%"></div>'+
+        '<div class="sg-active" style="width:'+(act/t*100)+'%"></div>'+
+        '<div class="sg-open" style="width:'+(opn/t*100)+'%"></div>'+
+      '</div>'+
+      '<div class="phase-n">'+done+' / '+live.length+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ============================================ ⑥ 演目 / そのほかのプロジェクト */
+function renderEpics(rows){
+  var kids={};
+  rows.forEach(function(r){
+    var p=String(r['親タスク']||'').trim();
+    if(p) (kids[p]=kids[p]||[]).push(r);
+  });
+
+  function card(r,i){
+    var name=String(r['タスク名']||'').trim();
+    var ch=(kids[name]||[]).slice().sort(byDeadline);
+    var live=ch.filter(isLive);
+    var done=live.filter(function(x){ return statusBucket(x['ステータス'])==='done'; }).length;
+    var st=String(r['ステータス']||'未着手').trim();
+    var d=parseDate(r['期限']);
+    var meta=['担当 '+esc(ownerOf(r))];
+    if(d) meta.push('期限 '+fmtDate(d));
+    if(live.length) meta.push('内訳 '+done+' / '+live.length+'件 完了');
+    return '<div class="epic'+(statusBucket(st)==='excluded'?' cancelled':'')+'" id="epic-'+i+'">'+
+      '<div class="epic-h" onclick="this.closest(\'.epic\').classList.toggle(\'expanded\')">'+
+        '<span class="epic-arrow">▸</span>'+
+        '<span class="epic-title">'+esc(name)+'</span>'+
+        '<span class="pill '+statusCls(st)+'">'+esc(st)+'</span>'+
+      '</div>'+
+      '<div class="epic-meta">'+meta.map(function(m){ return '<span>'+m+'</span>'; }).join('')+'</div>'+
+      ((r['進捗詳細']||r['目的'])?'<p class="epic-desc">'+esc(r['進捗詳細']||r['目的'])+'</p>':'')+
+      '<div class="epic-kids">'+renderTask(r)+ch.map(renderTask).join('')+'</div>'+
+    '</div>';
+  }
+
+  /* 演目＝フェーズ「■演目制作」かつ親を持たない行。子タスクの有無に関わらず全部出す。
+     （改修前は子タスクを持つ演目しかカードにならず、12演目中1つしか表示されていなかった） */
+  var perfs=rows.filter(function(r){
+    return String(r['フェーズ']||'').trim()==='■演目制作' && !String(r['親タスク']||'').trim();
+  });
+  document.getElementById('performances').innerHTML = perfs.length
+    ? perfs.map(function(r,i){ return card(r,'p'+i); }).join('')
+    : '<div class="card"><p class="muted">演目のタスクが見つかりません。</p></div>';
+
+  var perfNames={};
+  perfs.forEach(function(r){ perfNames[String(r['タスク名']||'').trim()]=true; });
+  var others=Object.keys(kids).filter(function(n){ return !perfNames[n]; });
+  document.getElementById('epics').innerHTML = others.length
+    ? others.map(function(n,i){
+        var parent=rows.filter(function(r){ return String(r['タスク名']||'').trim()===n; })[0];
+        if(parent) return card(parent,'o'+i);
+        /* 親行が存在しない（グルーピング用の名前）ときは子だけでカードにする */
+        var ch=kids[n].slice().sort(byDeadline);
+        var live=ch.filter(isLive);
+        var done=live.filter(function(x){ return statusBucket(x['ステータス'])==='done'; }).length;
+        return '<div class="epic" id="epic-o'+i+'">'+
+          '<div class="epic-h" onclick="this.closest(\'.epic\').classList.toggle(\'expanded\')">'+
+            '<span class="epic-arrow">▸</span><span class="epic-title">'+esc(n)+'</span>'+
+            '<span class="pill st-active">'+done+' / '+live.length+'</span></div>'+
+          '<div class="epic-kids">'+ch.map(renderTask).join('')+'</div></div>';
+      }).join('')
+    : '<div class="card"><p class="muted">ありません。</p></div>';
+}
+
+/* ==================================================== ⑦ これから2週間の期限 */
+function renderDeadlines(rows){
+  var t0=today0(), end=new Date(t0.getTime()+14*86400000);
+  var list=rows.filter(function(r){
+    var d=parseDate(r['期限']); return isOpen(r) && d && d>=t0 && d<=end;
+  }).sort(byDeadline);
+  document.getElementById('deadlines').innerHTML = list.length
+    ? list.map(renderTask).join('')
+    : '<p class="muted">これから2週間に期限のタスクはありません。</p>';
+}
+
+/* ============================================================ ⑧ 決まったこと */
+function renderDecisions(decisions){
+  var list=(decisions||[]).slice(0,8);
+  document.getElementById('decisions').innerHTML = list.length
+    ? list.map(function(d){
+        var dt=parseDate(d['決定日']);
+        return '<div class="dec">'+
+          (d['カテゴリ']?'<span class="dec-cat">'+esc(d['カテゴリ'])+'</span>':'')+
+          '<span>'+esc(d['決定事項']||'')+'</span>'+
+          '<div class="dec-meta">'+(dt?fmtDate(dt)+'　':'')+esc(d['決定者']||'')+
+            (d['備考']?'　・　'+esc(d['備考']):'')+'</div>'+
+        '</div>';
+      }).join('')
+    : '<p class="muted">決定事項一覧シートにまだ記録がありません。</p>';
+}
+
+/* ==================================================================== 読み込み */
+function load(){
+  fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
+    latestData=data;
+    var rows=data.rows.filter(function(r){ return r['プロジェクト名']; });
+    window.__rows=rows;
+    window.__rowsByIdx={};
+    rows.forEach(function(r){ window.__rowsByIdx[r['_row']]=r; });
+
+    document.getElementById('updated').textContent=
+      '最終更新 '+data.updatedAt+'　／　ステータス・責任者・内容はこの画面から直接シートに反映されます';
+
+    /* 責任者の候補は実データから作る（名簿の手書き固定をやめる） */
+    var names={};
+    rows.forEach(function(r){ var o=String(r['責任者']||'').trim(); if(o) names[o]=true; });
+    var opts=Object.keys(names).sort().map(function(n){ return '<option value="'+esc(n)+'">'; }).join('');
+    document.getElementById('ownerList').innerHTML=opts;
+    document.getElementById('ownerListInline').innerHTML=opts;
+
+    renderHero(data.business);
+    renderWins(rows);
+    renderJam(rows);
+    renderPhases(rows);
+    renderDeadlines(rows);
+    renderEpics(rows);
+    renderDecisions(data.decisions);
+    renderOwnerViews();
+  }).catch(function(e){
+    document.getElementById('content').innerHTML='<div class="err">読み込みに失敗しました：'+e+'</div>';
+  });
+}
 load();
 </script>
-<datalist id="ownerListInline">
-  <option value="坂田潤弥"><option value="海野鷹幸"><option value="加藤周平"><option value="三輪卓海"><option value="前田航希"><option value="松澤竜介"><option value="井端真秀">
-</datalist>
 </body>
 </html>
