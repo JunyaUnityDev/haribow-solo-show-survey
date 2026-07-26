@@ -206,16 +206,28 @@ function tick(){
   requestAnimationFrame(tick);
 }
 
+/* ④ 同じ方の別注文（別のQR）があれば必ず知らせる */
+function othersNote(info){
+  var o=info.others||[]; if(!o.length) return '';
+  var un=o.filter(function(x){return !x.checkedIn;});
+  if(!un.length) return '同じ方の別のご注文（'+o.length+'件）は入場済みです';
+  return '⚠ このお客様は他にも '+un.length+'件 のご注文があります（'
+       + un.map(function(x){return x.seats+'／'+x.qty+'名';}).join('、')
+       + '）。そちらのQRも読み取ってください';
+}
+
 /* ---- チェックイン ---- */
-function doCheckin(token, fromSearch){
+function doCheckin(token, fromSearch, force){
   busy=true;
   document.getElementById('reticle').classList.add('busy');
-  post('checkin',{token:token}).then(function(r){
+  post('checkin',{token:token, force:!!force}).then(function(r){
     var i=r.info||{};
     if(r.ok){
       feedback('ok');
-      showVerdict('ok', i.name+' 様', i.seats+'　'+i.qty+'名',
-        'ご入場ください',
+      var sub = i.forced ? '未入金のまま入場を記録しました（運営に通知済み）' : 'ご入場ください';
+      var note = othersNote(i);
+      if(note) sub = note;
+      showVerdict(note?'warn':'ok', i.name+' 様', i.seats+'　'+i.qty+'名', sub,
         '<button onclick="undo(\''+esc(token)+'\')">取り消す</button>');
       loadStats();
     } else if(r.error==='already'){
@@ -226,7 +238,10 @@ function doCheckin(token, fromSearch){
     } else if(r.error==='voided'){
       feedback('ng'); showVerdict('ng','無効なチケットです', (i.name?i.name+' 様':''), '取消済みの注文です。受付責任者にお回しください。');
     } else if(r.error==='unpaid'){
-      feedback('ng'); showVerdict('ng','お支払い未確認', (i.name?i.name+' 様':''), '受付責任者にお回しください。');
+      feedback('ng');
+      showVerdict('ng','お支払い未確認', (i.name?i.name+' 様　'+(i.seats||''):''),
+        '当日にお振込みされた場合など、確認できていないことがあります',
+        '<button onclick="forceIn(\''+esc(token)+'\')">確認できたので入場させる</button>');
     } else if(r.error==='bad_key'){
       showVerdict('ng','このURLでは受付できません','','正しい受付用URLを開いてください');
     } else {
@@ -242,6 +257,12 @@ function doCheckin(token, fromSearch){
       document.getElementById('reticle').classList.remove('busy');
     }, fromSearch?0:RESUME_MS);
   });
+}
+
+function forceIn(token){
+  if(!confirm('お支払いが確認できたものとして入場を記録します。\n（支払状態は「未」のままで、運営に通知が飛びます）\nよろしいですか？')) return;
+  delete recent[token];
+  doCheckin(token, true, true);
 }
 
 function undo(token){
