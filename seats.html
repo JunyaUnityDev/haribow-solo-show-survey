@@ -189,8 +189,31 @@
     <input id="buyerName" placeholder="例：山田太郎" oninput="updateCart()">
     <label>連絡先（メールアドレス）</label>
     <input id="buyerContact" type="email" placeholder="例：example@mail.com" oninput="updateCart()">
-    <p class="buyer-note">※トラブル時のご連絡に使います。公式LINE開設後は、LINEでのご連絡や追加のご案内も予定しています。</p>
-    <label>お支払い方法</label>
+    <label>お電話番号</label>
+    <input id="buyerPhone" type="tel" placeholder="例：090-1234-5678" oninput="updateCart()">
+    <p class="buyer-note">※トラブル時のご連絡に使います。メールが届かない場合があるため、お電話番号もお伺いしています。公式LINE開設後は、LINEでのご連絡や追加のご案内も予定しています。</p>
+
+    <div id="supBox" style="display:none;margin-top:16px;padding:14px 16px;border:1px solid var(--sup);border-radius:10px;background:rgba(232,196,106,.05)">
+      <p style="margin:0 0 12px;font-weight:700;color:var(--sup)">サポーター券の特典について</p>
+      <label>Tシャツのサイズ</label>
+      <div class="paymethods" id="sizeRow">
+        <button type="button" class="pm" onclick="setSize('S',this)">S</button>
+        <button type="button" class="pm" onclick="setSize('M',this)">M</button>
+        <button type="button" class="pm" onclick="setSize('L',this)">L</button>
+        <button type="button" class="pm" onclick="setSize('XL',this)">XL</button>
+      </div>
+      <label style="margin-top:14px;display:block">当日パンフレットへのお名前掲載</label>
+      <div class="paymethods" id="creditRow">
+        <button type="button" class="pm" onclick="setCredit('掲載する',this)">掲載する</button>
+        <button type="button" class="pm" onclick="setCredit('掲載しない',this)">掲載しない</button>
+      </div>
+      <div id="creditNameBox" style="display:none">
+        <label style="margin-top:14px;display:block">掲載するお名前</label>
+        <input id="creditName" placeholder="空欄の場合はお申込みのお名前を掲載します" oninput="updateCart()">
+      </div>
+    </div>
+
+    <label style="margin-top:16px;display:block">お支払い方法</label>
     <div class="paymethods">
       <button type="button" class="pm" onclick="selectPay('square',this)">Squareでカード決済</button>
       <button type="button" class="pm" id="payBank" onclick="selectPay('bank',this)">銀行振込</button>
@@ -303,6 +326,24 @@ function setDon(v,el){ donation=v; var c=document.getElementById('donCustom'); i
 function setDonCustom(v){ donation=parseInt(v,10)||0; document.querySelectorAll('.dchip').forEach(function(b){b.classList.remove('active');}); updateCart(); }
 function buyerName(){ return (document.getElementById('buyerName')||{}).value||''; }
 function buyerContact(){ return (document.getElementById('buyerContact')||{}).value||''; }
+function buyerPhone(){ return (document.getElementById('buyerPhone')||{}).value||''; }
+// 電話番号：ハイフン・全角・+81 を許容し、数字が10〜11桁あるかで判定（サーバー側 isPhone_ と同じ規則）
+function phoneOk(){
+  var s=buyerPhone().replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});
+  var d=s.replace(/\D/g,''); if(d.indexOf('81')===0 && d.length>=11) d='0'+d.slice(2);
+  return d.length>=10 && d.length<=11;
+}
+// ---- サポーター券の特典項目 ----
+var tshirtSize='', creditOk='';
+function setSize(v,el){ tshirtSize=v;
+  document.querySelectorAll('#sizeRow .pm').forEach(function(b){b.classList.toggle('active',b===el);}); updateCart(); }
+function setCredit(v,el){ creditOk=v;
+  document.querySelectorAll('#creditRow .pm').forEach(function(b){b.classList.toggle('active',b===el);});
+  var box=document.getElementById('creditNameBox'); if(box) box.style.display = (v==='掲載する')?'':'none';
+  updateCart(); }
+function creditNameVal(){ return (document.getElementById('creditName')||{}).value||''; }
+function isSupporter(){ return !!(curType && curType.id==='sup'); }
+function supOk(){ return !isSupporter() || (tshirtSize && creditOk); }
 
 // ---- 中央ブロックの座席番号（列ごと） ----
 function seatNums(row){
@@ -434,6 +475,7 @@ function toggle(row,n){
 function selectType(t){
   curType=t; picked={}; showAll=false;
   document.querySelectorAll('.type').forEach(function(el){ el.classList.toggle('active', el.dataset.id===t.id); });
+  var sb=document.getElementById('supBox'); if(sb) sb.style.display = isSupporter() ? '' : 'none';
   render(); updateCart();
 }
 function price(){ return curType ? (isAdvance?curType.adv:curType.reg) : 0; }
@@ -452,8 +494,13 @@ function updateCart(){
   }
   total.innerHTML='¥'+sum.toLocaleString()+' <small>('+keys.length+'席'+(donation>0?'＋応援':'')+')</small>';
   var seatsOk = keys.length>0;
-  var infoOk = buyerName().trim() && buyerContact().trim() && payMethod;
-  if(seatsOk && !infoOk){ list.innerHTML += '<br><span style="font-size:11px;color:var(--faint)">STEP3の情報を入力すると決済に進めます</span>'; }
+  var infoOk = buyerName().trim() && buyerContact().trim() && phoneOk() && payMethod && supOk();
+  if(seatsOk && !infoOk){
+    var why = !supOk() ? 'Tシャツのサイズとパンフレット掲載の可否を選ぶと決済に進めます'
+            : (buyerPhone().trim() && !phoneOk()) ? 'お電話番号の桁数をご確認ください'
+            : 'STEP3の情報を入力すると決済に進めます';
+    list.innerHTML += '<br><span style="font-size:11px;color:var(--faint)">'+why+'</span>';
+  }
   btn.disabled = !(seatsOk && infoOk);
 }
 function checkout(){
@@ -471,12 +518,16 @@ function checkout(){
     return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({survey:'ticket_order', orderType:'individual', typeId:curType.id,
         seatIds:keys, donation:donation, method:payMethod,
-        name:buyerName(), contact:buyerContact(), lockToken:res.lockToken})})
+        name:buyerName(), contact:buyerContact(), phone:buyerPhone(), lockToken:res.lockToken,
+        tshirt:tshirtSize, creditOk:creditOk, creditName:creditNameVal()})})
     .then(function(r){return r.json();}).then(function(o){
       if(o.method==='square' && o.url){ window.location.href=o.url; }        // ③ Squareへ（戻りでconfirm）
       else if(o.method==='bank'){ doneScreen('銀行振込のご案内を '+buyerContact()+' へお送りします。お支払い確認後にお席が確定します。'); }
       else {
-        var msg = o.error==='bad_email' ? 'メールアドレスの形式をご確認ください。'
+        var msg = o.error==='bad_phone' ? 'お電話番号の形式をご確認ください（10〜11桁）。'
+                : o.error==='need_tshirt' ? 'Tシャツのサイズをお選びください。'
+                : o.error==='need_credit' ? 'パンフレットへのお名前掲載の可否をお選びください。'
+                : o.error==='bad_email' ? 'メールアドレスの形式をご確認ください。'
                 : o.error==='seats_lost' ? '選んでいる間にお席が確保できませんでした。選び直してください。'
                 : o.error==='bank_closed' ? '銀行振込の受付は終了しました（公演2日前まで）。クレジットカードをご利用ください。'
                 : '決済の準備に失敗しました。'+(o.error||'');
