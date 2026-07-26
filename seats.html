@@ -202,15 +202,6 @@
         <button type="button" class="pm" onclick="setSize('L',this)">L</button>
         <button type="button" class="pm" onclick="setSize('XL',this)">XL</button>
       </div>
-      <label style="margin-top:14px;display:block">当日パンフレットへのお名前掲載</label>
-      <div class="paymethods" id="creditRow">
-        <button type="button" class="pm" onclick="setCredit('掲載する',this)">掲載する</button>
-        <button type="button" class="pm" onclick="setCredit('掲載しない',this)">掲載しない</button>
-      </div>
-      <div id="creditNameBox" style="display:none">
-        <label style="margin-top:14px;display:block">掲載するお名前</label>
-        <input id="creditName" placeholder="空欄の場合はお申込みのお名前を掲載します" oninput="updateCart()">
-      </div>
     </div>
 
     <label style="margin-top:16px;display:block">お支払い方法</label>
@@ -222,13 +213,29 @@
 
   <p class="step"><b>STEP 4</b>　応援金を追加（任意）</p>
   <div class="donationbox">
-    <p class="don-note">気持ちとして上乗せできます。特典はありません。</p>
+    <p class="don-note">気持ちとして上乗せできます。応援金をいただいた方は、<b style="color:var(--sup)">ホワイエの横断幕にお名前を掲載</b>します（掲載の可否はお選びいただけます）。</p>
     <div class="dchips">
       <button type="button" class="dchip" onclick="setDon(500,this)">＋¥500</button>
       <button type="button" class="dchip" onclick="setDon(1000,this)">＋¥1,000</button>
       <button type="button" class="dchip" onclick="setDon(3000,this)">＋¥3,000</button>
       <button type="button" class="dchip active" onclick="setDon(0,this)">なし</button>
       <span class="dchip-custom">＋¥<input type="number" min="0" id="donCustom" placeholder="自由" oninput="setDonCustom(this.value)"></span>
+    </div>
+  </div>
+
+  <div id="creditBox" style="display:none">
+    <p class="step"><b>STEP 5</b>　お名前の掲載について</p>
+    <div class="buyerbox">
+      <p class="don-note">サポーター券・応援金をいただいた方のお名前を、<b>当日パンフレット</b>と<b>ホワイエの横断幕</b>に掲載します。掲載を希望されない場合は「掲載しない」をお選びください。</p>
+      <div class="paymethods" id="creditRow">
+        <button type="button" class="pm" onclick="setCredit('掲載する',this)">掲載する</button>
+        <button type="button" class="pm" onclick="setCredit('掲載しない',this)">掲載しない</button>
+      </div>
+      <div id="creditNameBox" style="display:none">
+        <label style="margin-top:14px;display:block">掲載するお名前</label>
+        <input id="creditName" placeholder="空欄の場合はお申込みのお名前を掲載します" oninput="updateCart()">
+        <p class="buyer-note">※印刷物のため、掲載後の修正はできません。表記をご確認ください。</p>
+      </div>
     </div>
   </div>
   </div><!-- /tab-personal -->
@@ -343,7 +350,18 @@ function setCredit(v,el){ creditOk=v;
   updateCart(); }
 function creditNameVal(){ return (document.getElementById('creditName')||{}).value||''; }
 function isSupporter(){ return !!(curType && curType.id==='sup'); }
-function supOk(){ return !isSupporter() || (tshirtSize && creditOk); }
+// 掲載の対象＝サポーター券 または 応援金を出した人（2026-07-27 決定）
+function needsCredit(){ return isSupporter() || donation>0; }
+function supOk(){
+  if(isSupporter() && !tshirtSize) return false;
+  if(needsCredit() && !creditOk) return false;
+  return true;
+}
+// 券種の切替・応援金の増減で表示を出し入れする
+function syncOptionBoxes(){
+  var sb=document.getElementById('supBox');    if(sb) sb.style.display = isSupporter() ? '' : 'none';
+  var cb=document.getElementById('creditBox'); if(cb) cb.style.display = needsCredit() ? '' : 'none';
+}
 
 // ---- 中央ブロックの座席番号（列ごと） ----
 function seatNums(row){
@@ -475,7 +493,7 @@ function toggle(row,n){
 function selectType(t){
   curType=t; picked={}; showAll=false;
   document.querySelectorAll('.type').forEach(function(el){ el.classList.toggle('active', el.dataset.id===t.id); });
-  var sb=document.getElementById('supBox'); if(sb) sb.style.display = isSupporter() ? '' : 'none';
+  syncOptionBoxes();
   render(); updateCart();
 }
 function price(){ return curType ? (isAdvance?curType.adv:curType.reg) : 0; }
@@ -494,9 +512,11 @@ function updateCart(){
   }
   total.innerHTML='¥'+sum.toLocaleString()+' <small>('+keys.length+'席'+(donation>0?'＋応援':'')+')</small>';
   var seatsOk = keys.length>0;
+  syncOptionBoxes();
   var infoOk = buyerName().trim() && buyerContact().trim() && phoneOk() && payMethod && supOk();
   if(seatsOk && !infoOk){
-    var why = !supOk() ? 'Tシャツのサイズとパンフレット掲載の可否を選ぶと決済に進めます'
+    var why = (isSupporter() && !tshirtSize) ? 'Tシャツのサイズを選ぶと決済に進めます'
+            : (needsCredit() && !creditOk) ? 'お名前の掲載について「掲載する／しない」を選ぶと決済に進めます'
             : (buyerPhone().trim() && !phoneOk()) ? 'お電話番号の桁数をご確認ください'
             : 'STEP3の情報を入力すると決済に進めます';
     list.innerHTML += '<br><span style="font-size:11px;color:var(--faint)">'+why+'</span>';
