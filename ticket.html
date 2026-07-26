@@ -71,7 +71,7 @@ function render(d){
    + '  </div>'
    + (d.checkedIn ? '<p class="state in">ご入場済みです</p>' : '')
    + '  <div class="qr-area"><div id="qr"></div>'
-   + '    <p class="qr-note">受付でこの画面をご提示ください</p>'
+   + '    <p class="qr-note">受付でこの画面をご提示ください<br>画面が暗いと読み取れないことがあります</p>'
    + '  </div>'
    + '  <dl class="info">'
    + '    <dt>公演</dt><dd>'+esc(s.title)+'</dd>'
@@ -82,6 +82,7 @@ function render(d){
    + '</div>'
    + '<div class="notes">'
    + '  <b>当日のご案内</b><br>'
+   + '  ・<b>画面の明るさを上げて</b>ご提示ください。暗いと読み取れないことがあります。<br>'
    + '  ・印刷は不要です。この画面をそのままご提示ください。<br>'
    + '  ・会場の電波が弱い場合に備え、<b>スクリーンショットの保存</b>をおすすめします。<br>'
    + '  ・お連れ様の分もこの1枚に含まれています。ご一緒にお越しください。<br>'
