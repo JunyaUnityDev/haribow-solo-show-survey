@@ -221,7 +221,7 @@
 
   <p class="step"><b>STEP 4</b>　応援金を追加（任意）</p>
   <div class="donationbox">
-    <p class="don-note">気持ちとして上乗せできます。応援金をいただいた方は、<b style="color:var(--sup)">ホワイエの横断幕にお名前を掲載</b>します（掲載の可否はお選びいただけます）。</p>
+    <p class="don-note">気持ちとして上乗せできます。応援金をいただいた方は、<b style="color:var(--sup)">デジタルパンフレットとホワイエの横断幕にお名前を掲載</b>します（掲載の可否はお選びいただけます）。</p>
     <div class="dchips">
       <button type="button" class="dchip" onclick="setDon(500,this)">＋¥500</button>
       <button type="button" class="dchip" onclick="setDon(1000,this)">＋¥1,000</button>
@@ -281,19 +281,17 @@
   <div id="tab-stream" style="display:none">
     <p class="step"><b>STEP 1</b>　配信チケットを選ぶ</p>
     <div class="types" id="streamTypes"></div>
+    <!-- 決済導線が未接続のため、購入フォームは出さない。
+         入力させた末に「準備中」で止めるのは、買う気になった人を最後に突き放すことになる。 -->
     <div class="buyerbox">
-      <label>お名前</label>
-      <input id="sName" placeholder="例：山田太郎" oninput="sUpdate()">
-      <label>連絡先（メールアドレス）</label>
-      <input id="sContact" type="email" placeholder="例：example@mail.com" oninput="sUpdate()">
-      <p class="buyer-note">※配信URLはこの連絡先へお送りします。固定カメラのシンプルな中継です（会場体験には及びません）。</p>
-      <label>お支払い方法</label>
-      <div class="paymethods">
-        <button type="button" class="pm sp" onclick="sPay('square',this)">Squareでカード決済</button>
-        <button type="button" class="pm sp" id="sPayBank" onclick="sPay('bank',this)">銀行振込</button>
-      </div>
-      <div id="sResult" style="font-size:20px;font-weight:800;margin-top:14px;font-variant-numeric:tabular-nums">¥0</div>
-      <button class="buy" id="sBuy" style="margin-top:12px;width:100%" disabled onclick="sCheckout()">配信チケットを購入</button>
+      <p style="margin:0 0 10px;font-weight:700">配信チケットは、ただいま販売準備中です</p>
+      <p class="buyer-note" style="margin:0 0 14px">
+        販売開始まで、いましばらくお待ちください。開始のご案内は公式サイトとSNSでお知らせします。<br>
+        固定カメラのシンプルな中継です（会場体験には及びません）。
+      </p>
+      <a class="buy" style="display:block;text-align:center;text-decoration:none;width:100%"
+         href="mailto:info@haribow.com?subject=%E9%85%8D%E4%BF%A1%E3%83%81%E3%82%B1%E3%83%83%E3%83%88%E3%81%AE%E8%B2%A9%E5%A3%B2%E9%96%8B%E5%A7%8B%E3%82%92%E7%9F%A5%E3%82%8A%E3%81%9F%E3%81%84&amp;body=%E9%85%8D%E4%BF%A1%E3%83%81%E3%82%B1%E3%83%83%E3%83%88%E3%81%AE%E8%B2%A9%E5%A3%B2%E3%81%8C%E5%A7%8B%E3%81%BE%E3%81%A3%E3%81%9F%E3%82%89%E6%95%99%E3%81%88%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82%0A%0A%E3%81%8A%E5%90%8D%E5%89%8D%EF%BC%9A%0A">
+        販売開始のお知らせを希望する</a>
     </div>
   </div>
 
@@ -833,15 +831,16 @@ var sType=null, sPayVal=null;
 function sSelect(t,el){ sType=t; document.querySelectorAll('#streamTypes .type').forEach(function(b){b.classList.toggle('active',b===el);}); sUpdate(); }
 function sPay(m,el){ sPayVal=m; document.querySelectorAll('.sp').forEach(function(b){b.classList.toggle('active',b===el);}); sUpdate(); }
 function sUpdate(){
+  // 販売準備中は購入フォームを出していないので、要素が無い場合は何もしない。
+  // （決済導線を繋いでフォームを戻したら、この関数はそのまま動く）
   var res=document.getElementById('sResult'), btn=document.getElementById('sBuy');
+  if(!res || !btn) return;
   res.textContent='¥'+(sType?sType.price:0).toLocaleString();
   var n=(document.getElementById('sName')||{}).value||'', c=(document.getElementById('sContact')||{}).value||'';
   btn.disabled=!(sType && n.trim() && c.trim() && sPayVal);
 }
-function sCheckout(){
-  // 配信チケットは別チャネルで販売予定（ADR-003）。決済導線が未接続のため、ここでは受付案内のみ。
-  alert('生配信チケットは現在ご案内を準備中です。\n公式のご案内（販売ページ）をお待ちください。');
-}
+// 配信チケットの決済導線が繋がったら、購入フォーム（お名前・連絡先・支払方法・購入ボタン）を
+// このタブに戻し、sCheckout() を実装する。それまでは案内のみを出す。
 var stc=document.getElementById('streamTypes');
 STREAM.forEach(function(t){
   var b=document.createElement('button'); b.className='type';
