@@ -96,6 +96,9 @@ h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0
 .target .v small{font-size:12px;font-weight:600;color:var(--dim);margin-left:3px}
 .target .note{font-size:11.5px;color:var(--dim);margin-top:5px;line-height:1.55}
 .target.unknown .v{color:var(--amber);font-size:15px}
+.qlink{display:inline-block;margin-top:8px;color:var(--teal);font-weight:700;text-decoration:none;
+  border:1px solid rgba(99,182,204,.32);border-radius:100px;padding:5px 13px;font-size:11.5px}
+.qlink:hover{background:rgba(99,182,204,.1)}
 
 .counter{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}
 .counter:last-of-type{border-bottom:none}
@@ -161,16 +164,16 @@ h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0
     <h2>出演者みんなの合計</h2>
     <div class="card" id="totals"></div>
 
-    <h2>あなたの名前を選んでください</h2>
+    <h2>あなたの持ち場</h2>
     <div class="namebar" id="namebar"></div>
     <div id="mine"></div>
 
-    <h2>やることは3つだけ</h2>
+    <h2>このページの使い方</h2>
     <div class="card">
       <ol class="steps">
-        <li><b>声をかける相手を思い浮かべる。</b>家族・友だち・バイト先・学校。「来そうな人」で十分です</li>
-        <li><b>下のリンクとメッセージをコピーして送る。</b>文面はそのままでも、自分の言葉に書き換えてもOKです</li>
-        <li><b>送ったらこのページの数字を増やす。</b>あなたが押した数がそのまま全体の合計に乗ります</li>
+        <li><b>声をかける相手を決める。</b>家族・友だち・バイト先・学校など</li>
+        <li><b>リンクと文面をコピーして送る。</b>文面は自由に書き換えられます</li>
+        <li><b>送ったら数字を増やす。</b>全体の合計にそのまま反映されます</li>
       </ol>
     </div>
   </div>
@@ -199,6 +202,9 @@ var ENDPOINT = BASE + '?page=cast';
 var CAST_SECRET = 'hbw-2026-cast-s1udbmrnoy';
 var SHOW_DATE = new Date(2026, 8, 29);
 var FALLBACK_URL = 'https://go-beyond.haribow.com';
+/* 動員見込みアンケート。未回答の人がここから直接答えられるようにする
+   （催促の文言を並べるより、その場で開けるほうが早い） */
+var SURVEY_URL = 'https://junyaunitydev.github.io/haribow-solo-show-survey/member.html';
 
 var data = null;
 var selected = null;
@@ -260,9 +266,8 @@ function renderTotals(){
   var reach='';
   if(t.target>0 && s && s.ok && s.sellable>0){
     var pct=Math.round(t.target/s.sellable*100);
-    reach='<div class="reach">出演者'+t.people+'人が「来そう」と答えた人数を全部たすと <b>'+t.target+'人</b>。'+
-      'この人たちに声をかけ切れるだけで、客席の <b>'+pct+'%</b> が埋まります。'+
-      '知らない人に広めるより、まず<b>あなたが名前を思い出せる人</b>に届けるのが一番効きます。</div>';
+    reach='<div class="reach">出演者'+t.people+'人が「来そう」と答えた人数の合計は <b>'+t.target+'人</b>。'+
+      '全員に届けば、客席の <b>'+pct+'%</b> です。</div>';
   }
   document.getElementById('totals').innerHTML=
     '<div class="totals">'+
@@ -311,7 +316,7 @@ function bump(field, delta){
     body:JSON.stringify({survey:'cast_update',secret:CAST_SECRET,rowIndex:p.row,field:field,value:next})})
     .then(function(r){ return r.json(); })
     .then(function(res){ if(!res.ok) toast('保存できませんでした：'+(res.error||'')); })
-    .catch(function(e){ toast('通信エラー。電波のいいところでもう一度お願いします'); });
+    .catch(function(e){ toast('保存できませんでした。もう一度試してください'); });
 }
 /* ローカルで数字を動かしたあと、合計も即座に引き直す（再読込を待たせない） */
 function renderTotalsFromPeople(){
@@ -349,21 +354,19 @@ function renderMine(){
   /* その他/SNS経由は目標に足していない（名前を挙げられる相手と人数感を混ぜないため）。
      ただし答えたものが画面から消えると「答えたのに0人扱い」に見えるので参考値として出す。 */
   var snsNote = p.sns>0
-    ? '<div class="note">これとは別に、SNS経由で <b>'+p.sns+'人</b> と答えています'+
-      '（人数感なので、上の目標には足していません）。</div>'
+    ? '<div class="note">ほかに、SNS経由で <b>'+p.sns+'人</b> と回答（人数感のため合計には入れていません）。</div>'
     : '';
 
   var targetHtml = p.target>0
     ? '<div class="target"><div class="k">あなたが「来そう」と答えた人数</div>'+
       '<div class="v">'+p.target+'<small>人</small></div>'+
-      '<div class="note">7/6のヒアリングで、あなた自身が答えた人数です。'+
-      'ノルマではありません。まずこの人数ぶん、顔と名前を思い出すところから。</div>'+snsNote+'</div>'
+      '<div class="note">7/6のヒアリングでの回答です。ノルマではありません。</div>'+snsNote+'</div>'
     : '<div class="target unknown"><div class="k">あなたが「来そう」と答えた人数</div>'+
-      '<div class="v">'+(p.sns>0?'家族・友だちは0人と回答':'まだ答えていません')+'</div>'+
+      '<div class="v">'+(p.sns>0?'家族・友人は0人と回答':'回答がまだありません')+'</div>'+
       '<div class="note">'+(p.sns>0
-        ? 'SNS経由では '+p.sns+'人 と答えています。ただ、いちばん効くのは<b>名前を思い出せる相手</b>です。'+
-          '家族・友だち・バイト先・学校に、本当に0人でしょうか。'
-        : '家族・友だちで来てくれそうな人が何人いるか、思い浮かべてみてください。0人ということはないはずです。')+
+        ? 'SNS経由は '+p.sns+'人 と回答しています。変わっていれば、アンケートから直せます。'
+        : 'アンケートに答えると、ここに人数が出ます。')+
+        '<a class="qlink" href="'+SURVEY_URL+'" target="_blank" rel="noopener">アンケートを開く →</a>'+
       '</div></div>';
 
   var msg=messageTemplate(p);
@@ -371,9 +374,9 @@ function renderMine(){
     '<p class="mine-name">'+esc(p.name)+'</p>'+
     '<p class="mine-acts">'+esc(p.acts||'')+'</p>'+
     targetHtml+
-    counter('sent',    '送った人数',       'リンクを送ったら押す', p.sent)+
-    counter('replied', '「行く」と返事あり','来ると言ってくれたら押す', p.replied)+
-    counter('bought',  '買ってくれた人数', 'チケットを買ったと確認できたら押す', p.bought)+
+    counter('sent',    '送った人数',       'リンクを送った相手の数', p.sent)+
+    counter('replied', '「行く」と返事あり','来ると返事をもらった数', p.replied)+
+    counter('bought',  '買ってくれた人数', '購入を確認できた数', p.bought)+
 
     '<div class="copybox">'+
       '<div class="k">送るリンク</div>'+
@@ -382,7 +385,7 @@ function renderMine(){
     '</div>'+
 
     '<div class="copybox">'+
-      '<div class="k">送る文面（書き換えてOK）</div>'+
+      '<div class="k">送る文面</div>'+
       '<textarea id="msg">'+esc(msg)+'</textarea>'+
       '<button class="copybtn" onclick="copyText(document.getElementById(\'msg\').value,\'文面をコピーしました\')">この文面をコピー</button>'+
     '</div>'+
@@ -412,7 +415,7 @@ function load(isReload){
       if(isReload) toast('最新にしました');
     })
     .catch(function(e){
-      if(isReload){ toast('更新できませんでした。電波のいいところでもう一度お願いします'); }
+      if(isReload){ toast('更新できませんでした。もう一度試してください'); }
       else document.getElementById('content').innerHTML=
         '<div class="err">読み込みに失敗しました：'+esc(e.message||e)+'</div>';
     })
