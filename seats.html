@@ -557,7 +557,7 @@ function checkout(){
   }).catch(function(e){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='決済へ'; btn.disabled=false; });
 }
 function fmtSeat(k){ var a=k.split('-'); return a[0]+'列'+a[1]+'番'; }
-function doneScreen(msg){
+function doneScreen(msg, extra){
   // メールが唯一の連絡手段なので、不達時の逃げ道を必ず出す（キャリアメールは落ちやすい）
   var help = '<div style="margin-top:26px;padding:14px 16px;border:1px solid #2a2d35;border-radius:10px;text-align:left;'
     + 'color:#a7adba;font-size:13px;line-height:1.9">'
@@ -580,7 +580,15 @@ function doneScreen(msg){
     body:JSON.stringify({survey:'order_confirm', token:c})})
   .then(function(r){return r.json();}).then(function(o){
     if(o && (o.ok || o.already)){
-      doneScreen('ご購入ありがとうございます。お席が確定しました。詳細をメールでお送りします。');
+      var tk = o.ticketUrl
+        ? '<a href="'+o.ticketUrl+'" style="display:block;margin:22px auto 0;max-width:320px;padding:15px;'
+          +'background:#c9a24b;color:#0a0b0e;border-radius:12px;text-decoration:none;font-weight:800;font-size:16px">'
+          +'電子チケットを表示する</a>'
+          +'<p style="color:#8b919e;font-size:12px;line-height:1.9;margin-top:12px">'
+          +'当日はこの画面のQRコードを受付でご提示ください。<br>'
+          +'同じ内容をメールでもお送りしています。</p>'
+        : '';
+      doneScreen('ご購入ありがとうございます。お席が確定しました。'+(o.ticketUrl?'':'詳細をメールでお送りします。'), tk);
     } else if(o && o.error==='not_paid_yet'){
       doneScreen('お支払いの確認中です。確定しましたらメールでお知らせします（反映まで少しお時間をいただく場合があります）。');
     } else {
