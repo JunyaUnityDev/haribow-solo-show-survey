@@ -142,7 +142,8 @@ function seatArea(row,n){
   if(row===1) return 'cam';
   if(row===13) return 'wheel';
   if((row===4||row===14) && n>=23&&n<=32) return 'reserve';
-  if(n<=10 || n>=23) return 'group';
+  // 2026-07-25の座席割り改定：前方サイド(2〜12列)は個人の一般A席。団体は後方サイド(14〜22列)のみ
+  if(n<=10 || n>=23) return (row>=2&&row<=12) ? 'gen' : 'group';
   if(row===2) return 'sup';
   if(row>=3&&row<=12) return 'main';
   if(row>=14&&row<=18) return 'gen';
@@ -284,7 +285,7 @@ function mSave(){
     if(!res.ok){
       if(res.error==='min5'){ alert('5席以上でお願いします。'); calc(); return; }
       if(res.error==='closed'||res.error==='not_editable'){ alert('変更の受付は終了しました（お支払い済み、または8/17を過ぎています）。'); return; }
-      if(res.conflict){ alert('選んでいる間に '+res.conflict.map(fmtSeat).join('・')+' が他の団体に予約されました。選び直してください。');
+      if(res.conflict){ alert(res.conflict.map(fmtSeat).join('・')+' はお取りできませんでした。\n他の団体が予約済みか、団体でお取りいただけないお席です。\nお手数ですが選び直してください。');
         // 他団体在庫を取り直して再描画
         fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
           OTHERS={}; (d.takenGroup||[]).forEach(function(id){ if(RES.seats.indexOf(id)<0) OTHERS[id]=1; });
