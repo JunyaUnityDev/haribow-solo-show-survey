@@ -247,6 +247,8 @@ function doCheckin(token, fromSearch, force, cash){
       showVerdict(note?'warn':'ok', i.name+' 様', i.seats+'　'+i.qty+'名', sub,
         '<button onclick="undo(\''+esc(token)+'\')">取り消す</button>');
       loadStats();
+      // 検索結果から通した場合は一覧を更新する（同じボタンを二度押させない）
+      if(fromSearch && document.getElementById('q').value.trim()) doLookup();
     } else if(r.error==='already'){
       feedback('warn');
       showVerdict('warn','入場済みです', i.name+' 様　'+(i.seats||''),
@@ -318,12 +320,26 @@ function doLookup(){
     if(!r.hits.length){ box.innerHTML='<p class="note">該当がありません。お名前の一部だけでもお試しください。</p>'; return; }
     box.innerHTML=r.hits.map(function(h){
       var done=!!h.checkedAt;
+      // QRが使えない方（電池切れ・メール未達・URL紛失）を、ここから通せるようにする。
+      // お客様には「お名前をお伝えいただければ入場できます」と案内しているので、
+      // 支払いが済んでいない方も現金受領／責任者判断で通せる必要がある。
+      var btn='';
+      if(!done && h.token){
+        if(h.cashDue){
+          btn='<button onclick="cashIn(\''+esc(h.token)+'\','+Number(h.amount||0)+')">現金 ¥'
+            +Number(h.amount||0).toLocaleString()+' を受け取った</button>';
+        } else if(h.status==='済'){
+          btn='<button onclick="doCheckin(\''+esc(h.token)+'\',true)">入場を記録する</button>';
+        } else {
+          btn='<button onclick="forceIn(\''+esc(h.token)+'\')">確認できたので入場させる</button>';
+        }
+      }
       return '<div class="hit'+(done?' done':'')+'">'
         + '<div class="nm">'+esc(h.name)+' 様</div>'
         + '<div class="meta">'+esc(h.seats)+'　'+esc(h.qty)+'名　'+esc(h.status)
+        + (h.cashDue?('　／ 現金 ¥'+Number(h.amount||0).toLocaleString()+' 未受領'):'')
         + (done?('　／ '+esc(h.checkedAt)+' 入場済み'):'')+'</div>'
-        + (done || h.status!=='済' || !h.token ? ''
-            : '<button onclick="doCheckin(\''+esc(h.token)+'\',true)">入場を記録する</button>')
+        + btn
         + '</div>';
     }).join('');
   });
