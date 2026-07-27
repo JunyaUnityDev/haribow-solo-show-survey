@@ -37,6 +37,13 @@ h1{font-size:21px;font-weight:800;margin:0 0 4px;letter-spacing:.02em}
 .sticky .dday small{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.08em;margin-right:5px}
 .sticky .seatmini{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
 .sticky .seatmini b{color:var(--teal);font-size:14px}
+.reload{border:1px solid rgba(99,182,204,.32);background:rgba(99,182,204,.10);color:var(--teal);
+  border-radius:100px;padding:5px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;
+  white-space:nowrap;flex-shrink:0}
+.reload:disabled{opacity:.5;cursor:default}
+.reload .spin{display:inline-block}
+.reload.busy .spin{animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 
 h2{font-size:13px;font-weight:800;margin:32px 0 12px;letter-spacing:.05em;
   display:flex;align-items:center;gap:9px;color:var(--cream)}
@@ -144,6 +151,7 @@ h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0
   <div class="sticky">
     <div class="dday" id="dday"><small>本番まで</small>—</div>
     <div class="seatmini" id="seatmini"></div>
+    <button class="reload" id="reload" onclick="reload()"><span class="spin">↻</span> 更新</button>
   </div>
 
   <div id="content">
@@ -338,15 +346,25 @@ function renderMine(){
   var p=findPerson(selected);
   if(!p){ el.innerHTML=''; return; }
 
+  /* その他/SNS経由は目標に足していない（名前を挙げられる相手と人数感を混ぜないため）。
+     ただし答えたものが画面から消えると「答えたのに0人扱い」に見えるので参考値として出す。 */
+  var snsNote = p.sns>0
+    ? '<div class="note">これとは別に、SNS経由で <b>'+p.sns+'人</b> と答えています'+
+      '（人数感なので、上の目標には足していません）。</div>'
+    : '';
+
   var targetHtml = p.target>0
     ? '<div class="target"><div class="k">あなたが「来そう」と答えた人数</div>'+
       '<div class="v">'+p.target+'<small>人</small></div>'+
       '<div class="note">7/6のヒアリングで、あなた自身が答えた人数です。'+
-      'ノルマではありません。まずこの人数ぶん、顔と名前を思い出すところから。</div></div>'
+      'ノルマではありません。まずこの人数ぶん、顔と名前を思い出すところから。</div>'+snsNote+'</div>'
     : '<div class="target unknown"><div class="k">あなたが「来そう」と答えた人数</div>'+
-      '<div class="v">まだ答えていません</div>'+
-      '<div class="note">家族・友だちで来てくれそうな人が何人いるか、'+
-      '思い浮かべてみてください。0人ということはないはずです。</div></div>';
+      '<div class="v">'+(p.sns>0?'家族・友だちは0人と回答':'まだ答えていません')+'</div>'+
+      '<div class="note">'+(p.sns>0
+        ? 'SNS経由では '+p.sns+'人 と答えています。ただ、いちばん効くのは<b>名前を思い出せる相手</b>です。'+
+          '家族・友だち・バイト先・学校に、本当に0人でしょうか。'
+        : '家族・友だちで来てくれそうな人が何人いるか、思い浮かべてみてください。0人ということはないはずです。')+
+      '</div></div>';
 
   var msg=messageTemplate(p);
   el.innerHTML='<div class="card mine">'+
@@ -372,18 +390,37 @@ function renderMine(){
 }
 
 /* --------------------------------------------------------- 読み込み */
-fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(d){
-  if(!d || !d.ok) throw new Error(d && d.error ? d.error : 'データを取得できませんでした');
-  data=d;
+function renderAll(){
   if(selected && !findPerson(selected)) selected=null;
   renderHero();
   renderTotals();
   renderNames();
   renderMine();
-}).catch(function(e){
-  document.getElementById('content').innerHTML=
-    '<div class="err">読み込みに失敗しました：'+esc(e.message||e)+'</div>';
-});
+}
+
+/* シートは他の出演者も同時に触るので、開きっぱなしだと古くなる。
+   自動ポーリングはせず（回線と実行回数を食うため）、明示的な更新ボタンで引き直す。 */
+function load(isReload){
+  var btn=document.getElementById('reload');
+  if(isReload){ btn.disabled=true; btn.classList.add('busy'); }
+  return fetch(ENDPOINT+'&t='+Date.now())   // GAS/ブラウザのキャッシュを避ける
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok) throw new Error(d && d.error ? d.error : 'データを取得できませんでした');
+      data=d;
+      renderAll();
+      if(isReload) toast('最新にしました');
+    })
+    .catch(function(e){
+      if(isReload){ toast('更新できませんでした。電波のいいところでもう一度お願いします'); }
+      else document.getElementById('content').innerHTML=
+        '<div class="err">読み込みに失敗しました：'+esc(e.message||e)+'</div>';
+    })
+    .then(function(){ btn.disabled=false; btn.classList.remove('busy'); });
+}
+function reload(){ load(true); }
+
+load(false);
 </script>
 </body>
 </html>
