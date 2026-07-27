@@ -6,94 +6,217 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<title>HARIBOW単独公演 デジタルパンフレット</title>
+<title>デジタルパンフレット｜HARIBOW単独公演「Go Beyond」</title>
+<!--
+  当日のデジタルパンフレット（2026-07-27 仮版）
+  ※公演情報・演目・実績は official_site/content.js と二重管理になっている。
+    変えたら両方直すこと（券種名を content.js だけ直し忘れた事故が2026-07-26にあった）。
+  ※支援者のお名前だけはGASから取得している（日々増えるため手更新にしない）。
+-->
 <style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.7}
-.wrap{max-width:680px;margin:0 auto;padding:22px 16px 80px}
-.logo{height:54px;width:auto;display:block;margin:4px 0 20px}
-.hero{background:linear-gradient(135deg,#142a52,#1e3a6e);color:#fff;border-radius:18px;padding:32px 24px;margin-bottom:24px;text-align:center}
-.hero .tag{font-size:13px;letter-spacing:.15em;opacity:.75;text-transform:uppercase;margin-bottom:10px}
-.hero h1{font-size:26px;font-weight:800;margin:0 0 8px;line-height:1.4}
-.hero .copy{font-size:15px;opacity:.9;margin:0 0 18px}
-.hero .info{font-size:14px;opacity:.85;border-top:1px solid rgba(255,255,255,.2);padding-top:14px;margin-top:14px}
-section{margin-bottom:28px}
-h2{font-size:17px;font-weight:800;margin:0 0 12px;padding-left:12px;border-left:4px solid var(--blue)}
-.lead{color:var(--dim);font-size:14px;margin:0 0 14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:12px}
-.achv{display:flex;flex-direction:column;gap:10px}
-.achv-item{display:flex;gap:12px;align-items:flex-start}
-.achv-item .dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-top:7px}
-.achv-item .txt b{color:var(--ink)}
-.achv-item .txt{font-size:14px;color:var(--dim)}
-.showinfo dt{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:10px}
-.showinfo dt:first-child{margin-top:0}
-.showinfo dd{margin:2px 0 0;font-size:14.5px}
-.btn{display:block;text-align:center;width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
-.btn.secondary{background:#eef3fa;color:var(--ink);box-shadow:none;border:1px solid var(--line)}
-.btnrow{display:flex;flex-direction:column;gap:10px}
-.muted{color:var(--faint);font-size:12.5px}
-footer{margin-top:24px;font-size:12.5px;color:var(--faint);text-align:center}
-footer a{color:var(--blue)}
+  :root{
+    --bg:#0a0b0e; --panel:#14161c; --line:#262a33; --ink:#f3f1ea; --dim:#a7adba;
+    --faint:#6b7280; --main:#63b6cc; --sup:#c9a24b; --stage:#06222b;
+    --shadow:0 8px 28px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.75}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px 80px}
+  .logo{height:40px;width:auto;display:block;margin:22px auto 0;opacity:.9}
+
+  .hero{margin:22px 0 30px;padding:34px 22px;border-radius:18px;text-align:center;
+    background:linear-gradient(180deg,#0d3947,var(--stage));box-shadow:0 0 60px rgba(99,182,204,.18)}
+  .hero .tag{font-size:11px;letter-spacing:.24em;color:var(--main);margin:0 0 12px}
+  .hero h1{font-size:30px;font-weight:800;margin:0 0 6px;letter-spacing:.02em}
+  .hero .sub{font-size:13.5px;color:#cfeaf2;margin:0 0 18px}
+  .hero .info{font-size:13.5px;color:#cfeaf2;border-top:1px solid rgba(255,255,255,.18);padding-top:14px;opacity:.95}
+
+  h2{font-size:13px;letter-spacing:.14em;color:var(--main);font-weight:800;margin:34px 0 12px;
+    padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .lead{font-size:14.5px;color:var(--dim);margin:0 0 14px}
+
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:15px 17px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .act .n{font-size:16px;font-weight:800;margin:0 0 4px}
+  .act .d{font-size:13px;color:var(--dim);margin:0}
+  .badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;
+    padding:2px 8px;border-radius:20px;margin:0 6px 6px 0;vertical-align:middle}
+  .badge.gold{background:rgba(201,162,75,.16);color:var(--sup);border:1px solid rgba(201,162,75,.5)}
+  .badge.teal{background:rgba(99,182,204,.14);color:var(--main);border:1px solid rgba(99,182,204,.45)}
+
+  .cast{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 6px}
+  .cast span{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:7px 11px;font-size:13.5px}
+
+  .achv{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 17px;box-shadow:var(--shadow)}
+  .achv div{padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .achv div:last-child{border-bottom:0}
+  .achv b{color:var(--main)}
+
+  .info-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .info-card dt{font-size:10.5px;letter-spacing:.1em;color:var(--faint);font-weight:800;margin-top:12px}
+  .info-card dt:first-child{margin-top:0}
+  .info-card dd{margin:2px 0 0;font-size:14.5px}
+
+  .thanks{background:linear-gradient(180deg,rgba(201,162,75,.10),var(--panel));
+    border:1px solid rgba(201,162,75,.45);border-radius:14px;padding:18px;text-align:center}
+  .thanks .names{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+  .thanks .names span{font-size:14px;font-weight:700}
+  .thanks .empty{color:var(--faint);font-size:13px}
+
+  .closing{margin-top:34px;padding:24px 20px;border-radius:16px;text-align:center;
+    background:var(--panel);border:1px solid var(--line)}
+  .closing p{margin:0 0 10px;font-size:14.5px;color:var(--dim)}
+  .closing .big{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:.04em}
+
+  footer{margin-top:34px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2}
+  footer a{color:var(--main)}
+  .note{font-size:11.5px;color:var(--faint);margin-top:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go Beyond">
+  <img class="logo" src="assets/haribow-logo-white.png" alt="HARIBOW"
+       onerror="this.onerror=null;this.src='assets/go-beyond-logo.png'">
 
   <div class="hero">
-    <div class="tag">HARIBOW SOLO SHOW 2026</div>
-    <h1>公園から世界、その先へ</h1>
-    <p class="copy">世界一のダブルダッチパフォーマンスチーム「HARIBOW」、結成以来初の単独公演。</p>
-    <div class="info">2026年9月29日（火）19:30開演／めぐろパーシモンホール 大ホール</div>
+    <p class="tag">HARIBOW FIRST SOLO SHOW</p>
+    <h1>Go Beyond</h1>
+    <p class="sub">公園から世界、その先へ。</p>
+    <div class="info">
+      2026年9月29日（火）　開場 18:30（予定）／開演 19:30<br>
+      めぐろパーシモンホール 大ホール
+    </div>
   </div>
 
   <section>
-    <h2>公演コンセプト</h2>
-    <p class="lead">究極のダブルダッチエンターテイメントが見られる公演。HARIBOWらしい迫力・エンタメ性に加え、出演メンバー一人ひとりの作品性・個性も感じられるステージをお届けします。</p>
+    <h2>ごあいさつ</h2>
+    <p class="lead">
+      本日はお越しいただき、ありがとうございます。<br>
+      特別な設備も後ろ盾もない公園や路上での練習から始まったHARIBOWにとって、
+      これが結成以来はじめての単独公演です。世界で戦ってきた技と、
+      メンバー一人ひとりの物語を、同じ舞台に並べました。
+    </p>
   </section>
 
   <section>
-    <h2>HARIBOWについて</h2>
-    <p class="lead">特別な設備も後ろ盾もない公園や路上での練習からスタートし、世界大会で優勝、世界一の称号を手にしたダブルダッチパフォーマンスチーム。国内外で数々の実績を重ねてきました。</p>
-    <div class="card achv">
-      <div class="achv-item"><span class="dot"></span><span class="txt"><b>Double Dutch Contest World 2025</b> 優勝（世界一）</span></div>
-      <div class="achv-item"><span class="dot"></span><span class="txt"><b>Britain's Got Talent 2024</b> ゴールデンブザー獲得・ファイナリスト選出（日本人過去最高記録）</span></div>
-      <div class="achv-item"><span class="dot"></span><span class="txt">2026年1月、欧州最大級のアクロバットショー<b>「Feuerwerk der Turnkunst」</b>のアリーナツアーにドイツ各地で出演</span></div>
-      <div class="achv-item"><span class="dot"></span><span class="txt"><b>NBA Global Games Abu Dhabi 2024</b> ハーフタイムショーにアジア人として初出演</span></div>
-      <div class="achv-item"><span class="dot"></span><span class="txt">世界10カ国以上で公演</span></div>
+    <h2>本日の演目</h2>
+    <p class="lead">全編HARIBOWだけのショーケース構成です。上演順は当日のプログラムをご覧ください。</p>
+
+    <div class="act">
+      <span class="badge gold">世界王者</span>
+      <p class="n">2025 IJRU世界選手権 優勝演技</p>
+      <p class="d">世界30カ国以上が集う舞台を制した、HARIBOW世界一の演技。</p>
+    </div>
+    <div class="act">
+      <span class="badge gold">世界王者</span>
+      <p class="n">YOUNG BLOOD</p>
+      <p class="d">DOUBLE DUTCH CONTEST WORLD 2026 世界一。頂点に立った次世代チームの演技。</p>
+    </div>
+    <div class="act">
+      <span class="badge teal">復活</span><span class="badge teal">完全新作</span>
+      <p class="n">Roar</p>
+      <p class="d">ニューヨーク・アポロシアターで開催された National Double Dutch League 2021 世界3位。伝説のチーム「Roar」が、完全新作として復活します。</p>
+    </div>
+    <div class="act">
+      <p class="n">Cirque du Soleil オーディション演技</p>
+      <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した作品。究極のスピードと、ダブルダッチでの新たな表現を追求しました。</p>
+    </div>
+    <div class="act">
+      <span class="badge teal">原点</span>
+      <p class="n">DOUBLE DUTCH CONTEST JAPAN 2023</p>
+      <p class="d">国内最大のダブルダッチ大会。HARIBOW第一世代がシーンに名乗りを上げた、原点の演技。</p>
+    </div>
+    <div class="act">
+      <span class="badge teal">限定コラボ</span>
+      <p class="n">Special Guest Collaboration</p>
+      <p class="d">この夜だけの、特別ゲストとのコラボレーション。</p>
     </div>
   </section>
 
   <section>
-    <h2>公演の見どころ</h2>
-    <p class="lead">世界一のメンバーによる大技・大迫力のパフォーマンスに加え、出演者それぞれのストーリーや個性が見える演目まで、全編HARIBOWだけのショーケース構成でお届けします。演目の詳細は近日公開予定です。</p>
+    <h2>出演者</h2>
+    <div class="cast" id="cast"></div>
+    <p class="note">※ 出演者・演目は変更になる場合があります。</p>
+  </section>
+
+  <section>
+    <h2>HARIBOWのこれまで</h2>
+    <div class="achv">
+      <div><b>ダブルダッチ、世界の頂点</b>　2025 IJRU世界選手権 優勝（世界30カ国以上が集う舞台で世界一に）</div>
+      <div><b>世界のタレントショー</b>　Britain's Got Talent で史上初の“観客ゴールデンブザー”、決勝進出。イタリア・スペイン・フランスのタレントショーにも出演</div>
+      <div><b>世界最高峰のサーカス／ヴァリエテ</b>　シルク・ドゥ・ソレイユ賞／リングリング賞／モンテカルロ賞を受賞。ムーラン・ルージュ、世界最大のテント Cirque Phénix、欧州最大級 Europa-Park ほか名門に出演</div>
+      <div><b>ドイツアリーナツアー</b>　Feuerwerk「VIVA」で1万人超級のアリーナ30公演以上（年間20万人超を動員する“欧州で最も成功した体操エンタメショー”）</div>
+      <div><b>世界的ビッグイベント</b>　NBA アブダビ、約2万人アリーナのハーフタイムショー</div>
+      <div><b>欧州7拠点・同時公演（2025）</b>　同じ時間に7つの舞台を回した。総勢35名を派遣</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>支えてくださった皆さま</h2>
+    <div class="thanks">
+      <p style="margin:0;font-size:13.5px;color:var(--dim)">サポーター券・応援金で背中を押してくださった皆さまです。</p>
+      <div class="names" id="thanksNames"><span class="empty">読み込んでいます…</span></div>
+    </div>
   </section>
 
   <section>
     <h2>公演情報</h2>
-    <div class="card">
-      <dl class="showinfo">
+    <div class="info-card">
+      <dl style="margin:0">
         <dt>日時</dt>
-        <dd>2026年9月29日（火）19:30開演</dd>
+        <dd>2026年9月29日（火）　開場 18:30（予定）／開演 19:30</dd>
         <dt>会場</dt>
-        <dd>めぐろパーシモンホール 大ホール（目黒区八雲1-1-1・都立大学駅徒歩7分）</dd>
+        <dd>めぐろパーシモンホール 大ホール<br>
+          <span style="color:var(--faint);font-size:12.5px">目黒区八雲1-1-1／東急東横線 都立大学駅 徒歩7分</span></dd>
+        <dt>ご観覧にあたって</dt>
+        <dd>お席は指定席です。再入場できます。</dd>
       </dl>
     </div>
   </section>
 
-  <section>
-    <div class="btnrow">
-      <a class="btn" href="tickets.html">チケット情報を見る</a>
-      <a class="btn secondary" href="https://haribow.com/" target="_blank" rel="noopener">HARIBOW公式サイト</a>
-    </div>
-  </section>
+  <div class="closing">
+    <p>この公演は、到達点ではありません。</p>
+    <p class="big">物語は、まだ続きます。</p>
+  </div>
 
   <footer>
-    お問い合わせ：info@haribow.com<br>
-    <a href="https://haribow.com/" target="_blank" rel="noopener">haribow.com</a>
+    HARIBOW単独公演「Go Beyond」<br>
+    お問い合わせ：<a href="mailto:info@haribow.com">info@haribow.com</a><br>
+    <a href="https://go-beyond.haribow.com" target="_blank" rel="noopener">go-beyond.haribow.com</a>
   </footer>
 </div>
+
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+
+/* 出演者（動員見込み_出演者シートの31名） */
+var CAST = ['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤周平','前田航希','谷瑠奈','佐藤善平',
+ '城向葵','清水大佑','永井リュート','黒岩基','岡澤礼','刀祢槙斗','坂上健太','新遥生','三輪卓海',
+ '勝山誠也','越智孔聖','竹中理貴','山口泰侑','西川世那','米田玲音','金箱秀亮','武山心','稲葉大空',
+ '大森優馬','飯島未来','高木美幸','福満翔','坂井奏'];
+document.getElementById('cast').innerHTML =
+  CAST.map(function(n){ return '<span>'+n+'</span>'; }).join('');
+
+/* 支援者のお名前は毎日変わるのでGASから取る（手で更新すると必ず古くなる） */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+fetch(BASE+'?page=supporters')
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var all = (d.supporters||[]).concat(d.donors||[]);
+    var el = document.getElementById('thanksNames');
+    el.innerHTML = all.length
+      ? all.map(function(n){ return '<span>'+esc(n)+'</span>'; }).join('')
+      : '<span class="empty">公演当日までに掲載いたします。</span>';
+  })
+  .catch(function(){
+    document.getElementById('thanksNames').innerHTML =
+      '<span class="empty">公演当日までに掲載いたします。</span>';
+  });
+</script>
 </body>
 </html>
