@@ -171,6 +171,11 @@
   <div id="tab-personal">
   <p class="step"><b>STEP 1</b>　券種を選ぶ</p>
   <div class="types" id="types"></div>
+  <!-- 公式サイトの料金表に「未就学児 無料」と載っているのに、購入画面に扱いが無く、
+       当日の受付で判断がつかなくなるため明記する -->
+  <p class="buyer-note" style="margin:10px 2px 0">
+    ※ 未就学児は無料です。保護者の膝上でご鑑賞いただけます。お席が必要な場合は「高校生・子供」券をお求めください。
+  </p>
 
   <p class="step"><b>STEP 2</b>　空いている席を選ぶ（選べる席だけ色が付きます）</p>
   <div class="maparea">
@@ -629,6 +634,19 @@ function updateCart(){
   }
   btn.disabled = !(seatsOk && infoOk);
 }
+var lastLockToken='';   // 直前に取得した座席ロックの持ち主証明
+
+/* 購入をやめた/失敗した席をすぐ空に戻す。呼ばないと5分間ふさがったままになる。
+   サーバー側は lockToken が一致する席しか解放しないので、他人の席には触れない。 */
+function releaseHeldSeats(keys){
+  if(!lastLockToken || !keys || !keys.length) return;
+  try{
+    fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({survey:'seat_release', seatIds:keys, lockToken:lastLockToken})});
+  }catch(e){}
+  lastLockToken='';
+}
+
 function checkout(){
   var keys=Object.keys(picked);
   var btn=document.getElementById('buyBtn'); btn.disabled=true; btn.textContent='処理中…';
@@ -640,6 +658,7 @@ function checkout(){
       alert('申し訳ありません。選んでいる間に '+((res.conflict||keys).map(fmtSeat).join('・'))+' が他の方に確保されました。\nお席を選び直してください。');
       picked={}; loadAvail(); updateCart(); btn.textContent='決済へ'; return;
     }
+    lastLockToken = res.lockToken;   // 失敗時にこの席を即座に返すため覚えておく
     // ② 注文（金額はサーバーが券種×席×日時で再計算）。lockTokenで自分のロック席を確定に紐付け
     return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({survey:'ticket_order', orderType:'individual', typeId:curType.id,
@@ -676,6 +695,8 @@ function checkout(){
                       + 'ご不明な点は info@haribow.com までご連絡ください。'
                 : '決済の準備に失敗しました。時間をおいて再度お試しください。\n'
                   + '解決しない場合は info@haribow.com までご連絡ください。';
+        // 押さえた席をすぐ返す。5分待たなくても他のお客様が選べるようにする
+        releaseHeldSeats(Object.keys(picked));
         alert(msg); loadAvail(); btn.textContent='決済へ'; btn.disabled=false;
       }
     });
