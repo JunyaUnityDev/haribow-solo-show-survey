@@ -710,7 +710,17 @@ function renderHero(b){
   if(hasSeats && s.rows && s.rows.length){
     seatmap = s.rows.map(function(row){
       var cells='';
-      for(var i=0;i<row.sellable;i++) cells+='<div class="seat'+(i<row.taken?' taken':'')+'"></div>';
+      /* 席番号で塗る。個数だけで塗ると中央の席が売れていても左端が埋まって見える。
+         番号が取れない場合だけ、従来どおり左から順に塗る。 */
+      if(row.nums && row.nums.length){
+        var takenSet={};
+        (row.takenNums||[]).forEach(function(n){ takenSet[n]=1; });
+        row.nums.forEach(function(n){
+          cells+='<div class="seat'+(takenSet[n]?' taken':'')+'" title="'+esc(row.row)+'-'+n+'"></div>';
+        });
+      }else{
+        for(var i=0;i<row.sellable;i++) cells+='<div class="seat'+(i<row.taken?' taken':'')+'"></div>';
+      }
       return '<div class="seatrow" title="'+esc(row.row)+'列：'+row.taken+'/'+row.sellable+'席">'+cells+'</div>';
     }).join('');
   }
