@@ -34,6 +34,9 @@
   .notes b{color:var(--text)}
   .state{margin:0;padding:12px 20px;text-align:center;font-size:13px;font-weight:700}
   .state.in{background:rgba(111,174,138,.14);color:var(--ok)}
+  .state.due{background:#b5544e;color:#fff;padding:16px 20px}
+  .state.due b{display:block;font-size:24px;letter-spacing:.01em;margin-bottom:2px}
+  .state.due span{display:block;font-size:12px;font-weight:400;opacity:.92;margin-top:4px}
   .msg{padding:40px 10px;text-align:center;line-height:2;color:var(--faint)}
   .msg b{display:block;color:var(--text);font-size:16px;margin-bottom:10px}
   a{color:#8fb7c9}
@@ -69,6 +72,10 @@ function render(d){
    + '    <p class="seats">'+esc(d.seats)+'</p>'
    + '    <p class="qty">'+esc(d.qty)+'名</p>'
    + '  </div>'
+   + (d.cashDue
+        ? '<p class="state due"><b>お支払い前です</b>現金 ¥'+Number(d.amount||0).toLocaleString()
+          +'<span>当日、会場の受付でお支払いください</span></p>'
+        : '')
    + (d.checkedIn ? '<p class="state in">ご入場済みです</p>' : '')
    + '  <div class="qr-area"><div id="qr"></div>'
    + '    <p class="qr-note">受付でこの画面をご提示ください<br>画面が暗いと読み取れないことがあります</p>'
@@ -82,6 +89,7 @@ function render(d){
    + '</div>'
    + '<div class="notes">'
    + '  <b>当日のご案内</b><br>'
+   + (d.cashDue ? '  ・受付で<b>現金 ¥'+Number(d.amount||0).toLocaleString()+'</b>をお支払いください。おつりのないようご用意いただけると助かります。<br>' : '')
    + '  ・<b>画面の明るさを上げて</b>ご提示ください。暗いと読み取れないことがあります。<br>'
    + '  ・印刷は不要です。この画面をそのままご提示ください。<br>'
    + '  ・会場の電波が弱い場合に備え、<b>スクリーンショットの保存</b>をおすすめします。<br>'
