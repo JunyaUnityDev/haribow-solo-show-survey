@@ -263,7 +263,12 @@ function doCheckin(token, fromSearch, force, cash){
         'お支払い前です。現金を受け取ってからボタンを押してください',
         '<button onclick="cashIn(\''+esc(token)+'\','+Number(i.amount||0)+')">現金を受け取った</button>');
     } else if(r.error==='voided'){
-      feedback('ng'); showVerdict('ng','無効なチケットです', (i.name?i.name+' 様':''), '取消済みの注文です。受付責任者にお回しください。');
+      // 期限判定と入金の行き違いで取り消された方（特に団体）を、当日その場で救えるようにする。
+      // 押すと支払状態は変えずに入場だけ記録し、運営に通知が飛ぶ。
+      feedback('ng');
+      showVerdict('ng','取消済みのご予約です', (i.name?i.name+' 様　'+(i.seats||''):''),
+        '受付責任者が確認できた場合のみ、入場させてください',
+        '<button onclick="forceIn(\''+esc(token)+'\')">確認できたので入場させる</button>');
     } else if(r.error==='unpaid'){
       feedback('ng');
       showVerdict('ng','お支払い未確認', (i.name?i.name+' 様　'+(i.seats||''):''),
@@ -340,7 +345,9 @@ function doLookup(){
         } else if(h.status==='済'){
           btn='<button onclick="doCheckin(\''+esc(h.token)+'\',true)">入場を記録する</button>';
         } else {
-          btn='<button onclick="forceIn(\''+esc(h.token)+'\')">確認できたので入場させる</button>';
+          var label = (String(h.status||'').indexOf('無効')>=0 || String(h.status||'').indexOf('キャンセル')>=0)
+            ? '取消済み：責任者の確認を得て入場させる' : '確認できたので入場させる';
+          btn='<button onclick="forceIn(\''+esc(h.token)+'\')">'+label+'</button>';
         }
       }
       return '<div class="hit'+(done?' done':'')+'">'

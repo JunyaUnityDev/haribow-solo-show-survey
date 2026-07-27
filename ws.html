@@ -126,7 +126,7 @@ p:last-child{margin-bottom:0}
   </div>
 
   <div id="content">
-    <h2>団体チケットの受付は8/17で閉じます</h2>
+    <h2>団体チケットの受付は8/16で閉じます</h2>
     <div id="deadline"></div>
 
     <h2>いまの状況</h2>
@@ -188,7 +188,7 @@ function render(){
 
   document.getElementById('deadline').innerHTML =
     '<div class="deadline">' +
-      '<p class="lead">8/17を過ぎると団体での申し込みができなくなります（席は個人向けに開放されます）</p>' +
+      '<p class="lead">8/16を過ぎると団体での申し込みができなくなります（席は個人向けに開放されます）</p>' +
       '<p class="big">' + (dl.closed ? '受付終了' : 'あと' + dl.daysToClose + '<span class="unit">日</span>') + '</p>' +
       '<div class="dlgrid">' +
         '<div class="dl"><div class="k">受付終了</div><div class="v">' + esc(dl.close) + '</div></div>' +
@@ -197,7 +197,7 @@ function render(){
       '</div>' +
       '<p class="muted" style="margin-top:13px">' +
         '入金のリマインドは8/10・8/14・8/16に自動で飛びます。8/10までに予約が入っていれば3回とも届きます。' +
-        '8/17時点で未入金の予約は自動キャンセルになり、席が解放されます。' +
+        '8/16までに入金がない予約は、翌8/17の朝に自動キャンセルとなり席が解放されます。' +
       '</p>' +
     '</div>';
 
