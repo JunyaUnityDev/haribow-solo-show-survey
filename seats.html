@@ -671,7 +671,13 @@ function checkout(){
                 : o.error==='sales_closed' ? 'チケットの販売は終了しました。'
                 : o.error==='cash_closed' ? '現金でのお支払いは公演当日の受付でのみ承っております。'
                 : o.error==='bank_closed' ? '銀行振込の受付は終了しました（公演2日前まで）。クレジットカードをご利用ください。'
-                : '決済の準備に失敗しました。'+(o.error||'');
+                : o.error==='square_not_configured'
+                    ? 'ただいまカード決済がご利用いただけません。\n大変申し訳ございません。\n\n'
+                      + 'お急ぎの場合は銀行振込をお選びください。\n'
+                      + '復旧までお待ちいただける場合は、時間をおいて再度お試しください。\n'
+                      + 'ご不明な点は info@haribow.com までご連絡ください。'
+                : '決済の準備に失敗しました。時間をおいて再度お試しください。\n'
+                  + '解決しない場合は info@haribow.com までご連絡ください。';
         alert(msg); loadAvail(); btn.textContent='決済へ'; btn.disabled=false;
       }
     });
