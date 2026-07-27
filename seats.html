@@ -61,33 +61,33 @@
   .stage-note{text-align:center;font-size:10.5px;color:var(--main);margin:0 0 12px;letter-spacing:.08em;opacity:.85}
   .maptoggle{display:block;margin:0 auto 14px;background:transparent;border:1px solid var(--line);color:var(--main);border-radius:20px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
   .maptoggle:hover{border-color:var(--main)}
-  .map{min-width:560px;display:flex;flex-direction:column;gap:3px;align-items:center}
-  .map.big{min-width:0}
-  .map.big .seat{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center}
-  .sn{display:block;font-size:8px;font-weight:700;color:rgba(255,255,255,.82);pointer-events:none;line-height:1}
-  .map.big .sn{font-size:11px}
+  /* 席・隙間・ラベル幅は変数で持つ。全体表示とフォーカス表示で値だけ差し替える */
+  .map{min-width:0;display:flex;flex-direction:column;gap:3px;
+    --seat:18px; --sgap:2px; --rgap:6px; --lab:40px; --sp:10px; --radius:3px; --snum:8px}
+  /* フォーカス表示＝選ぶ画面。指で押せる大きさを維持する */
+  .map.big{--seat:30px; --sgap:4px; --rgap:9px; --lab:44px; --radius:6px; --snum:11px}
+  /* 全体表示＝見るだけの概観地図。--ovseat はJSが画面幅から算出して入れる */
+  .map:not(.big){--seat:var(--ovseat,9px); --sgap:1px; --rgap:4px; --lab:24px; --sp:6px; --radius:2px}
+  .map:not(.big) .sn{display:none}          /* この大きさでは番号は読めないので出さない */
+  .map:not(.big) .seat{cursor:pointer}      /* どこを押しても選ぶ画面へ戻る */
+  .sn{display:block;font-size:var(--snum);font-weight:700;color:rgba(255,255,255,.82);pointer-events:none;line-height:1}
   .seat.gen .sn,.seat.sup .sn,.seat.pick .sn{color:#0a0b0e}
   .seat.dead .sn,.seat.sold .sn,.seat.dim .sn{opacity:.35}
-  .map.big .rrow{gap:9px}
-  .map.big .blk{gap:4px}
-  .map.big .rlab{flex-basis:44px;font-size:12px}
-  /* スマホ：フォーカス表示(中央12席)が横スクロール無しで収まるよう縮小 */
+  .maphint{text-align:center;font-size:11.5px;color:var(--faint);margin:0 0 10px}
   @media (max-width:430px){
-    .map.big .seat{width:24px;height:24px;border-radius:5px}
-    .map.big .sn{font-size:10px}
-    .map.big .rrow{gap:6px}
-    .map.big .blk{gap:3px}
-    .map.big .rlab{flex-basis:30px;font-size:11px}
+    .map.big{--seat:24px; --sgap:3px; --rgap:6px; --lab:30px; --radius:5px; --snum:10px}
     .maparea{padding:14px 8px 16px}
   }
   /* 色以外の区別（アクセシビリティ）: 非売=斜線 / 売切=ドット */
   .seat.dead{background:var(--dead);background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,0,0,.28) 3px,rgba(0,0,0,.28) 4px)}
   .seat.sold{background:var(--sold);background-image:radial-gradient(rgba(255,255,255,.28) 1px,transparent 1.4px);background-size:5px 5px}
-  .rrow{display:flex;align-items:center;gap:6px;justify-content:center}
-  .rlab{flex:0 0 40px;text-align:right;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
-  .blk{display:flex;gap:2px}
-  .gap{width:10px}
-  .seat{width:18px;height:18px;border-radius:3px;background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s;display:flex;align-items:center;justify-content:center}
+  .rrow{display:flex;align-items:center;gap:0}
+  .rlab{flex:0 0 var(--lab);text-align:right;padding-right:6px;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+  /* 席のかたまりだけを中央寄せ。ラベルは外の固定列なので行ごとにズレない */
+  .rseats{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:var(--rgap)}
+  .blk{display:flex;gap:var(--sgap)}
+  .gap{width:var(--sp)}
+  .seat{width:var(--seat);height:var(--seat);border-radius:var(--radius);background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s;display:flex;align-items:center;justify-content:center}
   .seat.buyable{cursor:pointer}
   .seat.buyable:hover{transform:scale(1.25);z-index:2}
   .seat:focus-visible{outline:2px solid var(--ink);outline-offset:2px;z-index:3}
@@ -171,6 +171,7 @@
   <div class="maparea">
     <div class="stage">STAGE</div>
     <div class="stage-note">▲ 舞台に近いほど良席</div>
+    <p class="maphint" id="mapHint">客席全体の地図です。席を選ぶには、地図をタップするか下のボタンを押してください。</p>
     <button type="button" id="mapToggle" class="maptoggle" style="display:none" onclick="toggleAll()">客席全体を見る</button>
     <div class="map" id="map"></div>
     <div class="legend">
@@ -428,6 +429,17 @@ function rowInArea(row,area){
   if(area==='sup')  return row===2;             // サポーター
   return true;
 }
+/** 概観地図から「選ぶ画面」へ戻す。券種が未選択なら券種の選択へ誘導する */
+function backToPicker(){
+  if(!curType){
+    var t=document.querySelector('.types');
+    if(t) t.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  showAll=false; render(); updateCart();
+  var m=document.querySelector('.maparea'); if(m) m.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function render(){
   var map=document.getElementById('map');
   var focus = !!(curType && !showAll);
@@ -439,13 +451,14 @@ function render(){
     if(focus && !rowInArea(row,curType.area)) continue;
     var rr=document.createElement('div'); rr.className='rrow';
     var lab=document.createElement('div'); lab.className='rlab'; lab.textContent=row+'列';
-    if(!focus) rr.appendChild(makeSide(row,'LB'));
-    rr.appendChild(lab);
+    rr.appendChild(lab);                       // ラベルは常に固定列（行ごとにズレないように）
+    var rs=document.createElement('div'); rs.className='rseats';
+    if(!focus) rs.appendChild(makeSide(row,'LB'));
     if(row===13){
       var w=document.createElement('div'); w.className='blk';
       for(var k=0;k<26;k++){ var s=document.createElement('div'); s.className='seat dead'; w.appendChild(s); }
       var note=document.createElement('div'); note.style.cssText='font-size:9px;color:var(--faint);align-self:center;margin-left:4px'; note.textContent='車椅子席';
-      rr.appendChild(w); rr.appendChild(note);
+      rs.appendChild(w); rs.appendChild(note);
     } else if(focus){
       // フォーカス時：買える席（券種エリア一致）だけを1ブロックで表示→スマホでも横幅に収まる
       var fnums=seatNums(row), fblk=document.createElement('div'); fblk.className='blk';
@@ -454,26 +467,60 @@ function render(){
         if(a!==curType.area) return; // 対象外エリアは描かない（ダミー席で横幅を膨らませない）
         fblk.appendChild(makeSeat(row,o.n));
       });
-      rr.appendChild(fblk);
+      rs.appendChild(fblk);
     } else {
       var nums=seatNums(row), curBlk='', blkEl=null;
       nums.forEach(function(o){
         if(o.blk!==curBlk){
-          if(curBlk==='C'||(curBlk==='L')){ var g=document.createElement('div'); g.className='gap'; rr.appendChild(g); }
-          blkEl=document.createElement('div'); blkEl.className='blk'; rr.appendChild(blkEl); curBlk=o.blk;
+          if(curBlk==='C'||(curBlk==='L')){ var g=document.createElement('div'); g.className='gap'; rs.appendChild(g); }
+          blkEl=document.createElement('div'); blkEl.className='blk'; rs.appendChild(blkEl); curBlk=o.blk;
         }
         blkEl.appendChild(makeSeat(row,o.n));
       });
     }
-    if(!focus) rr.appendChild(makeSide(row,'RB'));
+    if(!focus) rs.appendChild(makeSide(row,'RB'));
+    rr.appendChild(rs);
     map.appendChild(rr);
   }
+  var hint=document.getElementById('mapHint');
+  if(hint) hint.style.display = focus ? 'none' : '';
+  if(!focus) fitOverview();
 }
+
+/**
+ *  全体表示（見るだけの概観地図）を画面幅にぴったり収める。
+ *  1行の最大構成 = 席32＋左右ブロックの象徴2 = 34個。
+ *  固定でかかる分（ラベル・隙間）を引いた残りを34で割って席サイズを決める。
+ *  席を小さくするだけでは足りず、固定分を削らないと収まらないため両方を絞ってある。
+ */
+function fitOverview(){
+  var map=document.getElementById('map'); if(!map) return;
+  var area=map.parentElement; if(!area) return;
+  var cs=getComputedStyle(area);
+  var avail = area.clientWidth - parseFloat(cs.paddingLeft||0) - parseFloat(cs.paddingRight||0);
+  if(!avail || avail<=0) return;
+  var LAB=24, RGAP=4, SP=6, SGAP=1;
+  var overhead = LAB + RGAP*6 + SP*2 + SGAP*29;   // 行内の隙間・ブロック区切り・席間の合計
+  var size = Math.floor((avail - overhead) / 34);
+  size = Math.max(5, Math.min(14, size));         // 小さすぎ/大きすぎを防ぐ
+  map.style.setProperty('--ovseat', size+'px');
+}
+window.addEventListener('resize', function(){ if(!(curType && !showAll)) fitOverview(); });
 function toggleAll(){ showAll=!showAll; render(); }
 function makeSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
+  // 全体表示は「見るだけの地図」。席が小さく正確に押せないので選択させず、選ぶ画面へ誘導する
+  if(showAll || !curType){
+    if(SIDESOPEN && area==='group') area='gen';
+    if(SOLD[key] || (SIDESOPEN && GSOLD[key])) s.className+=' sold';
+    else if(!SELLABLE[area]) s.className+=' dead';
+    else if(picked[key]) s.className+=' pick';
+    else s.className+=' '+area;
+    s.onclick=backToPicker;
+    return s;
+  }
   if(SIDESOPEN && area==='group') area='gen'; // 8/17以降：空きサイド席を一般席として個人開放
   if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; s.setAttribute('aria-label',row+'列'+n+'番 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
