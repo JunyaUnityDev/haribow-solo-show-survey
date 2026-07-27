@@ -73,6 +73,10 @@
   .sn{display:block;font-size:var(--snum);font-weight:700;color:rgba(255,255,255,.82);pointer-events:none;line-height:1}
   .seat.gen .sn,.seat.sup .sn,.seat.pick .sn{color:#0a0b0e}
   .seat.dead .sn,.seat.sold .sn,.seat.dim .sn{opacity:.35}
+  .blkpick{display:flex;gap:6px;justify-content:center;margin:0 0 12px;flex-wrap:wrap}
+  .blkpick button{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:20px;
+    padding:8px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .blkpick button.active{border-color:var(--main);color:var(--ink);box-shadow:0 0 0 1px var(--main)}
   .maphint{text-align:center;font-size:11.5px;color:var(--faint);margin:0 0 10px}
   @media (max-width:430px){
     .map.big{--seat:24px; --sgap:3px; --rgap:6px; --lab:30px; --radius:5px; --snum:10px}
@@ -84,7 +88,8 @@
   .rrow{display:flex;align-items:center;gap:0}
   .rlab{flex:0 0 var(--lab);text-align:right;padding-right:6px;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
   /* 席のかたまりだけを中央寄せ。ラベルは外の固定列なので行ごとにズレない */
-  .rseats{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:var(--rgap)}
+  .rseats{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:var(--rgap);
+    justify-content:center;justify-content:safe center}  /* safe: はみ出す時は左端寄せになり左側に到達できる */
   .blk{display:flex;gap:var(--sgap)}
   .gap{width:var(--sp)}
   .seat{width:var(--seat);height:var(--seat);border-radius:var(--radius);background:var(--dim-seat);cursor:default;position:relative;transition:transform .08s;display:flex;align-items:center;justify-content:center}
@@ -171,6 +176,7 @@
   <div class="maparea">
     <div class="stage">STAGE</div>
     <div class="stage-note">▲ 舞台に近いほど良席</div>
+    <div class="blkpick" id="blkPick" style="display:none"></div>
     <p class="maphint" id="mapHint">客席全体の地図です。席を選ぶには、地図をタップするか下のボタンを押してください。</p>
     <button type="button" id="mapToggle" class="maptoggle" style="display:none" onclick="toggleAll()">客席全体を見る</button>
     <div class="map" id="map"></div>
@@ -429,6 +435,41 @@ function rowInArea(row,area){
   if(area==='sup')  return row===2;             // サポーター
   return true;
 }
+/** 席番号からブロックを判定（実際の客席の並びと対応させる） */
+function blockOf(n){ return n<=10 ? 'L' : (n<=22 ? 'C' : 'R'); }
+var BLK_LABEL={L:'左サイド', C:'中央', R:'右サイド'};
+var curBlock=null;   // フォーカス表示で今どのブロックを見せているか
+
+/** 選択中の券種で買える席が、どのブロックに何席あるかを数える */
+function blockCounts(){
+  var c={L:0,C:0,R:0};
+  if(!curType) return c;
+  for(var row=1; row<=22; row++){
+    if(!rowInArea(row,curType.area)) continue;
+    seatNums(row).forEach(function(o){
+      var a=seatArea(row,o.n); if(SIDESOPEN && a==='group') a='gen';
+      if(a===curType.area) c[blockOf(o.n)]++;
+    });
+  }
+  return c;
+}
+
+/** ブロック切替のボタンを描く。1ブロックしか無い券種では出さない */
+function renderBlockPicker(){
+  var el=document.getElementById('blkPick'); if(!el) return;
+  var focus = !!(curType && !showAll);
+  var c=blockCounts();
+  var avail=['L','C','R'].filter(function(k){ return c[k]>0; });
+  curBlock = (avail.indexOf(curBlock)>=0) ? curBlock : (avail[0]||null);
+  if(!focus || avail.length<2){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='';
+  el.innerHTML=avail.map(function(k){
+    return '<button type="button" class="'+(k===curBlock?'active':'')+'" onclick="setBlock(\''+k+'\')">'
+      + BLK_LABEL[k] + '</button>';
+  }).join('');
+}
+function setBlock(k){ curBlock=k; render(); updateCart(); }
+
 /** 概観地図から「選ぶ画面」へ戻す。券種が未選択なら券種の選択へ誘導する */
 function backToPicker(){
   if(!curType){
@@ -447,6 +488,7 @@ function render(){
   map.innerHTML='';
   var tog=document.getElementById('mapToggle');
   if(tog){ tog.style.display = curType?'':'none'; tog.textContent = showAll?'選んだエリアだけ大きく表示':'客席全体を見る'; }
+  renderBlockPicker();
   for(var row=1; row<=22; row++){
     if(focus && !rowInArea(row,curType.area)) continue;
     var rr=document.createElement('div'); rr.className='rrow';
@@ -461,12 +503,17 @@ function render(){
       rs.appendChild(w); rs.appendChild(note);
     } else if(focus){
       // フォーカス時：買える席（券種エリア一致）だけを1ブロックで表示→スマホでも横幅に収まる
+      // 対象エリアのうち、選択中のブロック（左サイド/中央/右サイド）だけを描く。
+      // 左右サイドを1列に連結すると20席になり画面に収まらず、実際の座席配置とも食い違うため分けている。
       var fnums=seatNums(row), fblk=document.createElement('div'); fblk.className='blk';
+      var drawn=0;
       fnums.forEach(function(o){
         var a=seatArea(row,o.n); if(SIDESOPEN && a==='group') a='gen';
-        if(a!==curType.area) return; // 対象外エリアは描かない（ダミー席で横幅を膨らませない）
-        fblk.appendChild(makeSeat(row,o.n));
+        if(a!==curType.area) return;
+        if(curBlock && blockOf(o.n)!==curBlock) return;
+        fblk.appendChild(makeSeat(row,o.n)); drawn++;
       });
+      if(!drawn){ continue; }        // このブロックに席が無い列は行ごと出さない
       rs.appendChild(fblk);
     } else {
       var nums=seatNums(row), curBlk='', blkEl=null;
@@ -552,7 +599,7 @@ function toggle(row,n){
   render(); updateCart();
 }
 function selectType(t){
-  curType=t; picked={}; showAll=false;
+  curType=t; picked={}; showAll=false; curBlock=null;
   document.querySelectorAll('.type').forEach(function(el){ el.classList.toggle('active', el.dataset.id===t.id); });
   syncOptionBoxes();
   render(); updateCart();
