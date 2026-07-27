@@ -64,6 +64,11 @@
 <div class="wrap">
   <div class="bar"><h1>当日受付（スタッフ用）</h1></div>
 
+  <div style="margin-bottom:10px">
+    <input id="staff" placeholder="あなたのお名前（受付スタッフ）" oninput="saveStaff()">
+    <p class="note" style="margin-top:6px">※ 誰が受付したかを記録します。入力するとカメラを起動できます。</p>
+  </div>
+
   <div class="stats">
     <div class="stat"><b id="sEnt">–</b><span>入場</span></div>
     <div class="stat"><b id="sExp">–</b><span>予定</span></div>
@@ -112,11 +117,21 @@ var SAME_TOKEN_MS=10000;   // 同じQRを無視する時間
 var RESUME_MS=1200;        // 結果を出してから次を読み始めるまで
 var track=null, torchOn=false;
 
+/* スタッフ名は端末に覚えさせる（毎回打たせない）。記録が無いと誤操作を追えないので必須にする */
+function staffName(){ return (document.getElementById('staff')||{}).value||''; }
+function saveStaff(){
+  try{ localStorage.setItem('haribow_staff', staffName()); }catch(e){}
+  var b=document.getElementById('camBtn'); if(b) b.disabled = !staffName().trim();
+}
+(function(){
+  try{ var v=localStorage.getItem('haribow_staff'); if(v) document.getElementById('staff').value=v; }catch(e){}
+})();
+
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
 function post(survey, extra){
-  var body=Object.assign({survey:survey, key:KEY}, extra||{});
+  var body=Object.assign({survey:survey, key:KEY, staff:staffName()}, extra||{});
   return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(body)}).then(function(r){return r.json();});
 }
@@ -150,6 +165,7 @@ function feedback(kind){
 
 /* ---- カメラ ---- */
 function startCam(){
+  if(!staffName().trim()){ alert('あなたのお名前を入力してください（受付の記録に残ります）'); return; }
   navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}})
   .then(function(stream){
     video.srcObject=stream; video.setAttribute('playsinline',''); video.play();
@@ -217,14 +233,15 @@ function othersNote(info){
 }
 
 /* ---- チェックイン ---- */
-function doCheckin(token, fromSearch, force){
+function doCheckin(token, fromSearch, force, cash){
   busy=true;
   document.getElementById('reticle').classList.add('busy');
-  post('checkin',{token:token, force:!!force}).then(function(r){
+  post('checkin',{token:token, force:!!force, cash:!!cash}).then(function(r){
     var i=r.info||{};
     if(r.ok){
       feedback('ok');
-      var sub = i.forced ? '未入金のまま入場を記録しました（運営に通知済み）' : 'ご入場ください';
+      var sub = i.cashReceived ? '現金 ¥'+Number(i.amount||0).toLocaleString()+' を受け取りました。ご入場ください'
+              : i.forced ? '未入金のまま入場を記録しました（運営に通知済み）' : 'ご入場ください';
       var note = othersNote(i);
       if(note) sub = note;
       showVerdict(note?'warn':'ok', i.name+' 様', i.seats+'　'+i.qty+'名', sub,
@@ -235,6 +252,12 @@ function doCheckin(token, fromSearch, force){
       showVerdict('warn','入場済みです', i.name+' 様　'+(i.seats||''),
         i.checkedAt+' に入場記録があります',
         '<button onclick="undo(\''+esc(token)+'\')">取り消して入場にする</button>');
+    } else if(r.error==='cash_due'){
+      feedback('warn');
+      showVerdict('ng','現金 ¥'+Number(i.amount||0).toLocaleString()+' を受け取る',
+        i.name+' 様　'+(i.seats||'')+'　'+(i.qty||1)+'名',
+        'お支払い前です。現金を受け取ってからボタンを押してください',
+        '<button onclick="cashIn(\''+esc(token)+'\','+Number(i.amount||0)+')">現金を受け取った</button>');
     } else if(r.error==='voided'){
       feedback('ng'); showVerdict('ng','無効なチケットです', (i.name?i.name+' 様':''), '取消済みの注文です。受付責任者にお回しください。');
     } else if(r.error==='unpaid'){
@@ -257,6 +280,12 @@ function doCheckin(token, fromSearch, force){
       document.getElementById('reticle').classList.remove('busy');
     }, fromSearch?0:RESUME_MS);
   });
+}
+
+function cashIn(token, amount){
+  if(!confirm('現金 ¥'+Number(amount).toLocaleString()+' を受け取りましたか？\nお支払い済みとして記録し、ご入場になります。')) return;
+  delete recent[token];
+  doCheckin(token, true, false, true);
 }
 
 function forceIn(token){
@@ -312,7 +341,8 @@ function loadStats(){
 if(!KEY){ showVerdict('ng','合言葉がありません','','運営メニュー⑦で表示されるURLを開いてください'); }
 else {
   loadStats(); setInterval(loadStats, 60000);
-  showIdle('「カメラを起動する」を押してください');
+  saveStaff();
+  showIdle('お名前を入力して「カメラを起動する」を押してください');
 }
 </script>
 </body>

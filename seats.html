@@ -208,6 +208,7 @@
     <div class="paymethods">
       <button type="button" class="pm" onclick="selectPay('square',this)">Squareでカード決済</button>
       <button type="button" class="pm" id="payBank" onclick="selectPay('bank',this)">銀行振込</button>
+      <button type="button" class="pm" id="payCash" style="display:none" onclick="selectPay('cash',this)">現金（当日受付でお支払い）</button>
     </div>
   </div>
 
@@ -403,6 +404,8 @@ function loadAvail(){
     var bankOpen = (d.bankOpen!==false);
     var pbk=document.getElementById('payBank'); if(pbk) pbk.style.display=bankOpen?'':'none';
     var spbk=document.getElementById('sPayBank'); if(spbk) spbk.style.display=bankOpen?'':'none';
+    // 現金は公演当日の開演までだけ出す（事前に席だけ押さえて来ない事故を防ぐ）
+    var pcash=document.getElementById('payCash'); if(pcash) pcash.style.display=d.cashOpen?'':'none';
     render(); if(document.getElementById('gmap')) renderG();
   }).catch(function(){});
 }
@@ -542,6 +545,17 @@ function checkout(){
         tshirt:tshirtSize, creditOk:creditOk, creditName:creditNameVal()})})
     .then(function(r){return r.json();}).then(function(o){
       if(o.method==='square' && o.url){ window.location.href=o.url; }        // ③ Squareへ（戻りでconfirm）
+      else if(o.method==='cash'){
+        doneScreen('受付でのお支払いをお願いします。下のチケットを受付でご提示ください。',
+          '<div style="margin:22px auto 0;max-width:340px;padding:16px;border:2px solid #c9a24b;border-radius:12px">'
+          +'<p style="margin:0 0 6px;color:#c9a24b;font-weight:800;font-size:18px">お支払い前です</p>'
+          +'<p style="margin:0 0 14px;color:#f3f1ea;font-size:22px;font-weight:800">現金 ¥'+Number(o.total).toLocaleString()+'</p>'
+          +'<a href="'+o.ticketUrl+'" style="display:block;padding:14px;background:#c9a24b;color:#0a0b0e;'
+          +'border-radius:10px;text-decoration:none;font-weight:800">チケットを表示する</a></div>'
+          +'<p style="color:#8b919e;font-size:12px;line-height:1.9;margin-top:12px">'
+          +'受付でこのQRコードをご提示のうえ、現金をお支払いください。<br>'
+          +'開演時刻までにお支払いがない場合、お席は解放されます。</p>');
+      }
       else if(o.method==='bank'){ doneScreen('銀行振込のご案内を '+buyerContact()+' へお送りします。お支払い確認後にお席が確定します。'); }
       else {
         var msg = o.error==='bad_phone' ? 'お電話番号の形式をご確認ください（10〜11桁）。'
@@ -549,6 +563,7 @@ function checkout(){
                 : o.error==='need_credit' ? 'お名前掲載の可否をお選びください。'
                 : o.error==='bad_email' ? 'メールアドレスの形式をご確認ください。'
                 : o.error==='seats_lost' ? '選んでいる間にお席が確保できませんでした。選び直してください。'
+                : o.error==='cash_closed' ? '現金でのお支払いは公演当日の受付でのみ承っております。'
                 : o.error==='bank_closed' ? '銀行振込の受付は終了しました（公演2日前まで）。クレジットカードをご利用ください。'
                 : '決済の準備に失敗しました。'+(o.error||'');
         alert(msg); loadAvail(); btn.textContent='決済へ'; btn.disabled=false;
