@@ -151,6 +151,36 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 
 /* ---------- 止まっているもの ---------- */
 .jam-h2::before{background:var(--red)}
+
+/* ---------- 決めなくてはならないこと ---------- */
+.dec-h2::before{background:var(--amber)}
+.dec-lead{font-size:12px;color:var(--dim);margin:0 0 11px;line-height:1.6}
+.dec-lead b{color:var(--cream)}
+.dec{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:9px}
+.dec.kaigi{border-color:rgba(200,67,58,.3)}
+.dec-h{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+.dec-title{font-size:15px;font-weight:800;letter-spacing:.01em;flex:1 1 auto;min-width:60%}
+.dkind{font-size:10.5px;font-weight:700;border-radius:100px;padding:2px 9px;white-space:nowrap}
+.dkind.kakunin{background:rgba(99,182,204,.14);color:#a9dcea;border:1px solid rgba(99,182,204,.3)}
+.dkind.handan{background:rgba(192,143,74,.16);color:#e0bd85;border:1px solid rgba(192,143,74,.32)}
+.dkind.kaigi{background:rgba(200,67,58,.18);color:#f0c9c4;border:1px solid rgba(200,67,58,.36)}
+.dec-meta{font-size:12px;color:var(--dim);margin-bottom:7px}
+.dec-meta b{color:var(--cream)}
+.dec-why{font-size:12.5px;color:var(--dim);line-height:1.65;margin:0 0 8px}
+.dec-opt{font-size:12.5px;color:var(--ink);line-height:1.7;background:rgba(255,255,255,.035);
+  border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:10px;white-space:pre-wrap}
+.dec-act{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.dec-act select,.dec-act input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:6px 9px;font-size:12px;font-family:inherit}
+.dec-act input{flex:1 1 150px;min-width:120px}
+.dec-act button{font-size:12px;font-weight:700;border-radius:100px;padding:6px 14px;cursor:pointer;
+  font-family:inherit;border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
+.dec-act button:hover{color:var(--ink);border-color:rgba(255,255,255,.22)}
+.dec-act button.ok{background:var(--green);border-color:var(--green);color:#062314}
+.dec-act button.hold{background:rgba(192,143,74,.18);border-color:rgba(192,143,74,.4);color:#e0bd85}
+.dec-note{font-size:11.5px;color:var(--faint);margin-top:9px;line-height:1.6}
+.dec-memo{font-size:11.5px;color:var(--faint);margin-top:9px;white-space:pre-wrap;
+  border-top:1px solid var(--line);padding-top:8px}
 .jam-note{font-size:12px;color:var(--dim);margin:0 0 10px;line-height:1.55;
   padding-left:10px;border-left:2px solid rgba(200,67,58,.4)}
 .jam-note b{color:var(--cream)}
@@ -295,6 +325,9 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
     <h2>いま、この公演はどうなっているか</h2>
     <div id="hero"></div>
 
+    <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
+    <div id="decisionBoard"></div>
+
     <h2>あなたの持ち場<span class="h2note">名前を押すと自分のタスクだけになります</span></h2>
     <div class="ownerbar" id="ownerbar"></div>
     <div id="mine"></div>
@@ -426,6 +459,97 @@ function toast(msg){
 }
 
 /* ------------------------------------------------------------------ 書き込み */
+/* ---------- 決めなくてはならないこと ----------
+   WBSの「決定区分」列から未決の意思決定を出す。区分ごとに決め方が違うので、
+   画面上でできることも変える：
+     確認待ち … 聞けば答えが出る。ボタンは出さず、聞く先だけ見せる
+     判断待ち … 責任者1人で決めてよい。承認／保留／別案が押せる
+     要会議   … 取り消すと誰かに迷惑がかかる。承認は押させず、保留と別案だけ
+   ★押した記録は残るが本人認証ではない（鍵は共有）。金額が動く決定はここだけで確定させない。 */
+var DEC_CLS = { '確認待ち':'kakunin', '判断待ち':'handan', '要会議':'kaigi' };
+
+function renderDecisionBoard(b){
+  var el = document.getElementById('decisionBoard');
+  var note = document.getElementById('decNote');
+  if(!b || !b.ok){ el.innerHTML = '<div class="card"><p class="muted">読み込めませんでした。</p></div>'; return; }
+  var items = b.items || [];
+  if(!items.length){
+    note.textContent = '';
+    el.innerHTML = '<div class="card"><p class="muted">いま決め待ちのものはありません。</p></div>';
+    return;
+  }
+  var c = b.counts || {};
+  note.textContent = '確認待ち' + (c['確認待ち']||0) + '／判断待ち' + (c['判断待ち']||0) + '／要会議' + (c['要会議']||0);
+
+  var ownerOpts = (b.owners || []).map(function(o){ return '<option>' + esc(o) + '</option>'; }).join('');
+
+  var html =
+    '<p class="dec-lead">' +
+      '<b>確認待ち</b>は聞けば答えが出るもの、<b>判断待ち</b>は責任者ひとりで決めてよいもの、' +
+      '<b>要会議</b>は取り消すと誰かに迷惑がかかるものです。' +
+      '押した記録は残りますが本人確認はしていないので、お金が動く決定はここだけで確定させないでください。' +
+    '</p>';
+
+  items.forEach(function(it){
+    var cls = DEC_CLS[it.kind] || 'handan';
+    var isKaigi = it.kind === '要会議';
+    var isKakunin = it.kind === '確認待ち';
+
+    var act;
+    if(isKakunin){
+      act = '<p class="dec-note">' + esc(it.owner || '担当未定') + ' に聞けば答えが出ます。返事が来たら、この行を完了にしてください。</p>';
+    }else{
+      act =
+        '<div class="dec-act">' +
+          '<select class="dec-by"><option value="">名前を選ぶ</option>' + ownerOpts + '</select>' +
+          '<input class="dec-cm" placeholder="ひとこと（別案のときは必須）">' +
+          (isKaigi ? '' : '<button class="ok" data-act="承認">承認</button>') +
+          '<button class="hold" data-act="保留">保留</button>' +
+          '<button data-act="別案">別案</button>' +
+        '</div>' +
+        (isKaigi ? '<p class="dec-note">これは会議で決めるものなので、承認ボタンは出していません。保留か別案で意見を残してください。</p>' : '');
+    }
+
+    html +=
+      '<div class="dec ' + (isKaigi ? 'kaigi' : '') + '" data-row="' + it.row + '">' +
+        '<div class="dec-h">' +
+          '<span class="dec-title">' + esc(it.title) + '</span>' +
+          '<span class="dkind ' + cls + '">' + esc(it.kind) + '</span>' +
+        '</div>' +
+        '<div class="dec-meta">決めるのは <b>' + esc(it.owner || '未定') + '</b>' +
+          (it.due ? '　期限 <b>' + esc(it.due) + '</b>' : '') +
+          (it.status ? '　' + esc(it.status) : '') + '</div>' +
+        (it.why ? '<p class="dec-why">' + esc(it.why) + '</p>' : '') +
+        (it.options ? '<div class="dec-opt">' + esc(it.options) + '</div>' : '') +
+        act +
+        (it.memo ? '<div class="dec-memo">' + esc(String(it.memo).split('\n').slice(0, 3).join('\n')) + '</div>' : '') +
+      '</div>';
+  });
+
+  el.innerHTML = html;
+
+  Array.prototype.forEach.call(el.querySelectorAll('.dec'), function(card){
+    Array.prototype.forEach.call(card.querySelectorAll('button[data-act]'), function(btn){
+      btn.onclick = function(){
+        var by = card.querySelector('.dec-by').value;
+        var cm = card.querySelector('.dec-cm').value.trim();
+        var act = btn.getAttribute('data-act');
+        if(!by){ toast('名前を選んでください'); return; }
+        if(act === '別案' && !cm){ toast('別案の中身を書いてください'); return; }
+        if(act === '承認' && !confirm('「' + card.querySelector('.dec-title').textContent + '」を承認として記録します。よろしいですか。')) return;
+        btn.disabled = true;
+        postUpdate({survey:'decision_act', secret:ADMIN_SECRET, row:Number(card.getAttribute('data-row')),
+                    act:act, by:by, comment:cm})
+          .then(function(res){
+            if(res && res.ok){ toast(act + 'を記録しました'); load(); }
+            else { btn.disabled = false; toast('記録できませんでした：' + (res && res.error)); }
+          })
+          .catch(function(e){ btn.disabled = false; toast('通信エラー：' + e); });
+      };
+    });
+  });
+}
+
 function postUpdate(body){
   return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(body)}).then(function(r){ return r.json(); });
@@ -987,6 +1111,7 @@ function load(){
     document.getElementById('ownerListInline').innerHTML=opts;
 
     renderHero(data.business);
+    renderDecisionBoard(data.decisionBoard);
     renderWins(rows);
     renderJam(rows);
     renderPhases(rows);
