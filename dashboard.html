@@ -633,7 +633,7 @@ function renderHero(b){
 
   var truth='';
   if(hasGoal && hasSeats){
-    truth='<div class="truthline">販売可能な'+sellable+'席に対して、黒字ラインが'+num(need)+'人。'+
+    truth='<div class="truthline">販売可能な'+sellable+'席に対して、黒字ラインが'+num(need)+'人です。'+
       (occ>=0.9?'<b>ほぼ満席で、ようやく±0</b>です。':'')+
       '席を売るだけでなく、原価（衣装・舞台設営・照明）を下げるか、'+
       '物販・ドリンクの単価前提を見直さないと構造的に届きません。</div>';
@@ -644,8 +644,8 @@ function renderHero(b){
     '<p class="hero-lead">実際に売れた席</p>'+
     '<p class="hero-big">'+taken+(hasSeats?'<span class="unit">/ '+sellable+'席</span>':'<span class="unit">席</span>')+'</p>'+
     '<p class="hero-sub">'+
-      (hasGoal?'黒字ラインは <b>'+num(need)+'人</b>。':'')+
-      (hasSeats?'　いま埋まっているのは <b>'+(Math.round(taken/sellable*1000)/10)+'%</b>。':'')+
+      (hasGoal?'黒字ラインは <b>'+num(need)+'人</b>です。':'')+
+      (hasSeats?'　いま埋まっているのは <b>'+(Math.round(taken/sellable*1000)/10)+'%</b>です。':'')+
     '</p>'+
     (seatmap?
       '<div class="stage"><div class="stage-bar"></div><div class="stage-label">Stage</div></div>'+
@@ -803,7 +803,7 @@ function renderJam(rows){
   var html='';
 
   html+='<div class="card">'+
-    '<div class="person-name" style="margin-bottom:9px">これが片付かないと下流が止まる'+
+    '<div class="person-name" style="margin-bottom:9px">これが片付かないと下流が止まります'+
       '<span class="person-count">'+live.length+'件</span></div>'+
     (live.length
       ? live.map(function(r){
@@ -836,14 +836,14 @@ function renderJam(rows){
     '<div class="person-name">誰の仕事にもなっていない'+
       '<span class="person-count">'+unassigned.length+'件</span></div>'+
     '<p class="jam-note" style="border-color:rgba(192,143,74,.5)">'+
-      '責任者が空のままのタスク。行を開いて名前を入れると、その人の持ち場に移ります。</p>'+
+      '責任者が空のままのタスクです。行を開いて名前を入れると、その人の持ち場に移ります。</p>'+
     (unassigned.length?unassigned.map(renderTask).join(''):'<p class="muted">ありません。</p>')+
   '</div>';
 
   html+='<div class="card">'+
     '<div class="person-name">保留のまま止まっている'+
       '<span class="person-count">'+held.length+'件</span></div>'+
-    (heldPerf.length?'<p class="jam-note">うち <b>'+heldPerf.length+'件が演目</b>。'+
+    (heldPerf.length?'<p class="jam-note">うち <b>'+heldPerf.length+'件が演目</b>です。'+
       '期限が本番前日に置かれているので、期限だけ見ても危険が見えません。'+
       '動き出したものは「進行中」に変えると、上の「今週なにが動いたか」に出ます。</p>':'')+
     (held.length?held.map(renderTask).join(''):'<p class="muted">ありません。</p>')+

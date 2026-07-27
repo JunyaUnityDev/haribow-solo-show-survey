@@ -171,9 +171,9 @@ h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0
     <h2>このページの使い方</h2>
     <div class="card">
       <ol class="steps">
-        <li><b>声をかける相手を決める。</b>家族・友だち・バイト先・学校など</li>
-        <li><b>リンクと文面をコピーして送る。</b>文面は自由に書き換えられます</li>
-        <li><b>送ったら数字を増やす。</b>全体の合計にそのまま反映されます</li>
+        <li><b>声をかける相手を決めます。</b>家族・友だち・バイト先・学校など</li>
+        <li><b>リンクと文面をコピーして送ります。</b>文面は自由に書き換えられます</li>
+        <li><b>送ったら数字を増やします。</b>全体の合計にそのまま反映されます</li>
       </ol>
     </div>
   </div>
@@ -253,7 +253,7 @@ function renderHero(){
   el.innerHTML='<div class="hero">'+
     '<p class="hero-lead">埋まった席</p>'+
     '<p class="hero-big">'+s.taken+'<span class="unit">/ '+s.sellable+'席</span></p>'+
-    '<p class="hero-sub">この客席を、9/29に<b>満席にしたい</b>。</p>'+
+    '<p class="hero-sub">この客席を、9/29に<b>満席にしたいです</b>。</p>'+
     '<div class="stage"><div class="stage-bar"></div><div class="stage-label">Stage</div></div>'+
     '<div class="seatmap">'+seatmap+'</div>'+
     '<p class="seatmap-cap">光っているのが、もう買われた席です</p>'+
@@ -266,8 +266,8 @@ function renderTotals(){
   var reach='';
   if(t.target>0 && s && s.ok && s.sellable>0){
     var pct=Math.round(t.target/s.sellable*100);
-    reach='<div class="reach">出演者'+t.people+'人が「来そう」と答えた人数の合計は <b>'+t.target+'人</b>。'+
-      '全員に届けば、客席の <b>'+pct+'%</b> です。</div>';
+    reach='<div class="reach">出演者'+t.people+'人が「来そう」と答えた人数の合計は <b>'+t.target+'人</b>です。'+
+      '全員に届けば、客席の <b>'+pct+'%</b> が埋まります。</div>';
   }
   document.getElementById('totals').innerHTML=
     '<div class="totals">'+
@@ -354,7 +354,7 @@ function renderMine(){
   /* その他/SNS経由は目標に足していない（名前を挙げられる相手と人数感を混ぜないため）。
      ただし答えたものが画面から消えると「答えたのに0人扱い」に見えるので参考値として出す。 */
   var snsNote = p.sns>0
-    ? '<div class="note">ほかに、SNS経由で <b>'+p.sns+'人</b> と回答（人数感のため合計には入れていません）。</div>'
+    ? '<div class="note">ほかに、SNS経由で <b>'+p.sns+'人</b> と回答しています（人数感のため合計には入れていません）。</div>'
     : '';
 
   var targetHtml = p.target>0
