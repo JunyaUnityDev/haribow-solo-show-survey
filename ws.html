@@ -42,6 +42,7 @@ h1{font-size:21px;font-weight:800;margin:0 0 4px;letter-spacing:.02em}
 h2{font-size:13px;font-weight:800;margin:32px 0 12px;letter-spacing:.05em;
   display:flex;align-items:center;gap:9px;color:var(--cream)}
 h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0}
+h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:auto;text-align:right}
 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:12px}
 .muted{color:var(--faint);font-size:12.5px}
@@ -131,7 +132,7 @@ p:last-child{margin-bottom:0}
     <h2>いまの状況</h2>
     <div class="card" id="totals"></div>
 
-    <h2>担当講師でしぼる</h2>
+    <h2>主担当でしぼる<span class="h2note" id="fnote"></span></h2>
     <div class="filterbar" id="filterbar"></div>
 
     <div id="orgs"></div>
@@ -208,6 +209,11 @@ function render(){
       '<div class="num"><div class="k">想定来場</div><div class="v">' + t.expected + '<span style="font-size:12px">人</span></div></div>' +
       '<div class="num"><div class="k">予約済</div><div class="v">' + t.booked + '</div></div>' +
     '</div>' +
+    '<div class="nums" style="margin-top:9px">' +
+      '<div class="num"><div class="k">配信 視聴希望</div><div class="v">' + n(t.streamPeople) + '<span style="font-size:12px">人</span></div></div>' +
+      '<div class="num"><div class="k">配信 購入単位</div><div class="v">' + n(t.streamSeats) + '<span style="font-size:12px">枚</span></div></div>' +
+      '<div class="num"><div class="k">打診済み</div><div class="v">' + n(t.contacted) + '<span style="font-size:12px">/' + t.orgs + '</span></div></div>' +
+    '</div>' +
     '<p class="muted" style="margin-top:12px">' +
       '想定' + t.expected + '人は代表者ヒアリングの自己申告値です。' +
       '団体券は大学サークルが1人' + n(d.prices.circle).toLocaleString('ja-JP') + '円、' +
@@ -218,12 +224,16 @@ function render(){
       '<a href="cast.html">出演者ページ</a>' +
     '</div>';
 
-  /* ---- 講師フィルタ ---- */
+  /* ---- 主担当フィルタ ----
+     講師は1つのWSに4〜5人行くので、全員で絞ると「誰が代表に話すのか」が消える。
+     1団体につき1人の主担当（WS団体_声かけ担当タブ）で絞る。 */
   var counts = {};
   d.orgs.forEach(function(o){
-    (o.instructors || []).forEach(function(i){ counts[i] = (counts[i] || 0) + 1; });
+    if(o.owner) counts[o.owner] = (counts[o.owner] || 0) + 1;
   });
   var names = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
+  var fn = document.getElementById('fnote');
+  if(fn) fn.textContent = '1団体につき1人。入れ替えはシートのD列で';
   var fb = document.getElementById('filterbar');
   fb.innerHTML =
     '<button data-i="" class="' + (FILTER ? '' : 'on') + '">全部<span class="n">' + d.orgs.length + '</span></button>' +
@@ -237,7 +247,7 @@ function render(){
 
   /* ---- 団体一覧（WSが近い順・ブロックで区切る） ---- */
   var list = d.orgs.filter(function(o){
-    return !FILTER || (o.instructors || []).indexOf(FILTER) >= 0;
+    return !FILTER || o.owner === FILTER;
   });
 
   var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -268,8 +278,24 @@ function render(){
       meta += '<div><span class="lbl">WS</span><b>' + esc(ws.dateLabel) + ' ' + esc(ws.slot) + '</b>' +
               (ws.time ? '　' + esc(ws.time) : '') + (ws.place ? '　' + esc(ws.place) : '') + '</div>';
     }
-    if((o.instructors || []).length){
+    if(o.owner){
+      meta += '<div><span class="lbl">主担当</span><b>' + esc(o.owner) + '</b>' +
+              (o.instructors && o.instructors.length
+                ? '　<span style="color:var(--faint)">同行 ' +
+                  esc(o.instructors.filter(function(i){ return i !== o.owner; }).join('、')) + '</span>'
+                : '') + '</div>';
+    }else if((o.instructors || []).length){
       meta += '<div><span class="lbl">講師</span>' + esc(o.instructors.join('、')) + '</div>';
+    }
+    if(o.streamSeats){
+      meta += '<div><span class="lbl">配信</span>視聴希望 <b>' + n(o.streamPeople) + '人</b>' +
+              '（購入単位 ' + n(o.streamSeats) + '枚）</div>';
+    }
+    if(o.talk){
+      meta += '<div><span class="lbl">話すこと</span>' + esc(o.talk) + '</div>';
+    }
+    if(o.ownerMemo){
+      meta += '<div><span class="lbl">メモ</span>' + esc(o.ownerMemo) + '</div>';
     }
     if(o.survey.answered){
       meta += '<div><span class="lbl">代表</span>' + esc(o.survey.rep) +
@@ -291,6 +317,7 @@ function render(){
           '<span class="org-date' + (ws ? '' : ' none') + '">' + (ws ? esc(ws.dateLabel) : '日程未定') + '</span>' +
           '<span class="tag ' + tagCls + '">' + esc(o.state) + '</span>' +
           (ws && ws.afterClose ? '<span class="tag after">受付終了後</span>' : '') +
+          (o.contacted ? '<span class="tag paid">打診済み</span>' : '') +
         '</div>' +
         '<div class="org-meta">' + meta + '</div>' +
         (o.note ? '<div class="org-note">' + esc(o.note) + '</div>' : '') +
