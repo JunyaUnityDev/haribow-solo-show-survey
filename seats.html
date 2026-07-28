@@ -434,7 +434,12 @@ function loadAvail(){
 var showAll=false;
 function rowInArea(row,area){
   if(area==='main') return row>=3 && row<=12;   // 一般S(特典付)
-  if(area==='gen')  return (row>=2 && row<=12) || (row>=14 && row<=18); // 一般A=中央後方＋前方サイド
+  // 一般A＝前方サイド(2〜12列)＋中央後方(14〜18列)。
+  // 8/17以降は、売れ残った後方サイドの団体席が個人に開放される（サーバーの sidesOpen が正）。
+  // そこに19〜22列のサイド80席が含まれるのに、ここで行ごと除外していたため
+  // 開放後も購入画面に一度も出てこなかった（団体タブは行を絞らないので影響なし）。
+  if(area==='gen')  return (row>=2 && row<=12) || (row>=14 && row<=18)
+                        || (SIDESOPEN && row>=19 && row<=22);
   if(area==='sup')  return row===2;             // サポーター
   return true;
 }
