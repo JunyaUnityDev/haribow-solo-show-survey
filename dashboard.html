@@ -52,6 +52,23 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:12px}
 .muted{color:var(--faint);font-size:12.5px}
 
+/* ---------- AI質問 ----------
+   決定事項の備考は1件1000字近く、WBSは123行ある。運営が「なぜこう決めたか」を探せない
+   状態への対処。答えるのは資料に書いてあることだけで、書いていないことは書いていないと言う。
+   お客様の氏名・連絡先・注文明細はAIに渡していない（Ai.js は集計値しか渡さない）。 */
+.ask textarea{width:100%;box-sizing:border-box;background:var(--panel2);color:var(--ink);
+  border:1px solid var(--line);border-radius:9px;padding:11px 12px;font-family:inherit;
+  font-size:13.5px;line-height:1.7;resize:vertical;min-height:62px}
+.ask textarea:focus{outline:none;border-color:rgba(255,255,255,.22)}
+.askrow{display:flex;align-items:center;gap:11px;margin-top:9px;flex-wrap:wrap}
+.askrow button{font-size:12px;font-weight:700;border-radius:100px;padding:7px 18px;cursor:pointer;
+  font-family:inherit;border:1px solid var(--teal);background:var(--teal);color:#06222b}
+.askrow button:disabled{opacity:.45;cursor:default}
+.asknote{font-size:11.5px;color:var(--faint)}
+.askans{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);
+  font-size:13.5px;line-height:1.85;white-space:pre-wrap}
+.askans.err{color:var(--amber)}
+
 /* ---------- 運用ルール（畳んで置く参照資料） ----------
    ダッシュボードが答えるのは「いま、どうなってる？」。ルールが答えるのは「どう動くか」。
    別の問いなので5つの問い（客席/ヤバさ/前進/持ち場/詰まり）の下に畳んで置く。
@@ -358,6 +375,16 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
     <h2>いま、この公演はどうなっているか</h2>
     <div id="hero"></div>
 
+    <h2>わからないことを聞く<span class="h2note">決定事項とWBSから答えます</span></h2>
+    <div class="card ask">
+      <textarea id="askInput" placeholder="例）サポーター券の締切はいつ？　なぜその日？"></textarea>
+      <div class="askrow">
+        <button id="askBtn" onclick="askAi()">聞く</button>
+        <span class="asknote" id="askNote">答えが出るまで20〜40秒かかります</span>
+      </div>
+      <div class="askans" id="askAns" style="display:none"></div>
+    </div>
+
     <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
     <div id="decisionBoard"></div>
 
@@ -566,7 +593,16 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var ENDPOINT = BASE + '?page=dashboard';
-var ADMIN_SECRET = 'hbw-2026-solo-admin-9f3k2x';
+/* このページは公開されているので、ここに書く鍵は「漏れる前提」で選ぶこと。
+   2026-07-30まで運営用の ADMIN_SECRET を置いていたが、あれは席の解放・支払いバッチ・
+   お客様へのメール送信まで届く鍵だった（誰でも curl で読める状態だった）。
+   ダッシュボードが実際に使うのは決定/WBSの書換え3種だけなので、その3つしかできない
+   DASH_SECRET に差し替えた。ADMIN_SECRET はここに戻さないこと。 */
+var DASH_SECRET = 'hbw-2026-board-w3x8fq5r';
+/* AI質問用。課金に届く鍵なので本来は埋めたくないが、日次10回の上限とConsole側の月$20上限で
+   被害が頭打ちになることを確認した上で、埋める判断をした（2026-07-30 坂田・B案）。
+   使われ方が増えたら A案（初回だけ入力して端末に記憶）へ切り替える。 */
+var AI_SECRET = 'hbw-2026-ai-q7m2vx8p';
 var TICKET_URL = 'https://junyaunitydev.github.io/haribow-solo-show-survey/seats.html';
 
 var SHOW_DATE = new Date(2026, 8, 29);   // 2026-09-29 めぐろパーシモンホール 大ホール
@@ -605,6 +641,41 @@ function today0(){ var t=new Date(); t.setHours(0,0,0,0); return t; }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function num(n){ return Math.round(Number(n)||0).toLocaleString('ja-JP'); }
+
+/* ---------- AI質問 ----------
+   資料（決定事項の要約と全文・WBS・実売の集計）はGAS側(Ai.js)で組み立ててClaudeに渡す。
+   ここから送るのは質問文だけ。GASはストリーミングを扱えないので、答えが全部できるまで待つ。 */
+function askAi(){
+  var input = document.getElementById('askInput');
+  var btn   = document.getElementById('askBtn');
+  var note  = document.getElementById('askNote');
+  var ans   = document.getElementById('askAns');
+  var q = (input.value || '').trim();
+  if(!q){ toast('質問を書いてください'); return; }
+
+  btn.disabled = true; btn.textContent = '考え中';
+  note.textContent = '答えが出るまで20〜40秒かかります。閉じずにお待ちください';
+  ans.style.display = 'none'; ans.className = 'askans';
+
+  postUpdate({survey:'dash_ask', secret:AI_SECRET, question:q})
+    .then(function(r){
+      ans.style.display = '';
+      if(r && r.ok){
+        ans.textContent = r.answer;
+        note.textContent = '今日はあと' + r['残り回数'] + '回聞けます';
+      } else {
+        ans.className = 'askans err';
+        ans.textContent = (r && r.error) ? r.error : '答えを取得できませんでした';
+        note.textContent = '';
+      }
+    })
+    .catch(function(e){
+      ans.style.display = ''; ans.className = 'askans err';
+      ans.textContent = '通信エラー：' + e;
+      note.textContent = '';
+    })
+    .then(function(){ btn.disabled = false; btn.textContent = '聞く'; });
+}
 
 function toast(msg){
   var t=document.getElementById('toast');
@@ -692,7 +763,7 @@ function renderDecisionBoard(b){
         if(act === '別案' && !cm){ toast('別案の中身を書いてください'); return; }
         if(act === '承認' && !confirm('「' + card.querySelector('.dec-title').textContent + '」を承認として記録します。よろしいですか。')) return;
         btn.disabled = true;
-        postUpdate({survey:'decision_act', secret:ADMIN_SECRET, row:Number(card.getAttribute('data-row')),
+        postUpdate({survey:'decision_act', secret:DASH_SECRET, row:Number(card.getAttribute('data-row')),
                     act:act, by:by, comment:cm})
           .then(function(res){
             if(res && res.ok){ toast(act + 'を記録しました'); load(); }
@@ -709,7 +780,7 @@ function postUpdate(body){
     body:JSON.stringify(body)}).then(function(r){ return r.json(); });
 }
 function saveField(rowIndex, field, value, onDone){
-  postUpdate({survey:'wbs_update',secret:ADMIN_SECRET,rowIndex:rowIndex,field:field,value:value})
+  postUpdate({survey:'wbs_update',secret:DASH_SECRET,rowIndex:rowIndex,field:field,value:value})
     .then(function(res){
       if(res.ok){ if(onDone) onDone(); }
       else toast('保存失敗：'+res.error);
@@ -760,7 +831,7 @@ function addMemo(btn,rowIndex){
   var ta=btn.previousElementSibling, text=ta.value.trim();
   if(!text) return;
   btn.disabled=true;
-  postUpdate({survey:'wbs_memo',secret:ADMIN_SECRET,rowIndex:rowIndex,text:text,author:''})
+  postUpdate({survey:'wbs_memo',secret:DASH_SECRET,rowIndex:rowIndex,text:text,author:''})
     .then(function(res){
       btn.disabled=false;
       if(res.ok){ ta.value=''; stampUpdated(rowIndex,function(){ toast('追加しました'); load(); }); }
