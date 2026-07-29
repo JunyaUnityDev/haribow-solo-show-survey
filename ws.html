@@ -187,11 +187,15 @@ p:last-child{margin-bottom:0}
  * ========================================================================= */
 
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-var ENDPOINT = BASE + '?page=orgs';
 /* 進捗の書き込み用。運営用(ADMIN_SECRET)とも出演者用(CAST_SECRET)とも別の鍵で、
    これで書けるのは『WS団体_声かけ担当』の3列だけ（打診済み/いま誰待ちか/メモ）。
-   座席在庫・注文・予算・WBSには一切届かない。 */
+   座席在庫・注文・予算・WBSには一切届かない。
+   ★ENDPOINT より前に宣言すること。var は巻き上げで宣言だけが先に立ち、
+     代入は実行順なので、後ろに置くと ENDPOINT が undefined を埋め込んだURLになる。 */
 var ORG_SECRET = 'hbw-2026-org-jikwrbdrkj';
+/* 読み取りにも鍵が要る（2026-07-29〜）。このボードは他団体について運営が書いた
+   内部メモ（相手の代表者名・関係性・生徒数などの営業情報）を含むため。 */
+var ENDPOINT = BASE + '?page=orgs&k=' + encodeURIComponent(ORG_SECRET);
 
 var DATA = null;
 /* 主担当は覚えておく。WS直後にスマホで開く人が、毎回26団体から
