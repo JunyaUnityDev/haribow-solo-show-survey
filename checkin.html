@@ -56,6 +56,10 @@
   .hit .meta{color:var(--faint);font-size:12px}
   .hit button{margin-top:8px;padding:10px 16px;border-radius:8px;border:0;
     background:#2a3f52;color:#fff;font-size:14px;font-weight:700}
+  /* 通せない行の理由。ボタンが出ないまま黙って終わらせないための欄 */
+  .hit .nobtn{margin:9px 0 0;padding:9px 11px;border-radius:8px;
+    background:rgba(200,143,74,.12);border-left:2px solid #c08f4a;
+    font-size:12.5px;line-height:1.75;color:var(--ink)}
   .hit.done{opacity:.5}
   .note{font-size:11.5px;color:var(--faint);line-height:1.85;margin-top:14px}
 </style>
@@ -308,12 +312,21 @@ function undo(token){
   post('checkin_undo',{token:token}).then(function(r){
     if(r.ok){
       feedback('warn');
-      showVerdict('warn','入場を取り消しました', r.name+' 様','もう一度QRを読み取ってください');
+      /* 現金を受け取った後の取消は、入場記録だけが消えて「支払済み」の記録は残る。
+         黙って「取り消しました」と出すと、受付は全部戻ったと思い込む。
+         現金が手元にあるかどうかは、その場の人にしか分からないので必ず問いかける。 */
+      var extra = r.cashPaidWarn
+        ? '⚠ お支払い（現金）の記録は残っています。現金を返金した場合は受付責任者に必ずお伝えください'
+        : 'もう一度QRを読み取ってください';
+      showVerdict('warn','入場を取り消しました', r.name+' 様', extra);
       delete recent[token];   // すぐ読み直せるように
       loadStats();
     } else {
       showVerdict('ng','取り消せませんでした','','受付責任者にお回しください');
     }
+  }).catch(function(){
+    // 通信断で無反応のまま終わらせない（押したのに何も起きないのが当日いちばん困る）
+    showVerdict('ng','通信に失敗しました','','もう一度お試しください。続く場合は紙の名簿で対応してください');
   });
 }
 
@@ -338,6 +351,17 @@ function doLookup(){
       // お客様には「お名前をお伝えいただければ入場できます」と案内しているので、
       // 支払いが済んでいない方も現金受領／責任者判断で通せる必要がある。
       var btn='';
+      /* 電子チケットがまだ発行されていない行（入金前など）は token が空になる。
+         以前はこの場合ボタンが1つも出ず、理由も出なかったため、受付に立った人が
+         「なぜ通せないのか」も「次に何をすればいいのか」も分からず止まっていた。
+         その場で発行する導線は当日運用の設計と併せて作る必要があるので、
+         ここでは最低限「なぜ出ないか」と「誰に言えばいいか」を必ず出す。 */
+      if(!done && !h.token){
+        btn='<p class="nobtn">電子チケットが未発行のため、この画面からは通せません。<br>'
+          + '<b>お支払いが確認できていない可能性があります。</b><br>'
+          + '受付責任者に「'+esc(String(h.no||''))+'」をお伝えください。'
+          + 'シートで入金を確定するとチケットが発行され、ここから通せるようになります。</p>';
+      }
       if(!done && h.token){
         if(h.cashDue){
           btn='<button onclick="cashIn(\''+esc(h.token)+'\','+Number(h.amount||0)+')">現金 ¥'

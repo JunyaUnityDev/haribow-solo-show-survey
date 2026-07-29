@@ -321,9 +321,16 @@ function mSave(){
       alert('保存に失敗しました。もう一度お試しください。'); calc(); return;
     }
     RES.seats=res.seats; RES.count=res.count; RES.amount=res.amount;
-    document.getElementById('vCount').textContent=res.count+'席';
-    document.getElementById('vAmount').textContent='¥'+res.amount.toLocaleString();
-    alert('変更を保存しました。\n現在 '+res.count+'席（¥'+res.amount.toLocaleString()+'）です。');
+    /* お支払いの案内も必ず作り直す。
+       以前はサマリーの席数と金額だけ書き換えていたため、すぐ下に出ている
+       ・振込の口座ブロック → 変更前の「お振込み金額」
+       ・カードの「お支払いへ進む」→ 変更前の金額のSquareリンク
+       が残り、客がその旧金額を払えてしまった（サーバーは新しい payLink を返しているのに捨てていた）。
+       showRes() を通せば口座・リンク・期限がまとめて描き直される。 */
+    if(res.payLink) RES.payLink=res.payLink;
+    showRes();
+    alert('変更を保存しました。\n現在 '+res.count+'席（¥'+res.amount.toLocaleString()+'）です。'
+      + (RES.method==='振込' ? '\n\nお振込み金額が変わっています。画面の口座欄をご確認ください。' : ''));
     calc();
   }).catch(function(){ btn.textContent='変更を保存'; alert('通信エラー。もう一度お試しください。'); calc(); });
 }
