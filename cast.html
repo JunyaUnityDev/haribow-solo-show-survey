@@ -210,6 +210,17 @@ var data = null;
 var selected = null;
 try { selected = localStorage.getItem('hbw_cast_name') || null; } catch(e){}
 
+/* 個別配布用。?r=16 のように『URL配布_持ち場』の行番号を付けて開くと、その人の持ち場が最初から開く。
+   LINEで一人ずつ配るときに、名前を選ぶ一手間をなくすため。
+   氏名ではなく行番号を使うのは、表記ゆれや改称（永井リュート→永井竜斗）でリンクが切れるのを避けるため。
+   端末に保存された選択より、URLで指定された人を優先する（他人の端末で開いても正しく出る）。 */
+var forcedRow = null;
+try {
+  var qp = new URLSearchParams(location.search);
+  var rv = parseInt(qp.get('r'), 10);
+  if(!isNaN(rv)) forcedRow = rv;
+} catch(e){}
+
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function today0(){ var t=new Date(); t.setHours(0,0,0,0); return t; }
 function toast(msg){
@@ -404,6 +415,14 @@ function renderMine(){
 
 /* --------------------------------------------------------- 読み込み */
 function renderAll(){
+  /* ?r=行番号 が付いていれば、その人を選択済みにする（初回の1度だけ）。 */
+  if(forcedRow && data && data.people){
+    for(var i=0; i<data.people.length; i++){
+      if(data.people[i].row === forcedRow){ selected = data.people[i].name; break; }
+    }
+    forcedRow = null;
+    try{ if(selected) localStorage.setItem('hbw_cast_name', selected); }catch(e){}
+  }
   if(selected && !findPerson(selected)) selected=null;
   renderHero();
   renderTotals();
