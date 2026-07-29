@@ -436,7 +436,10 @@ function renderAll(){
       if(data.people[i].row === forcedRow){ selected = data.people[i].name; break; }
     }
     forcedRow = null;
-    try{ if(selected) localStorage.setItem('hbw_cast_name', selected); }catch(e){}
+    // ここで端末に保存しない。URLは個別に配るものだが、グループに貼られたり転送されたりする。
+    // 他人のURLを一度開いただけでその端末の「自分」が入れ替わると、以降の増減が
+    // 他人の行に書き込まれ、動員見込みの数字が静かに混ざる。
+    // 保存するのは本人が名前をタップしたときだけにする（selectPerson 側）。
   }
   if(selected && !findPerson(selected)) selected=null;
   renderHero();
