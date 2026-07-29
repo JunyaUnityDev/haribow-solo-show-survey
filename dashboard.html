@@ -441,7 +441,11 @@ var PHASE_ORDER = ['■企画確定','■会場確定','■お金設計','■集
 
 function statusBucket(s){ var m=STATUS_META[String(s||'').trim()]; return m?m.bucket:'active'; }
 function statusCls(s){ var m=STATUS_META[String(s||'').trim()]; return m?m.cls:'st-active'; }
-function isLive(r){ return statusBucket(r['ステータス'])!=='excluded'; }
+/* フェーズが「■別件」で始まる行は、この公演の成果物ではないので進捗の分母から外す。
+   膨張したタスクを「保留」で置いたままにすると、完了率を実際より低く見せてしまうため
+   （2026-07-29 JUNYA判断。対象＝BGT裏側映像6件）。 */
+function isAside(r){ return String(r['フェーズ']||'').indexOf('■別件')===0; }
+function isLive(r){ return statusBucket(r['ステータス'])!=='excluded' && !isAside(r); }
 function isOpen(r){ var b=statusBucket(r['ステータス']); return b!=='done' && b!=='excluded'; }
 function ownerOf(r){ return String(r['責任者']||'').trim() || '未定'; }
 
@@ -997,8 +1001,10 @@ function renderPhases(rows){
     var ia=PHASE_ORDER.indexOf(a), ib=PHASE_ORDER.indexOf(b);
     return (ia<0?99:ia)-(ib<0?99:ib);
   });
+  var asideCount=rows.filter(isAside).length;
   document.getElementById('phases').innerHTML=names.map(function(p){
     var live=g[p].filter(isLive);
+    if(!live.length) return '';
     var done=live.filter(function(r){ return statusBucket(r['ステータス'])==='done'; }).length;
     var act =live.filter(function(r){ return statusBucket(r['ステータス'])==='active'; }).length;
     var opn =live.length-done-act;
@@ -1012,7 +1018,8 @@ function renderPhases(rows){
       '</div>'+
       '<div class="phase-n">'+done+' / '+live.length+'</div>'+
     '</div>';
-  }).join('');
+  }).join('')+
+  (asideCount?'<p class="muted" style="margin:10px 0 0">※ 別件として進捗から外しているもの：BGT裏側映像 '+asideCount+'件（保留）</p>':'');
 }
 
 /* ============================================ ⑥ 演目 / そのほかのプロジェクト */
