@@ -301,7 +301,7 @@
         <div class="map" id="gmap"></div>
         <p style="font-size:11px;color:var(--faint);margin:10px 0 0;text-align:center">後方の左右サイド席から選べます（前方サイド・中央は個人指定席）。8/17以降は空きが個人にも開放されます。</p>
       </div>
-      <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わったらお知らせします）。<br>・お支払い期限は<b>カード決済で1週間、銀行振込で2週間</b>です（8/31が上限）。<br>・<b>新規のお申込みは8/17まで</b>。8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
+      <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わったらお知らせします）。<br>・お支払い期限は<b>カード決済で1週間、銀行振込で2週間</b>です（8/31が上限）。<br>・<b>新規のお申込みは8/16まで</b>（この日いっぱい）。8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
       <div id="gResult" style="font-size:20px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">¥0 <small style="font-size:12px;color:var(--dim);font-weight:600">（人数を入力）</small></div>
       <button class="buy" id="gBuy" style="margin-top:12px;width:100%" disabled onclick="gCheckout()">団体予約を送信</button>
     </div>
@@ -346,7 +346,7 @@
 <script>
 // ---- 前売/通常 判定（公演前日9/28まで前売） ----
 var SHOW = new Date(2026,8,29);          // 9/29
-var ADVANCE_END = new Date(2026,8,28,23,59); // 9/28まで前売
+var ADVANCE_END = new Date(2026,8,28,23,59,59); // 9/28まで前売（秒までGASのADVANCE_END_と一致させる。ズレると表示価格と請求額が食い違う）
 var isAdvance = new Date() <= ADVANCE_END;   // 購入時点の日時で前売/通常を自動判定
 document.getElementById('phase').textContent = isAdvance
   ? '前売価格で表示中（公演前日 9/28 まで）' : '通常価格で表示中（前売は終了）';
