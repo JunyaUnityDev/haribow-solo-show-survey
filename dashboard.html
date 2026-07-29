@@ -52,6 +52,39 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:12px}
 .muted{color:var(--faint);font-size:12.5px}
 
+/* ---------- 運用ルール（畳んで置く参照資料） ----------
+   ダッシュボードが答えるのは「いま、どうなってる？」。ルールが答えるのは「どう動くか」。
+   別の問いなので5つの問い（客席/ヤバさ/前進/持ち場/詰まり）の下に畳んで置く。
+   開かない人には存在しないのと同じ＝上段の情報密度を落とさない。
+   ここに置いた理由：ローカルのMarkdownは共有できず、ページを分けると散らばるため。
+   ★口座番号は書かない（このページは公開リポジトリのGitHub Pagesに載る）。 */
+.rules{background:var(--panel);border:1px solid var(--line);border-radius:13px;margin-bottom:12px;overflow:hidden}
+.rules>summary{list-style:none;cursor:pointer;padding:15px 17px;font-size:12.5px;font-weight:700;
+  color:var(--dim);display:flex;align-items:center;gap:9px;user-select:none}
+.rules>summary::-webkit-details-marker{display:none}
+.rules>summary::after{content:"開く";margin-left:auto;font-size:11px;font-weight:600;color:var(--faint)}
+.rules[open]>summary::after{content:"閉じる"}
+.rules[open]>summary{border-bottom:1px solid var(--line);color:var(--cream)}
+.rules-body{padding:4px 17px 18px;font-size:12.5px;color:var(--dim);line-height:1.75}
+.rules-body h4{font-size:12px;font-weight:800;color:var(--cream);margin:20px 0 8px;letter-spacing:.03em}
+.rules-body h4:first-child{margin-top:14px}
+.rules-body p{margin:0 0 9px}
+.rules-body b{color:var(--ink);font-weight:700}
+.rules-body table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:11.5px}
+.rules-body th,.rules-body td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.rules-body th{background:var(--panel2);color:var(--cream);font-weight:700;white-space:nowrap}
+.rules-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rules-body ol,.rules-body ul{margin:0 0 10px;padding-left:1.25em}
+.rules-body li{margin-bottom:5px}
+.rules-body a{color:var(--teal)}
+.rules-flow{background:var(--panel2);border-left:2px solid var(--teal);border-radius:0 8px 8px 0;
+  padding:11px 13px;margin:4px 0 12px;font-size:11.5px;line-height:1.85;color:var(--dim)}
+.rules-warn{background:rgba(200,67,58,.09);border-left:2px solid var(--red);border-radius:0 8px 8px 0;
+  padding:11px 13px;margin:4px 0 12px;font-size:11.5px;line-height:1.7}
+.rules-todo{background:rgba(192,143,74,.09);border-left:2px solid var(--amber);border-radius:0 8px 8px 0;
+  padding:11px 13px;margin:4px 0 12px;font-size:11.5px;line-height:1.7}
+.rules-src{margin-top:16px;padding-top:13px;border-top:1px solid var(--line);font-size:11px;color:var(--faint)}
+
 /* ---------- ① 客席ヒーロー ---------- */
 .hero{background:linear-gradient(170deg,#161a22,#101217 60%);border:1px solid rgba(99,182,204,.20);
   border-radius:16px;padding:20px 18px;box-shadow:var(--shadow);margin-bottom:12px}
@@ -355,6 +388,111 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 
     <h2>決まったこと</h2>
     <div class="card" id="decisions"></div>
+
+    <!-- 運用ルール。畳んだ状態が既定。上の5つの問い（客席/ヤバさ/前進/持ち場/詰まり）を邪魔しない。
+         内容は decisions/ADR-008_payment-and-reminder-rules.md と同一（口座番号のみ除外）。
+         片方を直したらもう片方も直すこと。 -->
+    <details class="rules" id="rulesPay">
+      <summary>お支払い・リマインド・通知のルール（振込の確認をする人へ）</summary>
+      <div class="rules-body">
+
+        <p>お客様がチケット代を払ってから、お席が確定するまでの決まりごと。<b>当日までに一度は目を通してください。</b></p>
+
+        <h4>運営の手作業は、これだけ</h4>
+        <p><b>GMOあおぞらネット銀行の入出金明細を見て、注文シートでメニュー③「入金確定」を押す。</b><br>
+        それ以外（カード・団体・電子チケットの発行・メール送信・リマインド）は全部自動です。</p>
+        <p><b>毎朝8時のLINEが来ない日は、確認するものが無い日です。</b></p>
+
+        <h4>支払方法ごとの違い</h4>
+        <div class="rules-scroll">
+        <table>
+          <tr><th></th><th>カード</th><th>銀行振込</th><th>現金（当日券）</th></tr>
+          <tr><th>選べる期間</th><td>〜9/29 20:00</td><td><b>〜9/26 23:59</b></td><td><b>9/29 当日のみ</b><br>（〜19:30）</td></tr>
+          <tr><th>確定のしかた</th><td>Square照合で<b>自動</b></td><td><b>運営が手動</b><br>（メニュー③）</td><td>受付でQR＋現金</td></tr>
+          <tr><th>払われないと</th><td>1時間で席を解放</td><td><b>席は解放しない</b></td><td><b>席は解放しない</b></td></tr>
+        </table>
+        </div>
+        <p><b>「1時間で解放」がカードだけなのは、Squareに聞けば払ったかどうかが即座に分かるから。</b>
+        振込と現金は着金の検知が手作業なので、システムの「未入金」判断を信じて席を消すと、
+        払った方のお席が飛びます。実際に、振込当日に入金済みの2件が2日間「未入金」のままでした。</p>
+
+        <h4>振込のスケジュール</h4>
+        <p>期限は<b>注文日＋7日、その日いっぱい（23:59:59）</b>。ただし<b>9/26</b>を超えません。</p>
+        <div class="rules-scroll">
+        <table>
+          <tr><th>いつ</th><th>何が起きるか</th></tr>
+          <tr><td>注文直後</td><td>お客様へ振込のご案内／運営へメール</td></tr>
+          <tr><td><b>3日後の12時以降</b></td><td>お客様へリマインド（自動）</td></tr>
+          <tr><td>期限を過ぎたとき</td><td><b>自動では何も送らない。</b>メニュー⑫から承認して送る</td></tr>
+          <tr><td>入金を確定したとき</td><td>入金確認メール＋電子チケット</td></tr>
+        </table>
+        </div>
+        <p><b>督促を自動にしていないのは、払った方に「まだ払っていませんね」と届くのが一番まずいから。</b>
+        3日後のリマインドは「そろそろお願いします」なので事故っても軽いですが、督促は違います。</p>
+
+        <h4>12時ルール（順番に意味があります）</h4>
+        <div class="rules-flow">
+          <b>8:00</b> ── 運営3人のLINEへ「未入金◯件」<br>
+          <span style="padding-left:3.2em">「本日12時以降にお客様へ自動リマインドが飛びます」と1件ずつ明記されます</span><br>
+          <span style="color:var(--faint)">↓ 4時間の猶予</span><br>
+          <b>12:00〜</b> ── お客様へ自動リマインド
+        </div>
+        <p><b>運営が必ず先に見ます。</b>着金済みなのにシートが「未」のままなら、
+        <b>4時間のうちに直せばリマインドは飛びません。</b></p>
+        <div class="rules-warn"><b>この順番を崩さないでください。</b>
+        毎朝8時の通知と「リマインドは12時以降」はセットで意味を持ちます。
+        片方だけ動かすと、払った方にリマインドが届きます。</div>
+
+        <h4>お席は自動で解放されません</h4>
+        <p>振込・現金の未入金席は、<b>期限を過ぎてもシステムは何もしません。</b>
+        解放するときは、銀行を確認したうえでメニュー④「取消（席を解放）」を押します。</p>
+        <p>当日券も同じです。開演を過ぎても席は残します。理由は3つ：</p>
+        <ol>
+          <li>電車遅延で開演後に着いた方のQRが「無効」になり、入場できない</li>
+          <li>受付で現金を数えている最中に行が無効化され、お金は受け取ったのに記録が残らない</li>
+          <li>解放された席が別の方に売れ、遅れて来た方を通すと同じ席に2人座る</li>
+        </ol>
+        <p>開演後に空席を売り直す価値はほぼ無いのに対し、この3つは<b>当日その場で詰みます。</b></p>
+
+        <h4>通知は誰に飛ぶか</h4>
+        <p>LINEの宛先は、内部用の公式LINE「人マスタ」の<b>O列「支払通知」に○が付いた人</b>。
+        いまは<b>坂田潤弥・海野鷹幸・井端真秀</b>の3名です。</p>
+        <p><b>増やすときはシートに○を足すだけ。</b>コードは触りません。</p>
+        <p><b>未入金が0件の日は送りません。</b>毎日「0件」が届くと読まなくなり、
+        本当に来た日を見落とすためです。</p>
+
+        <h4>誰が確認したかは自動で残ります</h4>
+        <p>メニュー③を押すと<b>「入金確認ログ」タブ</b>に1行増えます。
+        日時・注文No.・氏名・支払方法・金額・席・席数・<b>確認者</b>。
+        確認者はGoogleアカウントから自動で取れるので、<b>手で名前を書く必要はありません。</b></p>
+
+        <h4>団体予約</h4>
+        <p><b>いまはカード決済リンクのみ</b>（銀行振込は未対応）。5席以上から。
+        <b>8/17に新規受付を締切</b>、同日に未入金の団体を自動キャンセルしてサイド席を個人へ開放します。
+        リマインドは8/10・8/14・8/16。<b>入金はSquare照合で自動確定するので、銀行明細を見る必要はありません。</b></p>
+        <div class="rules-todo"><b>未決（会議で決めること）</b>
+        <ul style="margin-top:6px">
+          <li><b>団体に銀行振込を足すか。</b>関東8団体・想定来場101人・¥202,000がここに乗ります。
+          やるなら<b>8/2まで</b>（8/3に関東WSが始まるため）</li>
+          <li><b>8/17の3つの役割を分けるか。</b>「新規締切」「サイド開放」「未入金キャンセル」が
+          1つの日付を兼ねています。入金期限だけ後ろに倒す案</li>
+          <li>振込を選んだ直後の通知が<b>いまはメールのみ</b>。LINEには飛んでいません</li>
+        </ul></div>
+
+        <h4>振込先</h4>
+        <p>口座情報は<b>このページには書きません</b>（公開の場所にあるため）。
+        <b>決済設定シート</b>が現在値、<b>org/bank-transfer.md</b> が一次ソースです。
+        変更するときは org/ を直してから決済設定シートを直します。</p>
+
+        <div class="rules-src">
+          正典：<a href="https://docs.google.com/spreadsheets/d/1qZPr5yUliMlEP-KQT8p31i5R8P5CbcRihkpS2bt3HqM/edit" target="_blank" rel="noopener">単独公演SS「決定事項一覧」No.11</a>
+          ／ 全文と設計の理由：<code>decisions/ADR-008_payment-and-reminder-rules.md</code><br>
+          ルールを変えたら、<b>決定事項一覧・ADR-008・この欄の3つとも</b>直してください。
+          前回、決定がコードのコメントにしか残らず、記録と実装が2日間食い違いました。
+        </div>
+
+      </div>
+    </details>
 
   </div>
 </div>
