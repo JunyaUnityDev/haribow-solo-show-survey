@@ -100,6 +100,31 @@ p:last-child{margin-bottom:0}
 .org-meta b{color:var(--cream);font-weight:700}
 .org-meta .lbl{color:var(--faint);margin-right:5px}
 .org-note{font-size:11.5px;color:var(--amber);margin-top:6px}
+/* 進捗の更新パネル。カードの中に畳んで置く（見る画面と書く画面を分けない） */
+.upd{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.upd-open{font-size:11.5px;font-weight:700;color:var(--teal);background:none;border:none;
+  padding:0;cursor:pointer;font-family:inherit}
+.upd-open:hover{text-decoration:underline}
+.upd-body{margin-top:9px;display:none}
+.upd-body.on{display:block}
+.upd-row{margin-bottom:9px}
+.upd-lbl{font-size:11px;color:var(--faint);font-weight:700;margin-bottom:5px}
+.upd-opts{display:flex;flex-wrap:wrap;gap:5px}
+.upd-opts button{font-size:11.5px;font-weight:700;color:var(--dim);background:var(--panel2);
+  border:1px solid var(--line);border-radius:99px;padding:5px 11px;cursor:pointer;font-family:inherit}
+.upd-opts button.on{background:var(--teal);border-color:var(--teal);color:#06222b}
+.upd input[type=text]{width:100%;box-sizing:border-box;font-size:12.5px;color:var(--cream);
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+  font-family:inherit}
+.upd input[type=text]::placeholder{color:var(--faint)}
+.upd-send{font-size:12px;font-weight:800;color:#06222b;background:var(--teal);border:none;
+  border-radius:8px;padding:9px 18px;cursor:pointer;font-family:inherit}
+.upd-send:disabled{opacity:.45;cursor:default}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  background:var(--panel2);border:1px solid var(--line);color:var(--cream);font-size:12.5px;
+  font-weight:700;padding:11px 20px;border-radius:99px;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .linkrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .linkrow a{font-size:11.5px;font-weight:700;color:var(--teal);text-decoration:none;
@@ -142,6 +167,8 @@ p:last-child{margin-bottom:0}
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 /* =========================================================================
  * 単独公演「GO BEYOND」WSツアー 団体ボード
@@ -154,11 +181,17 @@ p:last-child{margin-bottom:0}
  *   - 金額（赤字額・必要稼働率・予算）は出さない
  *   - 団体どうしのランキングは作らない。並び順はWSが近い順で、優劣ではない
  *
- * データは GAS の ?page=orgs（読み取り専用）。書き込み口は持たせていない。
+ * 読み取りは GAS の ?page=orgs。書き込みは org_update だけで、専用の鍵を使い、
+ * 『WS団体_声かけ担当』の3列（打診済み/いま誰待ちか/メモ）しか触れない（ADR-007）。
+ * 代表者の連絡先はレスポンス自体に含めていない。このページは公開URLのため。
  * ========================================================================= */
 
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var ENDPOINT = BASE + '?page=orgs';
+/* 進捗の書き込み用。運営用(ADMIN_SECRET)とも出演者用(CAST_SECRET)とも別の鍵で、
+   これで書けるのは『WS団体_声かけ担当』の3列だけ（打診済み/いま誰待ちか/メモ）。
+   座席在庫・注文・予算・WBSには一切届かない。 */
+var ORG_SECRET = 'hbw-2026-org-jikwrbdrkj';
 
 var DATA = null;
 var FILTER = null;   // 講師名。nullなら全部
@@ -357,13 +390,105 @@ function render(){
         '</div>' +
         '<div class="org-meta">' + meta + '</div>' +
         (o.note ? '<div class="org-note">' + esc(o.note) + '</div>' : '') +
+        updPanel(o) +
       '</div>';
   });
 
   document.getElementById('orgs').innerHTML = html || '<p class="muted">該当する団体がありません。</p>';
+  bindUpd();
 }
 
-fetch(ENDPOINT)
+/* ---- 進捗の更新 ----
+   聞くのは「声をかけたか」「いま誰待ちか」「次に何をするか」の3つだけ。
+   人数や金額は聞かない。手数が増えると埋まらない（ADR-007）。 */
+var WAITING_OPTS = ['返事待ち', 'こちらの番', '日程調整中', '今回は見送り'];
+
+function updPanel(o){
+  var id = 'u' + Math.abs(hashStr(o.name));
+  var cur = o.waiting || '';
+  return '<div class="upd">' +
+    '<button class="upd-open" data-t="' + id + '">＋ 進捗を入れる</button>' +
+    '<div class="upd-body" id="' + id + '" data-org="' + esc(o.name) + '">' +
+      '<div class="upd-row"><div class="upd-lbl">代表に声をかけましたか</div>' +
+        '<div class="upd-opts" data-f="contacted">' +
+          '<button data-v="true" class="' + (o.contacted ? 'on' : '') + '">かけた</button>' +
+          '<button data-v="false" class="' + (o.contacted ? '' : 'on') + '">まだ</button>' +
+        '</div></div>' +
+      '<div class="upd-row"><div class="upd-lbl">いま誰待ちですか</div>' +
+        '<div class="upd-opts" data-f="waiting">' +
+          WAITING_OPTS.map(function(w){
+            return '<button data-v="' + esc(w) + '" class="' + (cur === w ? 'on' : '') + '">' + esc(w) + '</button>';
+          }).join('') +
+        '</div></div>' +
+      '<div class="upd-row"><div class="upd-lbl">次にいつ何をしますか（任意）</div>' +
+        '<input type="text" data-f="memo" placeholder="8/5に代表へ再連絡" maxlength="120"></div>' +
+      '<button class="upd-send">送信する</button>' +
+    '</div></div>';
+}
+
+function hashStr(s){
+  var h = 0;
+  for(var i=0; i<s.length; i++){ h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+  return h;
+}
+
+function bindUpd(){
+  Array.prototype.forEach.call(document.querySelectorAll('.upd-open'), function(b){
+    b.onclick = function(){
+      var body = document.getElementById(b.getAttribute('data-t'));
+      var on = body.classList.toggle('on');
+      b.textContent = on ? '− 閉じる' : '＋ 進捗を入れる';
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.upd-opts'), function(g){
+    Array.prototype.forEach.call(g.querySelectorAll('button'), function(b){
+      b.onclick = function(){
+        Array.prototype.forEach.call(g.querySelectorAll('button'), function(x){ x.classList.remove('on'); });
+        b.classList.add('on');
+      };
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.upd-send'), function(b){
+    b.onclick = function(){ sendUpd(b); };
+  });
+}
+
+function sendUpd(btn){
+  var body = btn.parentNode;
+  var org  = body.getAttribute('data-org');
+  var fields = {};
+  Array.prototype.forEach.call(body.querySelectorAll('.upd-opts'), function(g){
+    var on = g.querySelector('button.on');
+    if(on) fields[g.getAttribute('data-f')] = on.getAttribute('data-v');
+  });
+  var memo = body.querySelector('input[data-f=memo]');
+  if(memo && memo.value.trim()) fields.memo = memo.value.trim();
+  if(fields.contacted !== undefined) fields.contacted = (fields.contacted === 'true');
+
+  btn.disabled = true; btn.textContent = '送信中…';
+  fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ survey:'org_update', secret:ORG_SECRET, org:org, fields:fields }) })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(!res || !res.ok) throw new Error(res && res.error ? res.error : 'unknown');
+      if(memo) memo.value = '';
+      toast(org + ' を更新しました');
+      load();
+    })
+    .catch(function(e){ toast('更新できませんでした（' + e.message + '）'); })
+    .then(function(){ btn.disabled = false; btn.textContent = '送信する'; });
+}
+
+var toastTimer = null;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 2600);
+}
+
+function load(){
+ return fetch(ENDPOINT)
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(!d || !d.ok){ throw new Error(d && d.error ? d.error : 'unknown'); }
@@ -376,6 +501,9 @@ fetch(ENDPOINT)
       '<div class="card"><p class="err">データを読み込めませんでした（' + esc(e.message) + '）</p>' +
       '<p class="muted">時間をおいて再読み込みしてください。</p></div>';
   });
+}
+
+load();
 </script>
 </body>
 </html>
