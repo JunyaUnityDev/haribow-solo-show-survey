@@ -363,6 +363,9 @@ function render(){
     if(o.talk){
       meta += '<div><span class="lbl">話すこと</span>' + esc(o.talk) + '</div>';
     }
+    if(o.waiting){
+      meta += '<div><span class="lbl">いま</span><b>' + esc(o.waiting) + '</b></div>';
+    }
     if(o.ownerMemo){
       meta += '<div><span class="lbl">メモ</span>' + esc(o.ownerMemo) + '</div>';
     }
@@ -473,7 +476,18 @@ function sendUpd(btn){
       if(!res || !res.ok) throw new Error(res && res.error ? res.error : 'unknown');
       if(memo) memo.value = '';
       toast(org + ' を更新しました');
-      load();
+      /* 書いた直後に取り直すと、GAS側の書き込みが読み取りに間に合わずに
+         古い値で描き直してしまう（実測）。送った内容は手元にあるので、
+         再取得せずにこの場のデータを更新して描き直す。 */
+      if(DATA && DATA.orgs){
+        for(var i=0; i<DATA.orgs.length; i++){
+          if(DATA.orgs[i].name !== org) continue;
+          if(fields.contacted !== undefined) DATA.orgs[i].contacted = fields.contacted;
+          if(fields.waiting)                 DATA.orgs[i].waiting   = fields.waiting;
+          break;
+        }
+        render();
+      }
     })
     .catch(function(e){ toast('更新できませんでした（' + e.message + '）'); })
     .then(function(){ btn.disabled = false; btn.textContent = '送信する'; });
