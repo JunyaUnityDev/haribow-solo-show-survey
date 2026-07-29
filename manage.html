@@ -81,7 +81,7 @@
 <div class="wrap">
   <p class="eyebrow">HARIBOW 単独公演 · Go Beyond</p>
   <h1>団体予約の確認・変更</h1>
-  <p class="sub">予約IDと登録メールアドレスで、お支払い前（8/16まで）は人数（お席）を調整できます。</p>
+  <p class="sub">予約IDと登録メールアドレスで、お支払い前なら人数（お席）を調整できます。</p>
 
   <!-- ① 本人確認 -->
   <div class="buyerbox" id="authbox">
@@ -107,6 +107,10 @@
     <div id="payBtnWrap" style="display:none;margin-top:14px">
       <a id="payLink" href="#" class="buy" style="display:block;text-align:center;text-decoration:none">お支払いへ進む（カード決済）</a>
     </div>
+
+    <!-- 銀行振込の団体には、決済ボタンではなく口座そのものを出す。
+         メールを探させないため。表示は本人確認（予約ID＋登録メール）を通った後だけ。 -->
+    <div id="bankWrap" style="display:none;margin-top:14px"></div>
 
     <p class="notice" id="editNote"></p>
 
@@ -163,6 +167,10 @@ function seatNums(row){
   return arr;
 }
 function fmtSeat(k){var a=k.split('-');return a[0]+'列'+a[1]+'番';}
+/* 口座情報などをHTMLに埋めるときのエスケープ。値はサーバー（決済設定シート）由来だが、
+   シートは人が編集するので & や < が混ざりうる。innerHTML に渡す前に必ず通す。 */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
 function mLoad(){
   var resId=document.getElementById('mResId').value.trim();
@@ -205,15 +213,33 @@ function showRes(){
   document.getElementById('vCount').textContent=RES.count+'席';
   document.getElementById('vAmount').textContent='¥'+RES.amount.toLocaleString();
 
-  // 未入金なら決済ボタンを表示
-  var pb=document.getElementById('payBtnWrap');
-  if(RES.status==='未入金' && RES.payLink){
-    pb.style.display='block';
-    document.getElementById('payLink').href=RES.payLink;
-  } else { pb.style.display='none'; }
+  // 未入金なら支払いの案内を表示。カードは決済ボタン、振込は口座そのもの
+  var isBank = (RES.method==='振込');
+  var pb=document.getElementById('payBtnWrap'), bw=document.getElementById('bankWrap');
+  pb.style.display='none'; bw.style.display='none';
+  if(RES.status==='未入金'){
+    if(isBank && RES.bank){
+      var b=RES.bank;
+      bw.style.display='block';
+      bw.innerHTML='<div class="summary" style="margin:0">'
+        +'<div class="srow"><span class="k">金融機関</span><span class="v">'+esc(b.name)+(b.code?'（'+esc(b.code)+'）':'')+'</span></div>'
+        +'<div class="srow"><span class="k">支店</span><span class="v">'+esc(b.branch)+(b.branchCode?'（'+esc(b.branchCode)+'）':'')+'</span></div>'
+        +'<div class="srow"><span class="k">口座</span><span class="v">'+esc(b.type)+' '+esc(b.number)+'</span></div>'
+        +'<div class="srow"><span class="k">名義</span><span class="v">'+esc(b.holder)+(b.holderKana?'（'+esc(b.holderKana)+'）':'')+'</span></div>'
+        +'<div class="srow"><span class="k">お振込み金額</span><span class="v amount">¥'+RES.amount.toLocaleString()+'</span></div>'
+        +(RES.payerName?'<div class="srow"><span class="k">お振込み名義</span><span class="v">'+esc(RES.payerName)+'</span></div>':'')
+        +'</div>'
+        +'<p class="notice" style="margin-top:10px">お申込み時にご記入いただいたお名前でお振込みください。別の名義ですと、どの団体のご入金か確認できずお席の確定が遅れます。振込手数料はお客様のご負担でお願いいたします。</p>';
+    } else if(RES.payLink){
+      pb.style.display='block';
+      document.getElementById('payLink').href=RES.payLink;
+    }
+  }
 
   if(RES.editable){
-    document.getElementById('editNote').innerHTML='下のサイド席から、<b>お席の追加・削除</b>ができます（お支払い前・8/16まで）。変更すると金額が変わり、新しい決済リンクをメールでお送りします。';
+    var dueTxt = RES.dueText || 'メールに記載の期限';
+    document.getElementById('editNote').innerHTML='下のサイド席から、<b>お席の追加・削除</b>ができます（お支払い前・'+esc(dueTxt)+'まで）。変更すると金額が変わり、'
+      +(isBank ? '新しいお振込み金額をメールでお送りします。' : '新しい決済リンクをメールでお送りします。');
     document.getElementById('editarea').style.display='block';
     document.getElementById('cart').style.display='block';
     picked={}; RES.seats.forEach(function(id){picked[id]=1;});
@@ -284,7 +310,7 @@ function mSave(){
     btn.textContent='変更を保存';
     if(!res.ok){
       if(res.error==='min5'){ alert('5席以上でお願いします。'); calc(); return; }
-      if(res.error==='closed'||res.error==='not_editable'){ alert('変更の受付は終了しました（お支払い済み、または8/16を過ぎています）。'); return; }
+      if(res.error==='closed'||res.error==='not_editable'){ alert('変更の受付は終了しました（お支払い済み、またはお支払い期限を過ぎています）。'); return; }
       if(res.conflict){ alert(res.conflict.map(fmtSeat).join('・')+' はお取りできませんでした。\n他の団体が予約済みか、団体でお取りいただけないお席です。\nお手数ですが選び直してください。');
         // 他団体在庫を取り直して再描画
         fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){

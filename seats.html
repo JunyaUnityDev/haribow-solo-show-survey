@@ -280,13 +280,28 @@
       <input id="gRep" placeholder="例：山田太郎" oninput="gCalc()">
       <label>連絡先（メールアドレス）</label>
       <input id="gContact" type="email" placeholder="例：example@mail.com" oninput="gCalc()">
+
+      <label style="margin-top:14px;display:block">お支払い方法</label>
+      <div class="paymethods">
+        <button type="button" class="pm gm" onclick="gMethod('square',this)">カード決済（Square）</button>
+        <button type="button" class="pm gm" onclick="gMethod('bank',this)">銀行振込</button>
+      </div>
+      <p id="gMethodNote" style="font-size:11.5px;color:var(--dim);margin:8px 0 0;line-height:1.7;display:none"></p>
+      <!-- 振込人名義は必須。団体名と振込名義がまず一致しないため、これが無いと
+           運営が銀行明細を見ても、どの団体の入金か特定できない（金額も同額の団体が出る）。 -->
+      <div id="gPayerBox" style="display:none">
+        <label style="margin-top:14px;display:block">お振込みされるお名前（カナ）</label>
+        <input id="gPayer" placeholder="例：ヤマダタロウ／ニホンダイガクDDサークル" oninput="gCalc()">
+        <p style="font-size:11.5px;color:var(--dim);margin:6px 0 0;line-height:1.7">通帳・明細に表示されるお名前をご記入ください。団体名でも代表者のお名前でも構いませんが、<b>実際にお振込みされる名義と同じ</b>にしてください。</p>
+      </div>
+
       <label>お席を選ぶ（サイド席・5席以上）</label>
       <div class="maparea" style="margin:0 0 14px">
         <div class="stage" style="max-width:50%">STAGE</div>
         <div class="map" id="gmap"></div>
         <p style="font-size:11px;color:var(--faint);margin:10px 0 0;text-align:center">後方の左右サイド席から選べます（前方サイド・中央は個人指定席）。8/17以降は空きが個人にも開放されます。</p>
       </div>
-      <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内（決済リンク）</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わると新しいリンクを再送します）。<br>・<b>8/16</b>（この日いっぱい）までにご入金がない場合は、翌朝お席を解放いたします。<br>・8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
+      <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わったらお知らせします）。<br>・お支払い期限は<b>カード決済で1週間、銀行振込で2週間</b>です（8/31が上限）。<br>・<b>新規のお申込みは8/17まで</b>。8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
       <div id="gResult" style="font-size:20px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">¥0 <small style="font-size:12px;color:var(--dim);font-weight:600">（人数を入力）</small></div>
       <button class="buy" id="gBuy" style="margin-top:12px;width:100%" disabled onclick="gCheckout()">団体予約を送信</button>
     </div>
@@ -818,6 +833,22 @@ function makeGSeat(row,n){
   return s;
 }
 function gToggle(row,n){ var key=row+'-'+n; if(gpicked[key])delete gpicked[key]; else gpicked[key]=true; renderG(); gCalc(); }
+/* 団体の支払方法。既定は未選択（明示的に選ばせる）。
+   振込を選んだときだけ「お振込みされるお名前」を出す。 */
+var gMethodVal=null;
+function gMethod(v,el){
+  gMethodVal=v;
+  var btns=el.parentNode.querySelectorAll('.gm');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('active');
+  el.classList.add('active');
+  document.getElementById('gPayerBox').style.display = (v==='bank') ? 'block' : 'none';
+  var note=document.getElementById('gMethodNote');
+  note.style.display='block';
+  note.innerHTML = (v==='bank')
+    ? 'お申込み後、<b>お振込み先の口座をメールでお送りします</b>。お支払い期限は<b>お申込みから2週間</b>です（8/31が上限）。部費を集めてからお支払いになる団体はこちらをお選びください。'
+    : 'お申込み後、<b>決済リンクをメールでお送りします</b>。その場でお支払いいただけます。お支払い期限は<b>お申込みから1週間</b>です。';
+  gCalc();
+}
 function gCalc(){
   var num=Object.keys(gpicked).length;
   var res=document.getElementById('gResult'), btn=document.getElementById('gBuy');
@@ -825,7 +856,8 @@ function gCalc(){
   res.innerHTML='¥'+sum.toLocaleString()+' <small style="font-size:12px;color:var(--dim);font-weight:600">('+(gUnit?'¥'+gUnit.toLocaleString()+'×':'')+num+'席'+(num>0&&num<5?' ⚠ 5席以上':'')+')</small>';
   var name=(document.getElementById('gName')||{}).value||'', rep=(document.getElementById('gRep')||{}).value||'', c=(document.getElementById('gContact')||{}).value||'';
   var commonOk = (gTypeVal!=='other') || gCommon().trim(); // その他団体は共通点必須
-  btn.disabled=!(gTypeVal && num>=5 && name.trim() && rep.trim() && c.trim() && commonOk);
+  var payerOk = (gMethodVal!=='bank') || ((document.getElementById('gPayer')||{}).value||'').trim();
+  btn.disabled=!(gTypeVal && gMethodVal && num>=5 && name.trim() && rep.trim() && c.trim() && commonOk && payerOk);
 }
 function gCheckout(){
   var keys=Object.keys(gpicked);
@@ -837,23 +869,32 @@ function gCheckout(){
       teamTypeId:gTypeVal,
       commonality:gCommon(),
       rep:document.getElementById('gRep').value,
-      contact:document.getElementById('gContact').value})})
+      contact:document.getElementById('gContact').value,
+      method:gMethodVal,
+      payerName:((document.getElementById('gPayer')||{}).value||'')})})
   .then(function(r){return r.json();}).then(function(res){
     if(!res.ok){
       if(res.error==='min5'){ alert('団体は5席以上でお願いします。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       if(res.error==='team_closed'){ alert('団体予約の受付は終了しました（8/17以降はサイド席を個人指定席として開放しています）。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       if(res.error==='invalid_team_type'){ alert('団体の種別を選んでください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       if(res.error==='bad_email'){ alert('連絡先メールアドレスの形式をご確認ください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
+      if(res.error==='need_payer'){ alert('お振込みされるお名前（カナ）をご記入ください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
+      if(res.error==='bank_closed'){ alert('銀行振込の受付は終了しました。カード決済をお選びください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
+      if(res.error==='need_common'){ alert('団体の共通点をご記入ください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       var c=(res.conflict||keys).map(fmtSeat).join('・');
       alert('選んでいる間に '+c+' が他の団体に予約されました。\nお手数ですが選び直してください。');
       gpicked={}; loadAvail(); btn.textContent='団体予約を送信'; gCalc(); return;
     }
     var murl='https://junyaunitydev.github.io/haribow-solo-show-survey/manage.html?id='+encodeURIComponent(res.resId);
+    var isBank=(res.method==='振込');
+    var dueTxt=res.dueText||'メールに記載の期限';
     doneScreen('団体予約を受け付けました。<br>予約ID：<b>'+res.resId+'</b><br><br>'
-      +document.getElementById('gContact').value+' へ<b>お支払いのご案内（決済リンク）</b>をお送りしました。<br>'
+      +document.getElementById('gContact').value+' へ'
+      +(isBank ? '<b>お振込み先の口座</b>' : '<b>お支払いのご案内（決済リンク）</b>')+'をお送りしました。<br>'
+      +(isBank ? 'お申込み時にご記入いただいたお名義でお振込みください。<br>' : '')
       +'お支払い前なら、下のページで人数（お席）の変更ができます。<br>'
       +'▶ <a href="'+murl+'" style="color:var(--main);font-weight:700">お席の確認・変更・お支払いページ</a>（予約IDと連絡先メールでアクセス）<br><br>'
-      +'<b>8/16</b>（この日いっぱい）までにご入金がない場合、翌朝お席を解放いたします。');
+      +'お支払い期限は <b>'+dueTxt+'</b> です。');
   }).catch(function(){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='団体予約を送信'; gCalc(); });
 }
 
