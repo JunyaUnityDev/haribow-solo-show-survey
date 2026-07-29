@@ -132,6 +132,9 @@ p:last-child{margin-bottom:0}
     <h2>いまの状況</h2>
     <div class="card" id="totals"></div>
 
+    <h2>種別でしぼる<span class="h2note" id="knote"></span></h2>
+    <div class="filterbar" id="kindbar"></div>
+
     <h2>主担当でしぼる<span class="h2note" id="fnote"></span></h2>
     <div class="filterbar" id="filterbar"></div>
 
@@ -159,6 +162,7 @@ var ENDPOINT = BASE + '?page=orgs';
 
 var DATA = null;
 var FILTER = null;   // 講師名。nullなら全部
+var KIND   = null;   // 種別（大学生団体/高校生団体/スクール）。nullなら全部
 
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -227,8 +231,37 @@ function render(){
   /* ---- 主担当フィルタ ----
      講師は1つのWSに4〜5人行くので、全員で絞ると「誰が代表に話すのか」が消える。
      1団体につき1人の主担当（WS団体_声かけ担当タブ）で絞る。 */
-  var counts = {};
+  /* ---- 種別タブ（大学生団体／高校生団体／スクール）----
+     シートのM列がそのまま出る。種別を変えたら主担当の絞りは解除する（空表示を避ける） */
+  var kOrder = ['大学生団体', '高校生団体', 'スクール'];
+  var kCounts = {};
   d.orgs.forEach(function(o){
+    var k = o.kind || '未分類';
+    kCounts[k] = (kCounts[k] || 0) + 1;
+  });
+  var kNames = Object.keys(kCounts).sort(function(a, b){
+    var ai = kOrder.indexOf(a), bi = kOrder.indexOf(b);
+    if(ai < 0) ai = 99; if(bi < 0) bi = 99;
+    if(ai !== bi) return ai - bi;
+    return a < b ? -1 : 1;
+  });
+  var kn = document.getElementById('knote');
+  if(kn) kn.textContent = '分け方はシートのM列で';
+  var kb = document.getElementById('kindbar');
+  kb.innerHTML =
+    '<button data-k="" class="' + (KIND ? '' : 'on') + '">全部<span class="n">' + d.orgs.length + '</span></button>' +
+    kNames.map(function(nm){
+      return '<button data-k="' + esc(nm) + '" class="' + (KIND === nm ? 'on' : '') + '">' +
+             esc(nm) + '<span class="n">' + kCounts[nm] + '</span></button>';
+    }).join('');
+  Array.prototype.forEach.call(kb.querySelectorAll('button'), function(b){
+    b.onclick = function(){ KIND = b.getAttribute('data-k') || null; FILTER = null; render(); };
+  });
+
+  var inKind = d.orgs.filter(function(o){ return !KIND || (o.kind || '未分類') === KIND; });
+
+  var counts = {};
+  inKind.forEach(function(o){
     if(o.owner) counts[o.owner] = (counts[o.owner] || 0) + 1;
   });
   var names = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
@@ -236,7 +269,7 @@ function render(){
   if(fn) fn.textContent = '1団体につき1人。入れ替えはシートのD列で';
   var fb = document.getElementById('filterbar');
   fb.innerHTML =
-    '<button data-i="" class="' + (FILTER ? '' : 'on') + '">全部<span class="n">' + d.orgs.length + '</span></button>' +
+    '<button data-i="" class="' + (FILTER ? '' : 'on') + '">全部<span class="n">' + inKind.length + '</span></button>' +
     names.map(function(nm){
       return '<button data-i="' + esc(nm) + '" class="' + (FILTER === nm ? 'on' : '') + '">' +
              esc(nm) + '<span class="n">' + counts[nm] + '</span></button>';
@@ -246,7 +279,7 @@ function render(){
   });
 
   /* ---- 団体一覧（WSが近い順・ブロックで区切る） ---- */
-  var list = d.orgs.filter(function(o){
+  var list = inKind.filter(function(o){
     return !FILTER || o.owner === FILTER;
   });
 
