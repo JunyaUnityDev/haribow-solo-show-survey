@@ -334,8 +334,8 @@ function render(){
       meta += '<div><span class="lbl">メモ</span>' + esc(o.ownerMemo) + '</div>';
     }
     if(o.survey.answered){
-      meta += '<div><span class="lbl">代表</span>' + esc(o.survey.rep) +
-              (o.survey.contact ? '　' + esc(o.survey.contact) : '') + '</div>';
+      // 連絡先はこのページに出さない。預かった個人情報なので、必要ならシートのN列を見る（ADR-007）
+      meta += '<div><span class="lbl">代表</span>' + esc(o.survey.rep) + '</div>';
       meta += '<div><span class="lbl">想定</span><b>' + n(o.survey.expected) + '人</b>' +
               (o.survey.price ? '　払える価格帯 ' + esc(o.survey.price) : '') + '</div>';
     }else{
