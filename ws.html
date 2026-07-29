@@ -194,7 +194,10 @@ var ENDPOINT = BASE + '?page=orgs';
 var ORG_SECRET = 'hbw-2026-org-jikwrbdrkj';
 
 var DATA = null;
+/* 主担当は覚えておく。WS直後にスマホで開く人が、毎回26団体から
+   自分を探し直さずに済むように（cast.html と同じ作り） */
 var FILTER = null;   // 講師名。nullなら全部
+try { FILTER = localStorage.getItem('hbw_ws_owner') || null; } catch(e){}
 var KIND   = null;   // 種別（大学生団体/高校生団体/スクール）。nullなら全部
 
 function esc(s){
@@ -220,8 +223,16 @@ function render(){
   var dl = d.deadline;
   document.getElementById('dday').innerHTML =
     '<small>団体受付終了まで</small>' + (dl.closed ? '終了' : dl.daysToClose + '日');
+  /* 上部は「未接触が何件あるか」より「いま自分が動く番の団体が何件あるか」を先に出す。
+     絞り込み中は絞った範囲の件数を出す（自分の担当だけ見ている時に全体の件数が出ると紛らわしい） */
+  var scope = d.orgs.filter(function(o){
+    return (!KIND || (o.kind || '未分類') === KIND) && (!FILTER || o.owner === FILTER);
+  });
+  var myTurn = scope.filter(function(o){ return o.waiting === 'こちらの番'; }).length;
+  var untouched = scope.filter(function(o){ return o.state === '未接触'; }).length;
   document.getElementById('mini').innerHTML =
-    '未接触 <b>' + d.totals.untouched + '</b> / ' + d.totals.orgs + '団体';
+    (myTurn ? 'こちらの番 <b>' + myTurn + '</b>件　' : '') +
+    '未接触 <b>' + untouched + '</b> / ' + scope.length + '団体';
 
   document.getElementById('deadline').innerHTML =
     '<div class="deadline">' +
@@ -288,7 +299,12 @@ function render(){
              esc(nm) + '<span class="n">' + kCounts[nm] + '</span></button>';
     }).join('');
   Array.prototype.forEach.call(kb.querySelectorAll('button'), function(b){
-    b.onclick = function(){ KIND = b.getAttribute('data-k') || null; FILTER = null; render(); };
+    b.onclick = function(){
+      KIND = b.getAttribute('data-k') || null;
+      FILTER = null;
+      try { localStorage.removeItem('hbw_ws_owner'); }catch(e){}
+      render();
+    };
   });
 
   var inKind = d.orgs.filter(function(o){ return !KIND || (o.kind || '未分類') === KIND; });
@@ -308,12 +324,24 @@ function render(){
              esc(nm) + '<span class="n">' + counts[nm] + '</span></button>';
     }).join('');
   Array.prototype.forEach.call(fb.querySelectorAll('button'), function(b){
-    b.onclick = function(){ FILTER = b.getAttribute('data-i') || null; render(); };
+    b.onclick = function(){
+      FILTER = b.getAttribute('data-i') || null;
+      try { FILTER ? localStorage.setItem('hbw_ws_owner', FILTER) : localStorage.removeItem('hbw_ws_owner'); }catch(e){}
+      render();
+    };
   });
 
   /* ---- 団体一覧（WSが近い順・ブロックで区切る） ---- */
   var list = inKind.filter(function(o){
     return !FILTER || o.owner === FILTER;
+  });
+
+  /* 「こちらの番」＝相手からボールが返ってきていて、次に動くのがこちらの団体。
+     WSの日程やチャネルより先に見せる。ここが今日やることになる（ADR-007）。 */
+  list.sort(function(a, b){
+    var aw = (a.waiting === 'こちらの番') ? 0 : 1;
+    var bw = (b.waiting === 'こちらの番') ? 0 : 1;
+    return aw - bw;
   });
 
   var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -322,13 +350,15 @@ function render(){
     var ws = o.ws;
     var past = ws && new Date(ws.date.replace(/\//g, '-')) < today;
     var block;
-    if(o.channel && o.channel !== 'WS') block = o.channel;
+    if(o.waiting === 'こちらの番')      block = '今日やること';
+    else if(o.channel && o.channel !== 'WS') block = o.channel;
     else if(!ws)          block = 'WS日程が未定';
     else if(past)         block = 'WS実施ずみ';
     else if(ws.afterClose) block = 'WSが受付終了より後';
     else                  block = 'これから会える';
     if(block !== lastBlock){
-      var note = block === 'これから会える'   ? '対面で話せる回が残っています'
+      var note = block === '今日やること'     ? '相手からボールが返っています。次に動くのはこちらです'
+               : block === 'これから会える'   ? '対面で話せる回が残っています'
                : block === 'WS実施ずみ'      ? 'WSは終わっているので、連絡は別経路になります'
                : block === 'WSが受付終了より後' ? 'WSの時点で団体申し込みは閉じています'
                : block === 'WS日程が未定'    ? '日程が決まっていません'
