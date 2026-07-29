@@ -256,7 +256,8 @@ function render(){
     var ws = o.ws;
     var past = ws && new Date(ws.date.replace(/\//g, '-')) < today;
     var block;
-    if(!ws)               block = 'WS日程が未定';
+    if(o.channel && o.channel !== 'WS') block = o.channel;
+    else if(!ws)          block = 'WS日程が未定';
     else if(past)         block = 'WS実施ずみ';
     else if(ws.afterClose) block = 'WSが受付終了より後';
     else                  block = 'これから会える';
@@ -264,7 +265,9 @@ function render(){
       var note = block === 'これから会える'   ? '対面で話せる回が残っています'
                : block === 'WS実施ずみ'      ? 'WSは終わっているので、連絡は別経路になります'
                : block === 'WSが受付終了より後' ? 'WSの時点で団体申し込みは閉じています'
-               : '日程が決まっていません';
+               : block === 'WS日程が未定'    ? '日程が決まっていません'
+               : block === 'スクール'        ? 'WSツアーの対象外。主担当から直接連絡する相手です'
+               : '';
       html += '<div class="block">' + esc(block) + '<span>' + esc(note) + '</span></div>';
       lastBlock = block;
     }
