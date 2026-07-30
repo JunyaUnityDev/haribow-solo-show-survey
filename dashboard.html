@@ -429,13 +429,14 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
          スクロールせずに掴めるようにする。詳細は下の折りたたみに入れる。 -->
     <div class="now" id="nowStrip"></div>
     <div class="next" id="nextActions"></div>
+
+    <!-- 座席図は畳まない。席の埋まり具合は毎回見るものなので、
+         クリックしないと見えない場所に置いてはいけない（2026-07-30 坂田指示）。 -->
+    <h2>客席の埋まり具合</h2>
+    <div id="hero"></div>
+
     <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
     <div id="decisionBoard"></div>
-
-    <details class="sec"><summary>客席の埋まり具合（座席図）</summary>
-    <h2>いま、この公演はどうなっているか</h2>
-    <div id="hero"></div>
-    </details>
 
     <details class="sec"><summary>わからないことを聞く<span class="secnote">決定事項とWBSから答えます</span></summary>
     <div class="card ask">
