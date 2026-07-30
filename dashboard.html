@@ -106,6 +106,15 @@ details.sec[open]>summary{color:var(--cream)}
 details.sec>summary .secnote{margin-left:auto;font-size:10.5px;color:var(--faint);font-weight:600}
 details.sec h2{margin-top:6px}
 
+/* 座席図の下にぶら下がる「黒字ラインと必要ペース」。既定で畳む */
+details.herodetail{margin-top:12px;border-top:1px solid var(--line)}
+details.herodetail>summary{list-style:none;cursor:pointer;padding:10px 2px 4px;font-size:11.5px;
+  font-weight:800;color:var(--dim);display:flex;align-items:center;gap:8px;user-select:none;letter-spacing:.04em}
+details.herodetail>summary::-webkit-details-marker{display:none}
+details.herodetail>summary::before{content:"+";color:var(--teal);font-weight:800;font-size:13px;width:11px}
+details.herodetail[open]>summary::before{content:"−"}
+details.herodetail[open]>summary{color:var(--cream)}
+
 /* ---------- 出演者の動き（催促の材料） ---------- */
 .refresh{margin:0 0 0 12px;vertical-align:-1px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
   border-radius:8px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
@@ -205,7 +214,7 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
   font-size:12.5px;color:#f0c9c4;line-height:1.55}
 .truthline b{color:#fff}
 
-.kpi2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kpi2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .kpi2 .k{font-size:10px;letter-spacing:.09em;color:var(--faint);font-weight:700;text-transform:uppercase}
 .kpi2 .v{font-size:18px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
 .kpi2 .v span{font-size:11.5px;font-weight:600;color:var(--faint)}
@@ -434,12 +443,15 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
     <!-- ★1画面目で完結させる欄。開いた人が「全貌」「次に考えること」「次にすること」を
          スクロールせずに掴めるようにする。詳細は下の折りたたみに入れる。 -->
     <div class="now" id="nowStrip"></div>
-    <div class="next" id="nextActions"></div>
 
-    <!-- 座席図は畳まない。席の埋まり具合は毎回見るものなので、
-         クリックしないと見えない場所に置いてはいけない（2026-07-30 坂田指示）。 -->
+    <!-- 座席図は畳まないし、「次にすべきこと」より先に置く。
+         数字 → 客席の絵 → やること、の順が一番速く頭に入る。
+         席の埋まり具合は毎回見るものなので、クリックしないと見えない場所にも、
+         スクロールしないと見えない場所にも置いてはいけない（2026-07-30 坂田指示）。 -->
     <h2 class="tight-h2">客席の埋まり具合</h2>
     <div id="hero"></div>
+
+    <div class="next" id="nextActions"></div>
 
     <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
     <div id="decisionBoard"></div>
@@ -1112,18 +1124,23 @@ function renderHero(b){
         ((s.byArea&&s.byArea['個人'])?s.byArea['個人'].sellable:'—')+'席＋団体'+
         ((s.byArea&&s.byArea['団体'])?s.byArea['団体'].sellable:'—')+'席）／非売席・補欠は含みません</p>'
     :'')+
-    scaleHtml+
-    paceHtml+
-    truth+
-    '<div class="hero-links">'+
-      (b.simulatorUrl?'<a href="'+esc(b.simulatorUrl)+'" target="_blank" rel="noopener">集客収支シミュレーター →</a>':'')+
-      (b.budgetUrl?'<a href="'+esc(b.budgetUrl)+'" target="_blank" rel="noopener">予算の内訳 →</a>':'')+
-      '<a href="'+TICKET_URL+'" target="_blank" rel="noopener">チケット販売ページ →</a>'+
-    '</div>'+
-  '</div>'+
-  '<div class="card kpi2">'+
-    '<div><div class="k">申込み</div><div class="v">'+num(a.ticketQty)+'枚 <span>（'+num(a.orderCount)+'件）</span></div></div>'+
-    '<div><div class="k">売上（うち入金済）</div><div class="v">'+num(a.revenueTotal)+'円 <span>（'+num(a.revenueConfirmed)+'円）</span></div></div>'+
+    /* 座席図の下の数字（黒字ラインまでのスケール・必要ペース・収支）は畳む。
+       毎回見るのは客席の絵で、ここは「気になったとき」に開くもの。
+       開いたままだと「次にすべきこと」が1画面目から落ちる。 */
+    '<details class="herodetail"><summary>黒字ラインと必要ペース</summary>'+
+      scaleHtml+
+      paceHtml+
+      truth+
+      '<div class="kpi2">'+
+        '<div><div class="k">申込み</div><div class="v">'+num(a.ticketQty)+'枚 <span>（'+num(a.orderCount)+'件）</span></div></div>'+
+        '<div><div class="k">売上（うち入金済）</div><div class="v">'+num(a.revenueTotal)+'円 <span>（'+num(a.revenueConfirmed)+'円）</span></div></div>'+
+      '</div>'+
+      '<div class="hero-links">'+
+        (b.simulatorUrl?'<a href="'+esc(b.simulatorUrl)+'" target="_blank" rel="noopener">集客収支シミュレーター →</a>':'')+
+        (b.budgetUrl?'<a href="'+esc(b.budgetUrl)+'" target="_blank" rel="noopener">予算の内訳 →</a>':'')+
+        '<a href="'+TICKET_URL+'" target="_blank" rel="noopener">チケット販売ページ →</a>'+
+      '</div>'+
+    '</details>'+
   '</div>';
 }
 
