@@ -69,6 +69,19 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
   font-size:13.5px;line-height:1.85;white-space:pre-wrap}
 .askans.err{color:var(--amber)}
 
+/* ---------- 出演者の動き（催促の材料） ---------- */
+.cm-sum{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--dim);margin-bottom:12px}
+.cm-sum b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums}
+.cm-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.cm{width:100%;border-collapse:collapse;font-size:12.5px}
+table.cm th,table.cm td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+table.cm th{color:var(--faint);font-size:11px;font-weight:700}
+table.cm td.n,table.cm th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.cm td small{color:var(--faint);font-size:10.5px;margin-left:3px}
+/* まだ0の人を沈ませず、むしろ目立たせる（催促対象なので） */
+table.cm tr.cm-zero td{color:var(--ink)}
+table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-weight:800;font-size:10.5px}
+
 /* ---------- 運用ルール（畳んで置く参照資料） ----------
    ダッシュボードが答えるのは「いま、どうなってる？」。ルールが答えるのは「どう動くか」。
    別の問いなので5つの問い（客席/ヤバさ/前進/持ち場/詰まり）の下に畳んで置く。
@@ -412,6 +425,13 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 
     <h2>担当者別<span class="h2note" id="personNote"></span></h2>
     <div id="byPerson"></div>
+
+    <!-- 出演者が実際にどれだけ配ってくれているか。催促に回るための欄。
+         動いていない人を上に出す（催促する相手がそこなので）。
+         数字は本人が cast.html で入れた自己申告。入れていない人は動いていても0に見えるため、
+         催促するときは「数を入れて」と「声をかけて」を分けて言う必要がある。 -->
+    <h2>出演者の動き<span class="h2note" id="castNote"></span></h2>
+    <div class="card" id="castMove"></div>
 
     <h2>決まったこと</h2>
     <div class="card" id="decisions"></div>
@@ -1314,6 +1334,55 @@ function renderDeadlines(rows){
 }
 
 /* ============================================================ ⑧ 決まったこと */
+/* 出演者の動き。?page=cast をそのまま使う（金額を含まない出演者向けAPI）。
+   ダッシュボードは運営用なので、そこに人数を並べて催促の材料にする。
+   ★動いていない人を上に出す。並べ替えの基準を「実績が少ない順」にしている。 */
+function renderCastMove(){
+  var box = document.getElementById('castMove');
+  var note = document.getElementById('castNote');
+  fetch(BASE + '?page=cast').then(function(r){ return r.json(); }).then(function(d){
+    var people = (d.people||[]).slice();
+    if(!people.length){ box.innerHTML='<p class="muted">出演者のデータが取れませんでした。</p>'; return; }
+    var t = d.totals || {};
+    var moved = people.filter(function(p){ return p.sent||p.replied||p.bought; }).length;
+    note.textContent = moved + ' / ' + people.length + '名が動いた';
+
+    /* 実績の合計が少ない順。同点なら自己申告が多い順（＝動いてほしい度が高い人を上に） */
+    people.sort(function(a,b){
+      var sa=(a.sent||0)+(a.replied||0)+(a.bought||0), sb=(b.sent||0)+(b.replied||0)+(b.bought||0);
+      if(sa!==sb) return sa-sb;
+      return (b.target||0)-(a.target||0);
+    });
+
+    var head = '<div class="cm-sum">'
+      + '<span>動いた <b>'+moved+'</b> / '+people.length+'名</span>'
+      + '<span>声かけ <b>'+(t.sent||0)+'</b></span>'
+      + '<span>返事 <b>'+(t.replied||0)+'</b></span>'
+      + '<span>購入 <b>'+(t.bought||0)+'</b></span>'
+      + '<span>自己申告 合計 '+(t.target||0)+'人</span></div>';
+
+    var rows = people.map(function(p){
+      var sum=(p.sent||0)+(p.replied||0)+(p.bought||0);
+      return '<tr class="'+(sum?'':'cm-zero')+'">'
+        + '<td>'+esc(p.name)+'</td>'
+        + '<td class="n">'+(p.target||0)+(p.sns?'<small>+SNS'+p.sns+'</small>':'')+'</td>'
+        + '<td class="n">'+(p.sent||0)+'</td>'
+        + '<td class="n">'+(p.replied||0)+'</td>'
+        + '<td class="n"><b>'+(p.bought||0)+'</b></td>'
+        + '</tr>';
+    }).join('');
+
+    box.innerHTML = head
+      + '<div class="cm-scroll"><table class="cm">'
+      + '<tr><th>氏名</th><th class="n">自己申告</th><th class="n">声かけ</th><th class="n">返事</th><th class="n">購入</th></tr>'
+      + rows + '</table></div>'
+      + '<p class="muted" style="margin-top:10px">数字は本人が出演者ページで入れた自己申告です。'
+      + '入れていない人は、動いていても0に見えます。催促するときは「数を入れて」と「声をかけて」を分けて伝えてください。</p>';
+  }).catch(function(e){
+    box.innerHTML = '<p class="muted">出演者のデータの読み込みに失敗しました：'+esc(String(e))+'</p>';
+  });
+}
+
 function renderDecisions(decisions){
   var list=(decisions||[]).slice(0,8);
   document.getElementById('decisions').innerHTML = list.length
@@ -1355,6 +1424,7 @@ function load(){
     renderPhases(rows);
     renderDeadlines(rows);
     renderEpics(rows);
+    renderCastMove();
     renderDecisions(data.decisions);
     renderOwnerViews();
   }).catch(function(e){
