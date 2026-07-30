@@ -70,6 +70,10 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
 .askans.err{color:var(--amber)}
 
 /* ---------- 出演者の動き（催促の材料） ---------- */
+.refresh{margin-top:8px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+  border-radius:8px;padding:6px 14px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.refresh:hover{border-color:var(--teal)}
+.refnote{margin-left:10px;font-size:10.5px;color:var(--faint)}
 .cm-sum{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--dim);margin-bottom:12px}
 .cm-sum b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums}
 .cm-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -1337,10 +1341,13 @@ function renderDeadlines(rows){
 /* 出演者の動き。?page=cast をそのまま使う（金額を含まない出演者向けAPI）。
    ダッシュボードは運営用なので、そこに人数を並べて催促の材料にする。
    ★動いていない人を上に出す。並べ替えの基準を「実績が少ない順」にしている。 */
-function renderCastMove(){
+function renderCastMove(pCast){
   var box = document.getElementById('castMove');
   var note = document.getElementById('castNote');
-  fetch(BASE + '?page=cast').then(function(r){ return r.json(); }).then(function(d){
+  /* 引数で渡された Promise を使う（load() が dashboard と同時に投げたもの）。
+     ここで新たに fetch すると直列に戻ってしまう。 */
+  (pCast || fetch(apiUrl('cast')).then(function(r){ return r.json(); })).then(function(d){
+    if(!d){ box.innerHTML='<p class="muted">出演者のデータが取れませんでした。</p>'; return; }
     var people = (d.people||[]).slice();
     if(!people.length){ box.innerHTML='<p class="muted">出演者のデータが取れませんでした。</p>'; return; }
     var t = d.totals || {};
@@ -1398,17 +1405,36 @@ function renderDecisions(decisions){
     : '<p class="muted">決定事項一覧シートにまだ記録がありません。</p>';
 }
 
-/* ==================================================================== 読み込み */
+/* ==================================================================== 読み込み
+ *  ★2つのAPIを必ず同時に投げる。
+ *    以前は page=dashboard の完了を待ってから page=cast を呼んでいたため、
+ *    それぞれ数秒かかる分がそのまま足し算になっていた（実測で合計10秒超）。
+ *  ★fresh=1 を付けるとサーバー側のキャッシュを素通りする。
+ *    キャッシュはGAS側にあるので、ブラウザのリロードだけでは新しくならない。 */
+var FRESH = false;
+
+function apiUrl(page){
+  return BASE + '?page=' + page + (FRESH ? '&fresh=1' : '') + '&_=' + Date.now();
+}
+
 function load(){
-  fetch(ENDPOINT).then(function(r){ return r.json(); }).then(function(data){
+  var head = document.getElementById('updated');
+  if(head) head.textContent = FRESH ? '最新を取得しています…' : '読み込み中…';
+  // 同時に投げる。cast は dashboard の完了を待たない
+  var pCast = fetch(apiUrl('cast')).then(function(r){ return r.json(); }).catch(function(){ return null; });
+  fetch(apiUrl('dashboard')).then(function(r){ return r.json(); }).then(function(data){
+    renderCastMove(pCast);
     latestData=data;
     var rows=data.rows.filter(function(r){ return r['プロジェクト名']; });
     window.__rows=rows;
     window.__rowsByIdx={};
     rows.forEach(function(r){ window.__rowsByIdx[r['_row']]=r; });
 
-    document.getElementById('updated').textContent=
-      '最終更新 '+data.updatedAt+'　／　ステータス・責任者・内容はこの画面から直接シートに反映されます';
+    document.getElementById('updated').innerHTML=
+      '最終更新 '+esc(data.updatedAt)+'　／　ステータス・責任者・内容はこの画面から直接シートに反映されます'
+      + '<br><button class="refresh" onclick="reloadFresh()">最新を取得</button>'
+      + '<span class="refnote">スプレッドシートを直接編集した場合は、これを押すか60秒待つと反映されます</span>';
+    FRESH = false;
 
     /* 責任者の候補は実データから作る（名簿の手書き固定をやめる） */
     var names={};
@@ -1431,6 +1457,9 @@ function load(){
     document.getElementById('content').innerHTML='<div class="err">読み込みに失敗しました：'+e+'</div>';
   });
 }
+/* キャッシュを素通りして取り直す。画面の「最新を取得」から呼ぶ */
+function reloadFresh(){ FRESH = true; load(); }
+
 load();
 </script>
 </body>
