@@ -23,18 +23,19 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .wrap{max-width:820px;margin:0 auto;padding:0 16px 90px}
 
 /* ---------- ヘッダー ---------- */
-.top{padding:20px 0 6px}
+.top{padding:16px 0 0;display:flex;align-items:center;gap:14px}
+.topText{min-width:0}
 /* ロゴは Go Beyond の正式ロゴ（cream+teal）。下部の「HARIBOW」が濃色のため、
    暗い背景に直置きすると消える。明るいプレートに載せて全要素を読ませる。 */
 .logomark{display:inline-flex;align-items:center;justify-content:center;
   background:linear-gradient(180deg,#fbf9f3,#efeadc);border-radius:12px;
   box-shadow:0 6px 20px rgba(0,0,0,.35);overflow:hidden}
 /* PNG自体が余白を持っているのでプレート側のpaddingは足さない */
-.logomark img{height:78px;width:78px;display:block}
-.eyebrow{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:16px 0 6px}
-h1{font-size:23px;font-weight:800;margin:0 0 3px;letter-spacing:.02em}
-.venue{color:var(--dim);font-size:12.5px;margin:0}
-.updated{color:var(--faint);font-size:11px;margin:10px 0 0;line-height:1.5}
+.logomark img{height:54px;width:54px;display:block}
+.eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 3px}
+h1{font-size:21px;font-weight:800;margin:0 0 2px;letter-spacing:.02em}
+.venue{color:var(--dim);font-size:12px;margin:0}
+.updated{color:var(--faint);font-size:11px;margin:8px 0 0;line-height:1.5}
 
 .sticky{position:sticky;top:0;z-index:30;background:rgba(10,11,14,.86);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);margin:14px -16px 0;padding:9px 16px;
@@ -105,8 +106,8 @@ details.sec>summary .secnote{margin-left:auto;font-size:10.5px;color:var(--faint
 details.sec h2{margin-top:6px}
 
 /* ---------- 出演者の動き（催促の材料） ---------- */
-.refresh{margin-top:8px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
-  border-radius:8px;padding:6px 14px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.refresh{margin:0 0 0 12px;vertical-align:-1px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+  border-radius:8px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
 .refresh:hover{border-color:var(--teal)}
 .refnote{margin-left:10px;font-size:10.5px;color:var(--faint)}
 .cm-sum{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--dim);margin-bottom:12px}
@@ -409,13 +410,17 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
 <body>
 <div class="wrap">
 
+  <!-- ヘッダーは1行に畳む。ここが縦に伸びるとぶんだけ、数字と座席図が
+       最初の画面から押し出される（2026-07-30 坂田指示）。 -->
   <div class="top">
     <span class="logomark"><img src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go Beyond"></span>
-    <p class="eyebrow">Solo Show 2026 — Ops</p>
-    <h1>GO BEYOND ／ 進捗ダッシュボード</h1>
-    <p class="venue">2026.9.29（火）夜　めぐろパーシモンホール 大ホール</p>
-    <p class="updated" id="updated">読み込み中…</p>
+    <div class="topText">
+      <p class="eyebrow">Solo Show 2026 — Ops</p>
+      <h1>GO BEYOND ／ 進捗ダッシュボード</h1>
+      <p class="venue">2026.9.29（火）夜　めぐろパーシモンホール 大ホール</p>
+    </div>
   </div>
+  <p class="updated" id="updated">読み込み中…</p>
 
   <div class="sticky">
     <div class="dday" id="dday"><small>本番まで</small>—</div>
@@ -1095,13 +1100,10 @@ function renderHero(b){
   }
 
   el.innerHTML=
+  /* 「実際に売れた席 25/566」の大見出しはここには出さない。
+     画面上部の数字カード（nowStrip）と同じ内容で、座席図を1画面ぶん下に
+     押し下げるだけだった（2026-07-30 坂田指示で座席図を最優先に）。 */
   '<div class="hero">'+
-    '<p class="hero-lead">実際に売れた席</p>'+
-    '<p class="hero-big">'+taken+(hasSeats?'<span class="unit">/ '+sellable+'席</span>':'<span class="unit">席</span>')+'</p>'+
-    '<p class="hero-sub">'+
-      (hasGoal?'黒字ラインは <b>'+num(need)+'人</b>です。':'')+
-      (hasSeats?'　いま埋まっているのは <b>'+(Math.round(taken/sellable*1000)/10)+'%</b>です。':'')+
-    '</p>'+
     (seatmap?
       '<div class="stage"><div class="stage-bar"></div><div class="stage-label">Stage</div></div>'+
       '<div class="seatmap">'+seatmap+'</div>'+
@@ -1549,7 +1551,8 @@ function renderNext(rows, orgs, castPeople){
   });
 
   items.sort(function(a,b){ return a.w-b.w; });
-  var shown = items.slice(0,8);
+  /* 6件までにする。ここを増やすと座席図が最初の画面から落ちる。 */
+  var shown = items.slice(0,6);
   if(!shown.length){
     box.innerHTML = '<div class="next-head">次にすべきこと</div>'
       + '<p class="muted" style="margin:0">期限切れも担当未定もありません。</p>';
@@ -1601,9 +1604,9 @@ function load(){
     rows.forEach(function(r){ window.__rowsByIdx[r['_row']]=r; });
 
     document.getElementById('updated').innerHTML=
-      '最終更新 '+esc(data.updatedAt)+'　／　ステータス・責任者・内容はこの画面から直接シートに反映されます'
-      + '<br><button class="refresh" onclick="reloadFresh()">最新を取得</button>'
-      + '<span class="refnote">スプレッドシートを直接編集した場合は、これを押すか60秒待つと反映されます</span>';
+      '最終更新 '+esc(data.updatedAt)
+      + '<button class="refresh" onclick="reloadFresh()">最新を取得</button>'
+      + '<span class="refnote">この画面から直接シートに書き戻せます。シートを直接編集した場合は、これを押すか60秒待つと反映されます</span>';
     FRESH = false;
 
     /* 責任者の候補は実データから作る（名簿の手書き固定をやめる） */
