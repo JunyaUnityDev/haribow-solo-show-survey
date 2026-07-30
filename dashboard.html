@@ -69,6 +69,41 @@ h2 .h2note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;ma
   font-size:13.5px;line-height:1.85;white-space:pre-wrap}
 .askans.err{color:var(--amber)}
 
+/* ---------- 1画面目：全貌（nowStrip）と次にすべきこと（nextActions） ----------
+   スクロールせずに掴めることを最優先にする。ここに入るのは「動く理由があるもの」だけ。 */
+.now{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin:0 0 10px}
+.nw{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.nw.warn{border-color:rgba(200,67,58,.45);background:linear-gradient(180deg,rgba(200,67,58,.08),var(--panel))}
+.nw-l{font-size:10.5px;color:var(--faint);letter-spacing:.04em;font-weight:700}
+.nw-v{font-size:24px;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums;margin-top:2px}
+.nw-v small{font-size:12px;color:var(--dim);font-weight:600;margin-left:1px}
+.nw-s{font-size:10.5px;color:var(--dim);margin-top:1px}
+
+.next{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 15px;margin-bottom:14px}
+.next-head{font-size:12.5px;font-weight:800;color:var(--cream);margin-bottom:9px;display:flex;align-items:center;gap:9px}
+.next-n{margin-left:auto;font-size:10.5px;color:var(--faint);font-weight:600}
+.nx{display:flex;gap:9px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.nx:last-child{border-bottom:none}
+.nx-t{flex:0 0 auto;font-size:10px;font-weight:800;border-radius:5px;padding:2px 6px;letter-spacing:.03em}
+.t-超過{background:rgba(200,67,58,.18);color:#e98078}
+.t-期限{background:rgba(192,143,74,.18);color:#d8ab6a}
+.t-団体{background:rgba(99,182,204,.16);color:var(--teal)}
+.t-出演者{background:rgba(107,165,131,.16);color:#8cc4a4}
+.t-担当{background:rgba(255,255,255,.07);color:var(--dim)}
+.nx-w{flex:0 0 auto;color:var(--dim);font-weight:700;min-width:5.5em}
+.nx-b{color:var(--ink);line-height:1.55}
+
+/* ---------- 詳細セクション（既定で畳む） ---------- */
+details.sec{border-top:1px solid var(--line);margin-top:2px}
+details.sec>summary{list-style:none;cursor:pointer;padding:15px 2px;font-size:12.5px;font-weight:800;
+  color:var(--dim);display:flex;align-items:center;gap:9px;user-select:none;letter-spacing:.04em}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::before{content:"+";color:var(--teal);font-weight:800;font-size:14px;width:12px}
+details.sec[open]>summary::before{content:"−"}
+details.sec[open]>summary{color:var(--cream)}
+details.sec>summary .secnote{margin-left:auto;font-size:10.5px;color:var(--faint);font-weight:600}
+details.sec h2{margin-top:6px}
+
 /* ---------- 出演者の動き（催促の材料） ---------- */
 .refresh{margin-top:8px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
   border-radius:8px;padding:6px 14px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
@@ -392,6 +427,11 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
     <h2>いま、この公演はどうなっているか</h2>
     <div id="hero"></div>
 
+    <!-- ★1画面目で完結させる欄。開いた人が「全貌」「次に考えること」「次にすること」を
+         スクロールせずに掴めるようにする。詳細は下の折りたたみに入れる。 -->
+    <div class="now" id="nowStrip"></div>
+    <div class="next" id="nextActions"></div>
+
     <h2>わからないことを聞く<span class="h2note">決定事項とWBSから答えます</span></h2>
     <div class="card ask">
       <textarea id="askInput" placeholder="例）サポーター券の締切はいつ？　なぜその日？"></textarea>
@@ -405,40 +445,67 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
     <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
     <div id="decisionBoard"></div>
 
+    <details class="sec"><summary>自分の持ち場を絞る</summary>
     <h2>あなたの持ち場<span class="h2note">名前を押すと自分のタスクだけになります</span></h2>
     <div class="ownerbar" id="ownerbar"></div>
     <div id="mine"></div>
 
+    </details>
+
+    <details class="sec"><summary>今週なにが動いたか<span class="secnote">直近7日</span></summary>
     <h2>今週なにが動いたか<span class="h2note">直近7日</span></h2>
     <div class="card" id="wins"></div>
 
     <h2 class="jam-h2">止まっているもの</h2>
     <div id="jam"></div>
 
+    </details>
+
+    <details class="sec"><summary>フェーズごとの進み具合</summary>
     <h2>フェーズごとの進み具合</h2>
     <div class="card" id="phases"></div>
 
+    </details>
+
+    <details class="sec"><summary>これから2週間の期限（全部）</summary>
     <h2>これから2週間の期限</h2>
     <div class="card" id="deadlines"></div>
 
+    </details>
+
+    <details class="sec"><summary>演目<span class="secnote">タップで内訳・編集</span></summary>
     <h2>演目<span class="h2note">タップで内訳・編集</span></h2>
     <div id="performances"></div>
 
+    </details>
+
+    <details class="sec"><summary>そのほかのプロジェクト</summary>
     <h2>そのほかのプロジェクト</h2>
     <div id="epics"></div>
 
+    </details>
+
+    <details class="sec"><summary>担当者別</summary>
     <h2>担当者別<span class="h2note" id="personNote"></span></h2>
     <div id="byPerson"></div>
+
+    </details>
 
     <!-- 出演者が実際にどれだけ配ってくれているか。催促に回るための欄。
          動いていない人を上に出す（催促する相手がそこなので）。
          数字は本人が cast.html で入れた自己申告。入れていない人は動いていても0に見えるため、
          催促するときは「数を入れて」と「声をかけて」を分けて言う必要がある。 -->
+    <details class="sec"><summary>出演者の動き（31名の一覧）</summary>
     <h2>出演者の動き<span class="h2note" id="castNote"></span></h2>
     <div class="card" id="castMove"></div>
 
+    </details>
+
+    <details class="sec"><summary>決まったこと</summary>
     <h2>決まったこと</h2>
     <div class="card" id="decisions"></div>
+
+    </details>
 
     <!-- 運用ルール。畳んだ状態が既定。上の5つの問い（客席/ヤバさ/前進/持ち場/詰まり）を邪魔しない。
          内容は decisions/ADR-008_payment-and-reminder-rules.md と同一（口座番号のみ除外）。
@@ -1405,6 +1472,93 @@ function renderDecisions(decisions){
     : '<p class="muted">決定事項一覧シートにまだ記録がありません。</p>';
 }
 
+
+/* ==================================================================== 1画面目
+ *  開いた人が、スクロールせずに次の3つを掴めるようにする。
+ *    ① 全貌      … 客席・不足人数・団体・出演者を1行に並べる
+ *    ② 次に考えること … 決めなくてはならないこと（既存のdecisionBoardが担当）
+ *    ③ 次にすること  … 期限超過・今週の期限・止まっている持ち場を1つのリストにする
+ *  ★ここに出すのは「動く理由があるもの」だけ。眺めて終わる情報は下の折りたたみへ。 */
+function renderNow(data, orgs, cast){
+  var b = (data && data.business) || {};
+  var f = b.forecast || {}, seats = b.seats || {}, act = b.actual || {};
+  var box = document.getElementById('nowStrip');
+  var cell = function(label, val, sub, warn){
+    return '<div class="nw'+(warn?' warn':'')+'"><div class="nw-l">'+label+'</div>'
+      + '<div class="nw-v">'+val+'</div>'
+      + (sub?'<div class="nw-s">'+sub+'</div>':'') + '</div>';
+  };
+  var short = Math.max(0, Math.round(f.shortfall||0));
+  var html = ''
+    + cell('売れた席', (seats.taken||0)+'<small>/'+(seats.sellable||0)+'</small>',
+           '¥'+Number(act.revenueTotal||0).toLocaleString())
+    + cell('黒字まで', short+'<small>人</small>',
+           '必要 '+Math.round(f.requiredAttendance||0)+'人', short>0)
+    + cell('団体の打診', (orgs?orgs.contacted:0)+'<small>/'+(orgs?orgs.total:0)+'</small>',
+           orgs?('受付終了まで'+orgs.daysToClose+'日'):'', orgs && orgs.contacted===0)
+    + cell('出演者の動き', (cast?cast.moved:0)+'<small>/'+(cast?cast.people:0)+'名</small>',
+           cast?('購入 '+cast.bought+'枚'):'', cast && cast.moved===0)
+    + cell('配信の希望', orgs?(orgs.streamPeople+'<small>人</small>'):'—',
+           orgs?(orgs.streamSeats+'枚ぶん・未販売'):'');
+  box.innerHTML = html;
+}
+
+/* 次にすべきこと。理由の重い順に並べて、多くても8件に絞る。 */
+function renderNext(rows, orgs, castPeople){
+  var box = document.getElementById('nextActions');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var items = [];
+
+  // 期限超過（未完了）
+  rows.forEach(function(r){
+    var st = String(r['ステータス']||'');
+    if(st==='完了' || st==='中止') return;
+    var d = parseDate(r['期限']); if(!d) return;
+    var diff = Math.round((d-today)/86400000);
+    if(diff < 0) items.push({w:0, who:r['責任者']||'担当未定',
+      what:'期限を'+(-diff)+'日過ぎ：'+String(r['タスク名']||''), tag:'超過'});
+    else if(diff <= 3) items.push({w:2, who:r['責任者']||'担当未定',
+      what:(diff===0?'今日':'あと'+diff+'日')+'：'+String(r['タスク名']||''), tag:'期限'});
+  });
+
+  // WSが近いのに打診していない団体
+  (orgs && orgs.soon ? orgs.soon : []).forEach(function(o){
+    items.push({w:1, who:o.owner||'担当未定',
+      what:'WSまであと'+o.days+'日、まだ打診していない：'+o.name, tag:'団体'});
+  });
+
+  // 自己申告が大きいのに動いていない出演者（上位3人だけ）
+  (castPeople||[]).filter(function(p){
+    return (p.target||0) >= 10 && !(p.sent||p.replied||p.bought);
+  }).sort(function(a,b){ return (b.target||0)-(a.target||0); }).slice(0,3)
+   .forEach(function(p){
+    items.push({w:3, who:p.name, what:'持ち場'+p.target+'人がまだ0件', tag:'出演者'});
+  });
+
+  // 担当が決まっていないタスク
+  rows.forEach(function(r){
+    var st = String(r['ステータス']||'');
+    if(st==='完了' || st==='中止') return;
+    if(!String(r['責任者']||'').trim())
+      items.push({w:4, who:'担当未定', what:String(r['タスク名']||''), tag:'担当'});
+  });
+
+  items.sort(function(a,b){ return a.w-b.w; });
+  var shown = items.slice(0,8);
+  if(!shown.length){
+    box.innerHTML = '<div class="next-head">次にすべきこと</div>'
+      + '<p class="muted" style="margin:0">期限切れも担当未定もありません。</p>';
+    return;
+  }
+  box.innerHTML = '<div class="next-head">次にすべきこと'
+      + '<span class="next-n">'+items.length+'件のうち上から'+shown.length+'件</span></div>'
+      + shown.map(function(i){
+          return '<div class="nx"><span class="nx-t t-'+i.tag+'">'+i.tag+'</span>'
+            + '<span class="nx-w">'+esc(i.who)+'</span>'
+            + '<span class="nx-b">'+esc(i.what)+'</span></div>';
+        }).join('');
+}
+
 /* ==================================================================== 読み込み
  *  ★2つのAPIを必ず同時に投げる。
  *    以前は page=dashboard の完了を待ってから page=cast を呼んでいたため、
@@ -1422,9 +1576,20 @@ function load(){
   if(head) head.textContent = FRESH ? '最新を取得しています…' : '読み込み中…';
   // 同時に投げる。cast は dashboard の完了を待たない
   var pCast = fetch(apiUrl('cast')).then(function(r){ return r.json(); }).catch(function(){ return null; });
+  var pOrgs = fetch(apiUrl('orgstats')).then(function(r){ return r.json(); }).catch(function(){ return null; });
   fetch(apiUrl('dashboard')).then(function(r){ return r.json(); }).then(function(data){
     renderCastMove(pCast);
     latestData=data;
+    /* 1画面目は cast と orgstats が揃ってから描く。どちらか失敗しても残りは出す */
+    Promise.all([pCast, pOrgs]).then(function(res){
+      var c = res[0], o = res[1];
+      var people = (c && c.people) || [];
+      var moved = people.filter(function(p){ return p.sent||p.replied||p.bought; }).length;
+      var cs = c ? { moved:moved, people:people.length,
+                     bought:(c.totals&&c.totals.bought)||0 } : null;
+      renderNow(data, o, cs);
+      renderNext(window.__rows||[], o, people);
+    });
     var rows=data.rows.filter(function(r){ return r['プロジェクト名']; });
     window.__rows=rows;
     window.__rowsByIdx={};
