@@ -424,15 +424,20 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
 
   <div id="content">
 
-    <h2>いま、この公演はどうなっているか</h2>
-    <div id="hero"></div>
 
     <!-- ★1画面目で完結させる欄。開いた人が「全貌」「次に考えること」「次にすること」を
          スクロールせずに掴めるようにする。詳細は下の折りたたみに入れる。 -->
     <div class="now" id="nowStrip"></div>
     <div class="next" id="nextActions"></div>
+    <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
+    <div id="decisionBoard"></div>
 
-    <h2>わからないことを聞く<span class="h2note">決定事項とWBSから答えます</span></h2>
+    <details class="sec"><summary>客席の埋まり具合（座席図）</summary>
+    <h2>いま、この公演はどうなっているか</h2>
+    <div id="hero"></div>
+    </details>
+
+    <details class="sec"><summary>わからないことを聞く<span class="secnote">決定事項とWBSから答えます</span></summary>
     <div class="card ask">
       <textarea id="askInput" placeholder="例）サポーター券の締切はいつ？　なぜその日？"></textarea>
       <div class="askrow">
@@ -442,8 +447,7 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
       <div class="askans" id="askAns" style="display:none"></div>
     </div>
 
-    <h2 class="dec-h2">決めなくてはならないこと<span class="h2note" id="decNote"></span></h2>
-    <div id="decisionBoard"></div>
+    </details>
 
     <details class="sec"><summary>自分の持ち場を絞る</summary>
     <h2>あなたの持ち場<span class="h2note">名前を押すと自分のタスクだけになります</span></h2>
