@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>入金確認｜HARIBOW単独公演</title>
+<style>
+  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --text:#f3f1ea; --faint:#8b919e;
+         --ok:#2e8b5f; --warn:#c9a24b; --ng:#b5544e; --accent:#2a3f52; --accentline:#39536b; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:560px;margin:0 auto;padding:14px 12px 80px}
+
+  .bar{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .bar h1{font-size:15px;margin:0;flex:1;letter-spacing:.06em;font-weight:700}
+  .who{font-size:12px;color:var(--faint)}
+  .lead{font-size:12px;color:var(--faint);line-height:1.7;margin:8px 0 14px}
+
+  .stats{display:flex;gap:6px;margin-bottom:14px}
+  .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}
+  .stat b{display:block;font-size:19px;line-height:1.3;font-variant-numeric:tabular-nums}
+  .stat span{font-size:10px;color:var(--faint)}
+
+  details.bank{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
+  details.bank summary{padding:11px 13px;font-size:12px;font-weight:700;cursor:pointer;color:var(--faint);
+    list-style:none}
+  details.bank summary::-webkit-details-marker{display:none}
+  details.bank summary::before{content:'＋　';color:var(--faint)}
+  details.bank[open] summary::before{content:'−　'}
+  .bankbody{padding:0 13px 13px;font-size:13px;line-height:1.9;color:var(--text)}
+  .bankbody i{color:var(--faint);font-style:normal;display:inline-block;min-width:5.5em}
+
+  h2.sec{font-size:12px;color:var(--faint);margin:22px 0 9px;font-weight:700;letter-spacing:.04em}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:13px 14px;margin-bottom:9px}
+  .card.over{border-color:#5c3a37}
+  .row1{display:flex;align-items:baseline;gap:10px}
+  .nm{font-size:18px;font-weight:700;flex:1;line-height:1.35}
+  .amt{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .meta{font-size:12px;color:var(--faint);line-height:1.85;margin-top:5px;word-break:break-all}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;
+    background:#3a2b1a;color:var(--warn);margin-left:6px;vertical-align:middle}
+  .tag.od{background:#3d2523;color:#e08b84}
+
+  .act{margin-top:11px}
+  .btn{width:100%;padding:12px;border-radius:9px;border:1px solid var(--accentline);
+    background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;border-color:var(--line);color:var(--faint)}
+  .btn.danger{background:var(--ok);border-color:var(--ok)}
+  .btn:disabled{opacity:.5}
+  .confirmbox{border:1px solid var(--accentline);border-radius:9px;padding:11px;background:#101820}
+  .confirmbox p{margin:0 0 9px;font-size:13px;line-height:1.7}
+  .confirmbox .pair{display:flex;gap:7px}
+  .confirmbox .pair .btn{margin:0}
+
+  .doneline{font-size:13px;color:var(--faint);padding:8px 2px;border-bottom:1px solid var(--line);
+    line-height:1.6}
+  .doneline b{color:var(--text);font-weight:700}
+
+  .empty{background:var(--panel);border:1px dashed var(--line);border-radius:12px;
+    padding:22px 14px;text-align:center;color:var(--faint);font-size:13px;line-height:1.8}
+
+  .note{font-size:11.5px;color:var(--faint);line-height:1.8;margin-top:20px;
+    border-top:1px solid var(--line);padding-top:13px}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:50;
+    background:#e9e6dc;color:#14161c;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .18s}
+  .toast.on{opacity:1}
+  .foot{display:flex;gap:8px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <h1>入金確認</h1>
+    <span class="who" id="who"></span>
+  </div>
+  <p class="lead" id="lead">読み込んでいます…</p>
+
+  <div id="body" style="display:none">
+    <div class="stats">
+      <div class="stat"><b id="cUn">0</b><span>未確認</span></div>
+      <div class="stat"><b id="cYen">¥0</b><span>未回収</span></div>
+      <div class="stat"><b id="cDone">0</b><span>確認済み(7日)</span></div>
+    </div>
+
+    <details class="bank">
+      <summary>振込先（銀行の明細と見比べる用）</summary>
+      <div class="bankbody" id="bank"></div>
+    </details>
+
+    <h2 class="sec">入金を待っている方</h2>
+    <div id="list"></div>
+
+    <h2 class="sec">最近確認した方</h2>
+    <div id="done"></div>
+
+    <div class="foot">
+      <button class="btn ghost" id="reload" onclick="load(true)">最新にする</button>
+    </div>
+
+    <p class="note">
+      この画面からできるのは「入金の確定」だけです。取り消しや席の解放はできません。<br>
+      ボタンを押すと、席が確定し、お客様へ入金確認メールと電子チケットが自動で送信されます。<br>
+      カード決済の方は自動で確定するので、ここには出ません。<br>
+      団体の予約はこの画面ではまだ確認できません（現在0件）。団体の入金があった場合は潤弥へ連絡してください。
+    </p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var OP=new URLSearchParams(location.search).get('op')||'';
+var data=null, busy=false;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function yen(n){ return '¥'+(Number(n)||0).toLocaleString(); }
+function toast(msg){
+  var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('on'); },2600);
+}
+
+function load(isReload){
+  if(!OP){
+    document.getElementById('lead').textContent='URLが正しくありません。配布された専用URLをそのまま開いてください。';
+    return;
+  }
+  var btn=document.getElementById('reload');
+  if(btn) btn.disabled=true;
+  return fetch(BASE+'?page=payops&op='+encodeURIComponent(OP)+'&t='+Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok){
+        var msg = (d && d.error==='bad_token')
+          ? 'このURLでは開けません。配布された専用URLか確認してください。'
+          : 'データを取得できませんでした。時間をおいて開き直してください。';
+        document.getElementById('lead').textContent=msg;
+        document.getElementById('body').style.display='none';
+        return;
+      }
+      data=d; render();
+      if(isReload) toast('最新にしました');
+    })
+    .catch(function(){ document.getElementById('lead').textContent='通信できませんでした。電波の良いところで開き直してください。'; })
+    .then(function(){ if(btn) btn.disabled=false; });
+}
+
+function render(){
+  document.getElementById('who').textContent=data.opName+' さん';
+  document.getElementById('lead').textContent=
+    '銀行の入出金明細で着金を確かめてから、その方の［入金を確認した］を押してください。（'+data.updatedAt+' 時点）';
+  document.getElementById('body').style.display='';
+
+  var b=data.bank||{};
+  document.getElementById('bank').innerHTML=
+    '<i>金融機関</i>'+esc(b.name)+(b.code?'（'+esc(b.code)+'）':'')+'<br>'+
+    '<i>支店</i>'+esc(b.branch)+(b.branchCode?'（'+esc(b.branchCode)+'）':'')+'<br>'+
+    '<i>種別・番号</i>'+esc(b.kind)+' '+esc(b.number)+'<br>'+
+    '<i>名義</i>'+esc(b.holder);
+
+  var items=data.items||[], done=data.done||[];
+  var sum=0; items.forEach(function(i){ sum+=Number(i.total)||0; });
+  document.getElementById('cUn').textContent=items.length;
+  document.getElementById('cYen').textContent=yen(sum);
+  document.getElementById('cDone').textContent=done.length;
+
+  var L=document.getElementById('list');
+  if(!items.length){
+    L.innerHTML='<div class="empty">入金を待っている方はいません。<br>今日は確認する作業はありません。</div>';
+  } else {
+    L.innerHTML=items.map(function(i){
+      return '<div class="card'+(i.overdue?' over':'')+'" id="c'+esc(i.no)+'">'+
+        '<div class="row1"><span class="nm">'+esc(i.name)+
+          (i.overdue?'<span class="tag od">期限超過</span>':'')+'</span>'+
+          '<span class="amt">'+yen(i.total)+'</span></div>'+
+        '<div class="meta">'+esc(i.breakdown)+'<br>'+
+          '席 '+esc(i.seats)+'　／　期限 '+esc(i.deadline||'—')+'<br>'+
+          esc(i.contact)+'</div>'+
+        '<div class="act" id="a'+esc(i.no)+'">'+
+          '<button class="btn" onclick="ask(\''+esc(i.no)+'\')">入金を確認した</button>'+
+        '</div></div>';
+    }).join('');
+  }
+
+  var D=document.getElementById('done');
+  D.innerHTML = done.length
+    ? done.map(function(i){ return '<div class="doneline"><b>'+esc(i.name)+'</b> '+yen(i.total)+
+        '　席 '+esc(i.seats)+'　'+esc(i.confirmedAt||'')+'</div>'; }).join('')
+    : '<div class="doneline">まだありません。</div>';
+}
+
+/* 押し間違いで「払っていない人」を確定させないための一段構え。
+   確定するとお客様へメールが飛ぶので、取り消しが効かない */
+function ask(no){
+  var i=(data.items||[]).filter(function(x){ return String(x.no)===String(no); })[0];
+  if(!i) return;
+  document.getElementById('a'+no).innerHTML=
+    '<div class="confirmbox"><p>'+esc(i.name)+' 様から <b>'+yen(i.total)+'</b> の入金を確認しましたか。<br>'+
+    '確定すると、お客様へ入金確認メールと電子チケットが送信されます。</p>'+
+    '<div class="pair"><button class="btn ghost" onclick="cancelAsk(\''+esc(no)+'\')">やめる</button>'+
+    '<button class="btn danger" onclick="confirmPay(\''+esc(no)+'\')">確定する</button></div></div>';
+}
+function cancelAsk(no){
+  document.getElementById('a'+no).innerHTML=
+    '<button class="btn" onclick="ask(\''+esc(no)+'\')">入金を確認した</button>';
+}
+
+function confirmPay(no){
+  if(busy) return;
+  busy=true;
+  var box=document.getElementById('a'+no);
+  box.innerHTML='<button class="btn" disabled>送信しています…</button>';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'pay_confirm',op:OP,no:no})})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      busy=false;
+      if(res && res.ok){
+        toast(res.already ? 'すでに確認済みでした' : (res.name+' 様の入金を確定しました'));
+        load(false);
+      } else {
+        var m={bad_token:'このURLでは操作できません',not_found:'この注文が見つかりません',
+               not_bank:'振込以外の注文です',cancelled:'取消済みの注文です',no_seats:'席の情報がありません'};
+        toast('確定できませんでした：'+((res&&m[res.error])||(res&&res.error)||'不明なエラー'));
+        cancelAsk(no);
+      }
+    })
+    .catch(function(){
+      busy=false;
+      toast('通信できませんでした。最新にしてから、確定されたか確かめてください');
+      cancelAsk(no);
+    });
+}
+
+load(false);
+</script>
+</body>
+</html>
