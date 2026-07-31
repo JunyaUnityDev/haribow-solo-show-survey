@@ -44,6 +44,7 @@
   .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;
     background:#3a2b1a;color:var(--warn);margin-left:6px;vertical-align:middle}
   .tag.od{background:#3d2523;color:#e08b84}
+  .tag.tm{background:#1e3040;color:#8fb4d4}
 
   .act{margin-top:11px}
   .btn{width:100%;padding:12px;border-radius:9px;border:1px solid var(--accentline);
@@ -106,8 +107,8 @@
     <p class="note">
       この画面からできるのは「入金の確定」だけです。取り消しや席の解放はできません。<br>
       ボタンを押すと、席が確定し、お客様へ入金確認メールと電子チケットが自動で送信されます。<br>
-      カード決済の方は自動で確定するので、ここには出ません。<br>
-      団体の予約はこの画面ではまだ確認できません（現在0件）。団体の入金があった場合は潤弥へ連絡してください。
+      カード決済は個人・団体とも自動で確定するので、ここには出ません。<br>
+      団体の振込は、団体名ではなく「振込人名義」で明細に載ります。カードで払った団体はここに出ません。
     </p>
   </div>
 </div>
@@ -175,12 +176,16 @@ function render(){
     L.innerHTML='<div class="empty">入金を待っている方はいません。<br>今日は確認する作業はありません。</div>';
   } else {
     L.innerHTML=items.map(function(i){
+      var team = i.kind==='team';
       return '<div class="card'+(i.overdue?' over':'')+'" id="c'+esc(i.no)+'">'+
         '<div class="row1"><span class="nm">'+esc(i.name)+
+          (team?'<span class="tag tm">団体</span>':'')+
           (i.overdue?'<span class="tag od">期限超過</span>':'')+'</span>'+
           '<span class="amt">'+yen(i.total)+'</span></div>'+
         '<div class="meta">'+esc(i.breakdown)+'<br>'+
           '席 '+esc(i.seats)+'　／　期限 '+esc(i.deadline||'—')+'<br>'+
+          /* 団体は団体名と振込人名義が違う。明細で探すのは名義のほう */
+          (team ? '<b>振込人名義 '+esc(i.payer||'（未記入）')+'</b><br>' : '')+
           esc(i.contact)+'</div>'+
         '<div class="act" id="a'+esc(i.no)+'">'+
           '<button class="btn" onclick="ask(\''+esc(i.no)+'\')">入金を確認した</button>'+
@@ -201,9 +206,11 @@ function render(){
 function ask(no){
   var i=(data.items||[]).filter(function(x){ return String(x.no)===String(no); })[0];
   if(!i) return;
+  var team = i.kind==='team';
   document.getElementById('a'+no).innerHTML=
-    '<div class="confirmbox"><p>'+esc(i.name)+' 様から <b>'+yen(i.total)+'</b> の入金を確認しましたか。<br>'+
-    '確定すると、お客様へ入金確認メールと電子チケットが送信されます。</p>'+
+    '<div class="confirmbox"><p>'+esc(i.name)+(team?'':' 様')+'から <b>'+yen(i.total)+'</b> の入金を確認しましたか。'+
+    (team&&i.payer?'<br>明細の名義：'+esc(i.payer):'')+'<br>'+
+    '確定すると、'+(team?'代表者':'お客様')+'へ入金確認メールと電子チケットが送信されます。</p>'+
     '<div class="pair"><button class="btn ghost" onclick="cancelAsk(\''+esc(no)+'\')">やめる</button>'+
     '<button class="btn danger" onclick="confirmPay(\''+esc(no)+'\')">確定する</button></div></div>';
 }
@@ -212,13 +219,18 @@ function cancelAsk(no){
     '<button class="btn" onclick="ask(\''+esc(no)+'\')">入金を確認した</button>';
 }
 
+function kindOf(no){
+  var i=(data.items||[]).filter(function(x){ return String(x.no)===String(no); })[0];
+  return i&&i.kind==='team' ? 'team' : 'order';
+}
+
 function confirmPay(no){
   if(busy) return;
   busy=true;
   var box=document.getElementById('a'+no);
   box.innerHTML='<button class="btn" disabled>送信しています…</button>';
   fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'pay_confirm',op:OP,no:no})})
+    body:JSON.stringify({survey:'pay_confirm',op:OP,no:no,kind:kindOf(no)})})
     .then(function(r){ return r.json(); })
     .then(function(res){
       busy=false;
