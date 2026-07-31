@@ -191,8 +191,9 @@ function render(){
   var D=document.getElementById('done');
   D.innerHTML = done.length
     ? done.map(function(i){ return '<div class="doneline"><b>'+esc(i.name)+'</b> '+yen(i.total)+
-        '　席 '+esc(i.seats)+'　'+esc(i.confirmedAt||'')+'</div>'; }).join('')
-    : '<div class="doneline">まだありません。</div>';
+        '　席 '+esc(i.seats)+'<br>'+esc(i.confirmedAt||'')+
+        (i.confirmedBy?'　'+esc(String(i.confirmedBy).replace('（入金確認コンソール）','')):'')+'</div>'; }).join('')
+    : '<div class="doneline">この7日間に、この画面から確定したものはありません。</div>';
 }
 
 /* 押し間違いで「払っていない人」を確定させないための一段構え。
