@@ -47,6 +47,10 @@
   .tag.tm{background:#1e3040;color:#8fb4d4}
 
   .act{margin-top:11px}
+  .act .pair2{display:flex;gap:7px}
+  .act .pair2 .btn{margin:0}
+  .chk{font-size:11.5px;color:var(--faint);margin-top:7px;line-height:1.6}
+  .chk.none{color:#c9a24b}
   .btn{width:100%;padding:12px;border-radius:9px;border:1px solid var(--accentline);
     background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
   .btn.ghost{background:transparent;border-color:var(--line);color:var(--faint)}
@@ -105,7 +109,7 @@
     </div>
 
     <p class="note">
-      この画面からできるのは「入金の確定」だけです。取り消しや席の解放はできません。<br>
+      この画面からできるのは「入金の確定」と「入金なしの記録」だけです。取り消しや席の解放はできません。<br>［入金なし］は銀行を見た記録を残すだけで、お客様には何も起きません。<br>
       ボタンを押すと、席が確定し、お客様へ入金確認メールと電子チケットが自動で送信されます。<br>
       カード決済は個人・団体とも自動で確定するので、ここには出ません。<br>
       団体の振込は、団体名ではなく「振込人名義」で明細に載ります。カードで払った団体はここに出ません。
@@ -187,8 +191,14 @@ function render(){
           /* 団体は団体名と振込人名義が違う。明細で探すのは名義のほう */
           (team ? '<b>振込人名義 '+esc(i.payer||'（未記入）')+'</b><br>' : '')+
           esc(i.contact)+'</div>'+
+        (i.lastCheck
+          ? '<div class="chk">最終確認: '+esc(i.lastCheck)+'</div>'
+          : '<div class="chk none">まだ誰も確認していません</div>')+
         '<div class="act" id="a'+esc(i.no)+'">'+
-          '<button class="btn" onclick="ask(\''+esc(i.no)+'\')">入金を確認した</button>'+
+          '<div class="pair2">'+
+            '<button class="btn ghost" onclick="noDeposit(\''+esc(i.no)+'\')">入金なし</button>'+
+            '<button class="btn" onclick="ask(\''+esc(i.no)+'\')">入金を確認した</button>'+
+          '</div>'+
         '</div></div>';
     }).join('');
   }
@@ -216,7 +226,28 @@ function ask(no){
 }
 function cancelAsk(no){
   document.getElementById('a'+no).innerHTML=
-    '<button class="btn" onclick="ask(\''+esc(no)+'\')">入金を確認した</button>';
+    '<div class="pair2">'+
+      '<button class="btn ghost" onclick="noDeposit(\''+esc(no)+'\')">入金なし</button>'+
+      '<button class="btn" onclick="ask(\''+esc(no)+'\')">入金を確認した</button>'+
+    '</div>';
+}
+
+/* 銀行を見たが入金が無かった、を記録する。支払状態は変えないので確認ダイアログは挟まない。
+   押し間違えても実害が無い操作にしてあるので、一手で終わらせる。 */
+function noDeposit(no){
+  if(busy) return;
+  busy=true;
+  var box=document.getElementById('a'+no);
+  box.innerHTML='<button class="btn ghost" disabled>記録しています…</button>';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'pay_nodeposit',op:OP,no:no,kind:kindOf(no)})})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      busy=false;
+      if(res && res.ok){ toast('入金なしとして記録しました'); load(false); }
+      else { toast('記録できませんでした：'+((res&&res.error)||'不明なエラー')); cancelAsk(no); }
+    })
+    .catch(function(){ busy=false; toast('通信できませんでした。もう一度お試しください'); cancelAsk(no); });
 }
 
 function kindOf(no){
