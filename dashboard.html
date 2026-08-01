@@ -1520,12 +1520,19 @@ function renderNow(data, orgs, cast){
       + '<div class="nw-v">'+val+'</div>'
       + (sub?'<div class="nw-s">'+sub+'</div>':'') + '</div>';
   };
-  var short = Math.max(0, Math.round(f.shortfall||0));
+  /* ★「黒字まで」は実売だけで出す（2026-08-02変更）。
+     以前は forecast.shortfall（必要人数 − 見込み人数）を出していたが、
+     分母の「見込み人数」は出演者やサークルの自己申告の合計で、1円も払っていない人を含む。
+     そのため「あと73人買えば黒字」と読めてしまい、実売55席という実態と桁が違った。
+     ここでは見込みを混ぜず、支出と実際に売れた金額だけで残りを出す。 */
+  var needMore = (act.needMoreHeads==null) ? null : Math.max(0, act.needMoreHeads);
+  var yen = function(n){ return '¥'+Number(n||0).toLocaleString(); };
   var html = ''
     + cell('売れた席', (seats.taken||0)+'<small>/'+(seats.sellable||0)+'</small>',
-           '¥'+Number(act.revenueTotal||0).toLocaleString())
-    + cell('黒字まで', short+'<small>人</small>',
-           '必要 '+Math.round(f.requiredAttendance||0)+'人', short>0)
+           yen(act.revenueTotal)+'（入金済み '+yen(act.revenueConfirmed)+'）')
+    + cell('黒字まで', (needMore==null?'—':needMore)+'<small>人</small>',
+           '支出'+yen(act.expense)+' − 実売'+yen(act.revenueTotal)
+           +'＝'+yen(act.gapYen)+' ／ 一人'+yen(act.perHead), (needMore||0)>0)
     + cell('団体の打診', (orgs?orgs.contacted:0)+'<small>/'+(orgs?orgs.total:0)+'</small>',
            orgs?('受付終了まで'+orgs.daysToClose+'日'):'', orgs && orgs.contacted===0)
     + cell('出演者の動き', (cast?cast.moved:0)+'<small>/'+(cast?cast.people:0)+'名</small>',
