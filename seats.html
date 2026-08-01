@@ -729,7 +729,26 @@ function checkout(){
         alert(msg); loadAvail(); btn.textContent='決済へ'; btn.disabled=false;
       }
     });
-  }).catch(function(e){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='決済へ'; btn.disabled=false; });
+  }).catch(function(e){
+    /* 応答が返らなかったときの受け皿。2026-08-01に実際に起きた（INCIDENT_決済フォームの通信エラー）。
+       このcatchはSquareへ飛ぶ「前」の通信でしか動かない。飛んだ後はページが遷移しているので
+       ここには入らない＝この画面が出た時点でカード入力に到達していないことが構造的に確定する。
+       だから「請求されない」と断言してよい。お客様が二重請求を心配して問い合わせる事故を防ぐ。
+
+       席の解放は、リクエスト自体がサーバーに届かなかった場合にだけ効く（席がまだ「ロック」のため）。
+       届いていた場合、サーバーは席を「決済保留」に移し持ち主IDを決済トークンに差し替えているので
+       ここは空振りになる（Seats.js:1001 / releaseSeats はロック状態しか解放しない）。
+       その席は毎時バッチが注文を無効化する時に解放される。安全な方向にしか倒れない。 */
+    releaseHeldSeats(Object.keys(picked));
+    loadAvail();   // 座席表を引き直す。これが無いと自分の決済保留席を選んで「他の方に確保されました」と出る
+    alert('通信が不安定で、結果を受け取れませんでした。\n\n'
+        + 'お手数ですが、もう一度お席をお選びください。\n'
+        + 'この画面で止まった場合、カードに請求されることはありません。\n'
+        + '繰り返しお試しいただいても、二重にご請求されることはございません。\n\n'
+        + '先ほど選んだお席が埋まって見える場合は、少し時間をおくと元に戻ります。\n\n'
+        + '何度も表示される場合は info@haribow.com までご連絡ください。');
+    btn.textContent='決済へ'; btn.disabled=false;
+  });
 }
 function fmtSeat(k){ var a=k.split('-'); return a[0]+'列'+a[1]+'番'; }
 function doneScreen(msg, extra){
