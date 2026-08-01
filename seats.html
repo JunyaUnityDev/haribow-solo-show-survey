@@ -199,6 +199,12 @@
   <div class="buyerbox">
     <label>お名前</label>
     <input id="buyerName" placeholder="例：山田太郎" oninput="updateCart()">
+    <label>お名前（ふりがな）</label>
+    <!-- 2026-08-02 追加。漢字だけでは読みが割れるため、本人から読みを取る。
+         ひらがな・カタカナのどちらでも通す（形式で弾くと入力をやめて離脱する）。
+         サーバー側（Payments.js submitTicketOrder）は必須にしていない。必須にすると
+         このページが古いままキャッシュされた端末からの購入が全て失敗するため。 -->
+    <input id="buyerKana" placeholder="例：やまだたろう" oninput="updateCart()">
     <label>連絡先（メールアドレス）</label>
     <input id="buyerContact" type="email" placeholder="例：example@mail.com" oninput="updateCart()">
     <label>お電話番号</label>
@@ -367,6 +373,7 @@ function selectPay(m,el){ payMethod=m; document.querySelectorAll('.pm').forEach(
 function setDon(v,el){ donation=v; var c=document.getElementById('donCustom'); if(c) c.value=''; document.querySelectorAll('.dchip').forEach(function(b){b.classList.toggle('active',b===el);}); updateCart(); }
 function setDonCustom(v){ donation=parseInt(v,10)||0; document.querySelectorAll('.dchip').forEach(function(b){b.classList.remove('active');}); updateCart(); }
 function buyerName(){ return (document.getElementById('buyerName')||{}).value||''; }
+function buyerKana(){ return (document.getElementById('buyerKana')||{}).value||''; }
 function buyerContact(){ return (document.getElementById('buyerContact')||{}).value||''; }
 function buyerPhone(){ return (document.getElementById('buyerPhone')||{}).value||''; }
 // 電話番号：ハイフン・全角・+81 を許容し、数字が10〜11桁あるかで判定（サーバー側 isPhone_ と同じ規則）
@@ -653,11 +660,13 @@ function updateCart(){
   total.innerHTML='¥'+sum.toLocaleString()+' <small>('+keys.length+'席'+(donation>0?'＋応援':'')+')</small>';
   var seatsOk = keys.length>0;
   syncOptionBoxes();
-  var infoOk = buyerName().trim() && buyerContact().trim() && phoneOk() && payMethod && supOk();
+  var infoOk = buyerName().trim() && buyerKana().trim() && buyerContact().trim() && phoneOk() && payMethod && supOk();
   if(seatsOk && !infoOk){
     var why = (isSupporter() && !tshirtSize) ? 'Tシャツのサイズを選ぶと決済に進めます'
             : (needsCredit() && !creditOk) ? 'お名前の掲載について「掲載する／しない」を選ぶと決済に進めます'
             : (buyerPhone().trim() && !phoneOk()) ? 'お電話番号の桁数をご確認ください'
+            // ふりがなだけ空のとき「STEP3の情報を入力」だと、埋めたつもりの人がどこが足りないか分からない
+            : (buyerName().trim() && !buyerKana().trim()) ? 'お名前のふりがなをご記入ください'
             : 'STEP3の情報を入力すると決済に進めます';
     list.innerHTML += '<br><span style="font-size:11px;color:var(--faint)">'+why+'</span>';
   }
@@ -692,7 +701,7 @@ function checkout(){
     return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({survey:'ticket_order', orderType:'individual', typeId:curType.id,
         seatIds:keys, donation:donation, method:payMethod,
-        name:buyerName(), contact:buyerContact(), phone:buyerPhone(), lockToken:res.lockToken,
+        name:buyerName(), kana:buyerKana(), contact:buyerContact(), phone:buyerPhone(), lockToken:res.lockToken,
         tshirt:tshirtSize, creditOk:creditOk, creditName:creditNameVal()})})
     .then(function(r){return r.json();}).then(function(o){
       if(o.method==='square' && o.url){ window.location.href=o.url; }        // ③ Squareへ（戻りでconfirm）
