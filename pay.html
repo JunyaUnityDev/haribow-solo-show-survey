@@ -236,8 +236,11 @@ function cancelAsk(no){
    押し間違えても実害が無い操作にしてあるので、一手で終わらせる。 */
 function noDeposit(no){
   if(busy) return;
-  busy=true;
+  /* ★box を先に取る。busy を立ててから例外が出ると二度と押せなくなる（実際に踏んだ）。
+     一覧が再描画された直後などに要素が消えていることがある。 */
   var box=document.getElementById('a'+no);
+  if(!box) return;
+  busy=true;
   box.innerHTML='<button class="btn ghost" disabled>記録しています…</button>';
   fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({survey:'pay_nodeposit',op:OP,no:no,kind:kindOf(no)})})
@@ -257,8 +260,9 @@ function kindOf(no){
 
 function confirmPay(no){
   if(busy) return;
+  var box=document.getElementById('a'+no);   // noDeposit と同じ理由で先に取る
+  if(!box) return;
   busy=true;
-  var box=document.getElementById('a'+no);
   box.innerHTML='<button class="btn" disabled>送信しています…</button>';
   fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({survey:'pay_confirm',op:OP,no:no,kind:kindOf(no)})})
