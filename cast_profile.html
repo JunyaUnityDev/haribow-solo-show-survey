@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<title>HARIBOW単独公演 出演者プロフィール</title>
+<style>
+:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
+h1{font-size:20px;font-weight:800;margin:0 0 6px}
+h1 b{color:var(--blue)}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.q{font-size:15px;font-weight:800;margin:0 0 4px}
+.note{font-size:12.5px;color:var(--faint);margin:0 0 12px}
+label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
+textarea{min-height:66px;resize:vertical}
+select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.opt{background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:9px 14px;font-size:14px;font-family:inherit;cursor:pointer}
+.opt.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
+.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
+.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
+.done{text-align:center;padding:40px 20px}
+.done .ck{font-size:40px;color:var(--ok);font-weight:800}
+.done h2{font-size:20px;margin:12px 0 6px}
+.media{border-left:3px solid var(--blue);padding-left:14px}
+.media li{font-size:13.5px;color:var(--dim);margin-bottom:8px}
+.media b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go Beyond">
+  <h1>出演者プロフィール<b>（3分）</b></h1>
+  <p class="lead">お客さんは、31人のことを何も知らない状態で客席に座ります。<br>
+  「誰を見ればいいか」がわかると、その人のことを目で追ってくれます。そのための材料を集めています。<br>
+  何度でも出し直せます（後から送ると前の回答が上書きされます）。</p>
+
+  <div id="form">
+    <div class="card">
+      <label>あなたの名前</label>
+      <select id="who"><option value="">選択してください</option></select>
+      <p class="note" id="whoNote" style="margin:0">名前を選ぶと、推薦のリストが出ます。</p>
+    </div>
+
+    <div class="card">
+      <p class="q">ダブルダッチ歴</p>
+      <div class="opts" data-k="years">
+        <button type="button" class="opt">1年未満</button><button type="button" class="opt">1〜2年</button>
+        <button type="button" class="opt">3〜5年</button><button type="button" class="opt">6〜9年</button>
+        <button type="button" class="opt">10年以上</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="q">始めたきっかけ</p>
+      <div class="opts" data-k="trigger">
+        <button type="button" class="opt">友達に誘われた</button><button type="button" class="opt">テレビ・動画で見た</button>
+        <button type="button" class="opt">部活・サークル</button><button type="button" class="opt">家族の影響</button>
+        <button type="button" class="opt">その他</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="q">本番直前、どっち？</p>
+      <div class="opts" data-k="before">
+        <button type="button" class="opt">燃える</button><button type="button" class="opt">冷める</button>
+        <button type="button" class="opt">緊張で死ぬ</button><button type="button" class="opt">何も考えてない</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="q">得意なこと</p>
+      <div class="opts" data-k="good">
+        <button type="button" class="opt">跳ぶ</button><button type="button" class="opt">回す</button>
+        <button type="button" class="opt">アクロ</button><button type="button" class="opt">魅せる</button>
+        <button type="button" class="opt">笑わせる</button>
+      </div>
+      <p class="q" style="margin-top:16px">苦手なこと</p>
+      <div class="opts" data-k="bad">
+        <button type="button" class="opt">跳ぶ</button><button type="button" class="opt">回す</button>
+        <button type="button" class="opt">アクロ</button><button type="button" class="opt">魅せる</button>
+        <button type="button" class="opt">笑わせる</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="q">最近ハマってるもの</p>
+      <p class="note">お客さんが親近感を持つところなので、ダブルダッチ以外のことでOKです。</p>
+      <input id="hobby" placeholder="例：サウナ、カレー作り、韓国ドラマ">
+      <p class="q" style="margin-top:6px">一番の自慢を、1つだけ</p>
+      <p class="note">大会の実績でも、それ以外でも。1つだけにしてください。</p>
+      <input id="brag" placeholder="例：初めて三重跳びができた日のこと">
+    </div>
+
+    <div class="card">
+      <p class="q">推薦：この人を見てほしい</p>
+      <p class="note">お客さんに「この人が推してるなら見てみよう」と思ってもらう仕掛けです。<br>
+      <b>うまい人ではなく、たぶん誰も気づかないけど実はとんでもない人</b>を選んでください。</p>
+      <label>自分と同じ演目から 1人</label>
+      <select id="recSame"><option value="">まず名前を選んでください</option></select>
+      <label>別の演目から 1人目</label>
+      <select id="recOther1"><option value="">まず名前を選んでください</option></select>
+      <label>別の演目から 2人目</label>
+      <select id="recOther2"><option value="">まず名前を選んでください</option></select>
+    </div>
+
+    <div class="card">
+      <p class="q">その3人のうち、一番推したい人</p>
+      <select id="recTop"><option value="">上で3人選ぶと出ます</option></select>
+      <p class="q" style="margin-top:6px">その人が、本番中にやりがちなこと</p>
+      <p class="note">お客さんはこれを探しながら見ます。癖・仕草・変な顔、なんでも。</p>
+      <textarea id="recQuirk" placeholder="例：決め技の前に、必ず一回だけ肩を回す"></textarea>
+    </div>
+
+    <div class="card">
+      <p class="q">自分が、本番前・本番中にやってしまうこと</p>
+      <p class="note">自分では気づきにくいので、思い当たるものだけで大丈夫です。</p>
+      <textarea id="ownQuirk" placeholder="例：出る直前に必ず靴紐を結び直す／ミスすると笑ってごまかす"></textarea>
+    </div>
+
+    <div class="card">
+      <p class="q">お客さんに、どうしてほしい？</p>
+      <p class="note">お客さんは「名前を呼んでいいのかな」と気を使っています。ここに書いたことを、そのまま伝えます。</p>
+      <div class="opts" data-k="callMe">
+        <button type="button" class="opt">名前、呼んでほしい</button>
+        <button type="button" class="opt">呼ばれたら嬉しいけど、恥ずかしい</button>
+        <button type="button" class="opt">手を振ってくれたら振り返す</button>
+        <button type="button" class="opt">静かに見ててほしい</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="q">写真と動画は、内部LINEに送ってください</p>
+      <ul class="media">
+        <li><b>顔写真 1枚</b>／明るい場所で・顔が真ん中・胸から上・こっちを見て。<b>背景はこちらで統一する</b>ので、どこで撮っても大丈夫です</li>
+        <li><b>自己紹介動画 30秒</b>／<b>縦</b>で自撮り。上の「最近ハマってるもの」と「本番中にやってしまうこと」を喋るだけでOK。<b>15秒でもいい・1テイクでいい・撮り直さなくていい</b></li>
+        <li><b>座右の銘</b>／紙に手書きして、その写真を送ってください</li>
+        <li>過去の活躍動画があれば、<b>URLでもOK</b>（任意）</li>
+      </ul>
+    </div>
+
+    <button class="btn" id="send" disabled>送信する</button>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div class="done" id="done" style="display:none">
+    <div class="ck">✓</div>
+    <h2>ありがとうございます</h2>
+    <p class="lead">写真・動画・座右の銘は、内部LINEに送ってください。<br>この画面はもう閉じて大丈夫です。</p>
+  </div>
+</div>
+
+<script>
+var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var MEMBERS = [], pick = {};
+
+/* 選択チップ。1つの .opts につき1つだけ選べる */
+document.querySelectorAll('.opts').forEach(function(box){
+  var k = box.getAttribute('data-k');
+  box.querySelectorAll('.opt').forEach(function(b){
+    b.addEventListener('click', function(){
+      var on = b.classList.contains('active');
+      box.querySelectorAll('.opt').forEach(function(x){ x.classList.remove('active'); });
+      if(!on){ b.classList.add('active'); pick[k] = b.textContent; } else { pick[k] = ''; }
+      sync();
+    });
+  });
+});
+
+function el(id){ return document.getElementById(id); }
+function val(id){ return (el(id)||{}).value || ''; }
+
+/* 名前を選んだら、推薦の候補を「自分の演目」「別の演目」に出し分ける。
+   OP＋AGT と ED は全員出演なのでサーバー側で既に除いてある（Profile.js）。 */
+function onWho(){
+  var me = MEMBERS.filter(function(m){ return m.name === val('who'); })[0];
+  var same = [], other = [];
+  if(me){
+    MEMBERS.forEach(function(m){
+      if(m.name === me.name) return;
+      var share = m.engi.some(function(e){ return me.engi.indexOf(e) >= 0; });
+      (share ? same : other).push(m);
+    });
+    el('whoNote').textContent = me.engi.length
+      ? ('あなたの演目：' + me.engi.join(' / '))
+      : 'あなたはOP・ED以外の演目に登録がありません。3人とも「別の演目」から選んでください。';
+  }
+  fill('recSame',  same,  same.length ? '選んでください' : '同じ演目の人がいません');
+  fill('recOther1', other, '選んでください');
+  fill('recOther2', other, '選んでください');
+  syncTop();
+}
+function fill(id, list, ph){
+  var s = el(id); s.innerHTML = '';
+  s.appendChild(new Option(ph, ''));
+  list.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
+}
+/* 「一番推したい人」は、上で選んだ3人の中からしか選べない */
+function syncTop(){
+  var chosen = [val('recSame'), val('recOther1'), val('recOther2')].filter(function(v){ return v; });
+  var cur = val('recTop');
+  var s = el('recTop'); s.innerHTML = '';
+  s.appendChild(new Option(chosen.length ? '選んでください' : '上で3人選ぶと出ます', ''));
+  chosen.forEach(function(n){ s.appendChild(new Option(n, n)); });
+  if(chosen.indexOf(cur) >= 0) s.value = cur;
+  sync();
+}
+['recSame','recOther1','recOther2'].forEach(function(id){ el(id).addEventListener('change', syncTop); });
+el('recTop').addEventListener('change', sync);
+el('who').addEventListener('change', onWho);
+
+/* 送信の条件は名前だけ。全部埋まっていなくても出せるようにする。
+   完璧を求めると出さない人が出る。空欄は後から追記できる（何度でも上書き可）。 */
+function sync(){ el('send').disabled = !val('who'); }
+
+el('send').addEventListener('click', function(){
+  var b = el('send'); b.disabled = true; b.textContent = '送信中…';
+  fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ survey:'cast_profile',
+      name: val('who'), years: pick.years, trigger: pick.trigger, before: pick.before,
+      good: pick.good, bad: pick.bad, hobby: val('hobby'), brag: val('brag'),
+      recSame: val('recSame'), recOther1: val('recOther1'), recOther2: val('recOther2'),
+      recTop: val('recTop'), recQuirk: val('recQuirk'), ownQuirk: val('ownQuirk'),
+      callMe: pick.callMe })})
+  .then(function(r){ return r.json(); })
+  .then(function(o){
+    if(o && o.ok){ el('form').style.display='none'; el('done').style.display='block'; window.scrollTo(0,0); }
+    else { throw new Error((o && o.error) || 'failed'); }
+  })
+  .catch(function(){
+    el('err').style.display='block';
+    el('err').textContent = '送信できませんでした。電波の良い場所でもう一度お試しください。';
+    b.disabled = false; b.textContent = '送信する';
+  });
+});
+
+fetch(BASE + '?page=cast_profile_meta&_=' + Date.now())
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d || !d.ok) throw new Error('meta');
+    MEMBERS = d.members || [];
+    var s = el('who');
+    MEMBERS.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
+  })
+  .catch(function(){
+    el('err').style.display='block';
+    el('err').textContent = '名簿を読み込めませんでした。再読み込みしてください。';
+  });
+</script>
+</body>
+</html>
