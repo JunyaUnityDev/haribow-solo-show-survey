@@ -29,11 +29,12 @@
   .nm{font-size:16px;font-weight:700;line-height:1.4}
   .meta{font-size:11.5px;color:var(--faint);margin-top:5px;line-height:1.7;word-break:break-all}
 
-  .seg{display:flex;gap:6px;margin-top:10px}
-  .seg button{flex:1;padding:9px 4px;border-radius:8px;border:1px solid var(--line);
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+  .seg button{padding:10px 4px;border-radius:8px;border:1px solid var(--line);
     background:transparent;color:var(--faint);font-size:12.5px;font-weight:700;cursor:pointer}
   .seg button.on{background:var(--accent);border-color:var(--accentline);color:#fff}
   .seg button.on.undec{background:#4a3f22;border-color:#6b5c33;color:#e8d9a8}
+  .seg button.on.shared{background:#233d33;border-color:#356b52;color:#a8e8c9}
 
   .fields{margin-top:9px;display:none}
   .fields.show{display:block}
@@ -63,6 +64,7 @@
     <div class="stats">
       <div class="stat"><b id="sTotal">¥0</b><span>いま合計</span></div>
       <div class="stat" id="sRemainBox"><b id="sRemain">¥0</b><span>上限まで残り</span></div>
+      <div class="stat"><b id="sShared">¥0</b><span>別案件と共用</span></div>
       <div class="stat"><b id="sUndec">0</b><span>未定・未入力</span></div>
     </div>
     <div id="list"></div>
@@ -72,7 +74,11 @@
       何度でも書き換えられます。あとで変わっても大丈夫なので、いまの見込みで入れてください。<br>
       迷っているものは「未定」を押してください。空欄のままだと「まだ見ていない」と区別がつきません。<br>
       領収書はURL（Googleドライブや写真のリンク）を貼るだけで大丈夫です。<br>
-      上限は10万円です。超えても入力はできますが、赤で出ます。
+      上限は10万円です。超えても入力はできますが、赤で出ます。<br>
+      <b style="color:#a8e8c9">「新規（他案件でも使う）」</b>は、買うけれど今後のHARIBOW案件でも使うものです。
+      金額は記録しますが、<b>単独公演の衣装費（上限10万円）には加算しません</b>。団体の資産として別枠で集計します。<br><br>
+      <b style="color:#c9a24b">ページが開けないとき</b>：Googleに複数のアカウントでログインしていると弾かれることがあります。
+      <b>info@haribow.com でログインしたブラウザ</b>で開いてください。シークレットウィンドウで開き直しても直ります。
     </p>
   </div>
 </div>
@@ -97,12 +103,12 @@ function load(isReload){
       if(!d||!d.ok){
         document.getElementById('lead').textContent =
           (d&&d.error==='bad_token') ? 'このURLでは開けません。配布された専用URLか確認してください。'
-                                     : 'データを取得できませんでした。時間をおいて開き直してください。';
+                                     : 'データを取得できませんでした。Googleに複数アカウントでログインしていると弾かれることがあります。info@haribow.com でログインしたブラウザか、シークレットウィンドウで開き直してください。';
         return;
       }
       data=d; render(); if(isReload) toast('最新にしました');
     })
-    .catch(function(){ document.getElementById('lead').textContent='通信できませんでした。電波の良いところで開き直してください。'; });
+    .catch(function(){ document.getElementById('lead').textContent='通信できませんでした。電波の良いところで開き直してください。それでもだめなときは info@haribow.com でログインしたブラウザか、シークレットウィンドウでお試しください。'; });
 }
 
 function render(){
@@ -114,16 +120,18 @@ function render(){
   document.getElementById('sTotal').textContent=yen(data.total);
   document.getElementById('sRemain').textContent=yen(data.remain);
   document.getElementById('sRemainBox').classList.toggle('over', data.remain<0);
+  document.getElementById('sShared').textContent=yen(data.shared||0);
   document.getElementById('sUndec').textContent=(data.undecided+data.untouched);
 
   document.getElementById('list').innerHTML=(data.items||[]).map(function(i){
     var cls = !i.state ? ' untouched' : (i.state==='未定' ? ' undec' : '');
     var seg = (data.states||[]).map(function(st){
-      var on = (i.state===st) ? ' on'+(st==='未定'?' undec':'') : '';
+      var on = (i.state===st) ? ' on'+(st==='未定'?' undec':(st.indexOf('他案件')>=0?' shared':'')) : '';
       return '<button class="'+on.trim()+'" onclick="pick(\''+esc(i.name)+'\',\''+esc(st)+'\')">'+esc(st)+'</button>';
     }).join('');
-    /* 使い回しは金額が動かないので、入力欄は新規発注のときだけ開く */
-    var open = (i.state==='新規発注');
+    /* 買う場合だけ入力欄を開く。使い回しは金額が発生せず、未定はまだ聞く段階でない。
+       「他案件でも使う」も買うので金額を入れる（ただし上限10万円には加算しない）。 */
+    var open = (i.state==='新規発注' || i.state.indexOf('他案件')>=0);
     return '<div class="card'+cls+'" id="c-'+esc(i.name)+'">'
       + '<div class="nm">'+esc(i.name)+'</div>'
       + '<div class="meta">'
