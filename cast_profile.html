@@ -48,7 +48,7 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
   <div id="form">
     <div class="card">
       <label>あなたの名前</label>
-      <select id="who"><option value="">選択してください</option></select>
+      <select id="who" disabled><option value="">名簿を読み込んでいます…</option></select>
       <p class="note" id="whoNote" style="margin:0">名前を選ぶと、推薦のリストが出ます。</p>
     </div>
 
@@ -244,18 +244,29 @@ el('send').addEventListener('click', function(){
   });
 });
 
-fetch(BASE + '?page=cast_profile_meta&_=' + Date.now())
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-    if(!d || !d.ok) throw new Error('meta');
-    MEMBERS = d.members || [];
-    var s = el('who');
-    MEMBERS.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
-  })
-  .catch(function(){
-    el('err').style.display='block';
-    el('err').textContent = '名簿を読み込めませんでした。再読み込みしてください。';
-  });
+/* 名簿の読み込み。GASは初回に10〜20秒かかることがあり、その間セレクトが空のままだと
+   「壊れている」と見えて離脱する。読み込み中と分かる表示を出し、失敗しても1度だけ黙って
+   やり直す（回線が一瞬切れただけで諦めさせない）。 */
+function loadMembers(retry){
+  fetch(BASE + '?page=cast_profile_meta&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok) throw new Error('meta');
+      MEMBERS = d.members || [];
+      var s = el('who');
+      s.innerHTML = '';
+      s.appendChild(new Option('選択してください',''));
+      MEMBERS.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
+      s.disabled = false;
+    })
+    .catch(function(){
+      if(!retry){ setTimeout(function(){ loadMembers(true); }, 2500); return; }
+      el('who').innerHTML = '<option value="">読み込めませんでした</option>';
+      el('err').style.display='block';
+      el('err').textContent = '名簿を読み込めませんでした。電波の良い場所で、ページを再読み込みしてください。';
+    });
+}
+loadMembers(false);
 </script>
 </body>
 </html>
