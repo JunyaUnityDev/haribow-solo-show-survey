@@ -45,6 +45,11 @@
     background:#3a2b1a;color:var(--warn);margin-left:6px;vertical-align:middle}
   .tag.od{background:#3d2523;color:#e08b84}
   .tag.tm{background:#1e3040;color:#8fb4d4}
+  .dates{font-size:11.5px;color:var(--faint);margin-top:7px;line-height:1.85;
+    border-left:2px solid var(--line);padding-left:9px}
+  .dates b{color:var(--text);font-weight:700}
+  .dates .rel{color:#e08b84}
+  .btn.warn{background:#3a2b1a;border-color:#6b5c33;color:#e8d9a8}
 
   .act{margin-top:11px}
   .act .pair2{display:flex;gap:7px}
@@ -112,7 +117,10 @@
       この画面からできるのは「入金の確定」と「入金なしの記録」だけです。取り消しや席の解放はできません。<br>［入金なし］は銀行を見た記録を残すだけで、お客様には何も起きません。<br>
       ボタンを押すと、席が確定し、お客様へ入金確認メールと電子チケットが自動で送信されます。<br>
       カード決済は個人・団体とも自動で確定するので、ここには出ません。<br>
-      団体の振込は、団体名ではなく「振込人名義」で明細に載ります。カードで払った団体はここに出ません。
+      団体の振込は、団体名ではなく「振込人名義」で明細に載ります。カードで払った団体はここに出ません。<br>
+      <b style="color:#e8d9a8">「お支払いのお願いを送る」</b>は、期限を過ぎた方にだけ出ます。1人につき1回だけ送れます。
+      席は解放されません（文面にも「お席は現在も確保しております」と入っています）。<br>
+      席の解放候補日は期限＋3日です。<b>自動では解放しません。</b>その日が来たら、銀行を確認したうえで潤弥が手で解放します。
     </p>
   </div>
 </div>
@@ -191,6 +199,13 @@ function render(){
           /* 団体は団体名と振込人名義が違う。明細で探すのは名義のほう */
           (team ? '<b>振込人名義 '+esc(i.payer||'（未記入）')+'</b><br>' : '')+
           esc(i.contact)+'</div>'+
+        (team ? '' :
+          '<div class="dates">'
+          + (i.remindSent
+              ? 'お客様への自動リマインド: <b>'+esc(i.remindOn)+' 送信済み</b>'
+              : (i.remindOn ? 'お客様への自動リマインド: <b>'+esc(i.remindOn)+'</b>（12時以降）' : ''))
+          + (i.releaseOn ? '<br>席の解放候補日: <b class="rel">'+esc(i.releaseOn)+'</b>（期限＋3日・自動では解放しません）' : '')
+          + '</div>')+
         (i.lastCheck
           ? '<div class="chk">最終確認: '+esc(i.lastCheck)+'</div>'
           : '<div class="chk none">まだ誰も確認していません</div>')+
@@ -199,6 +214,10 @@ function render(){
             '<button class="btn ghost" onclick="noDeposit(\''+esc(i.no)+'\')">入金なし</button>'+
             '<button class="btn" onclick="ask(\''+esc(i.no)+'\')">入金を確認した</button>'+
           '</div>'+
+          /* 期限を過ぎていて、まだ督促を送っていない振込の方だけに出す */
+          (!team && i.overdue && !i.overdueSent && i.contactOk
+            ? '<button class="btn warn" onclick="askOverdue(\''+esc(i.no)+'\')">お支払いのお願いを送る</button>'
+            : (!team && i.overdueSent ? '<div class="chk">お支払いのお願いは送信済みです</div>' : ''))+
         '</div></div>';
     }).join('');
   }
@@ -225,11 +244,15 @@ function ask(no){
     '<button class="btn danger" onclick="confirmPay(\''+esc(no)+'\')">確定する</button></div></div>';
 }
 function cancelAsk(no){
+  var i=(data.items||[]).filter(function(x){ return String(x.no)===String(no); })[0]||{};
+  var team=i.kind==='team';
   document.getElementById('a'+no).innerHTML=
     '<div class="pair2">'+
       '<button class="btn ghost" onclick="noDeposit(\''+esc(no)+'\')">入金なし</button>'+
       '<button class="btn" onclick="ask(\''+esc(no)+'\')">入金を確認した</button>'+
-    '</div>';
+    '</div>'+
+    (!team && i.overdue && !i.overdueSent && i.contactOk
+      ? '<button class="btn warn" onclick="askOverdue(\''+esc(no)+'\')">お支払いのお願いを送る</button>' : '');
 }
 
 /* 銀行を見たが入金が無かった、を記録する。支払状態は変えないので確認ダイアログは挟まない。
@@ -251,6 +274,45 @@ function noDeposit(no){
       else { toast('記録できませんでした：'+((res&&res.error)||'不明なエラー')); cancelAsk(no); }
     })
     .catch(function(){ busy=false; toast('通信できませんでした。もう一度お試しください'); cancelAsk(no); });
+}
+
+/* 督促は「払っている人に届くと印象を大きく損ねる」種類のメール。
+   だから必ず確認を挟み、銀行明細を見たかを本文で問う。自動では絶対に送らない。 */
+function askOverdue(no){
+  var i=(data.items||[]).filter(function(x){ return String(x.no)===String(no); })[0];
+  if(!i) return;
+  var box=document.getElementById('a'+no); if(!box) return;
+  box.innerHTML=
+    '<div class="confirmbox"><p><b>'+esc(i.name)+' 様</b>（'+esc(i.contact)+'）へ<br>'
+    +'「お振込み期限超過のお知らせ」を送ります。<br><br>'
+    +'<b style="color:#e8d9a8">送る前に、銀行の入出金明細を確認してください。</b><br>'
+    +'お支払い済みの方に届くと、印象を大きく損ねます。<br>'
+    +'入金があった場合は、この画面で先に「入金を確認した」を押してください。<br><br>'
+    +'お席は解放しません。文面にも「お席は現在も確保しております」と入っています。</p>'
+    +'<div class="pair"><button class="btn ghost" onclick="cancelAsk(\''+esc(no)+'\')">やめる</button>'
+    +'<button class="btn warn" onclick="sendOverdue(\''+esc(no)+'\')">確認した。送信する</button></div></div>';
+}
+
+function sendOverdue(no){
+  if(busy) return;
+  var box=document.getElementById('a'+no); if(!box) return;
+  busy=true;
+  box.innerHTML='<button class="btn warn" disabled>送信しています…</button>';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'pay_overdue',op:OP,no:no})})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      busy=false;
+      if(res && res.ok){ toast(res.name+' 様へ送信しました'); load(false); }
+      else {
+        var m={already_sent:'すでに送信済みです',not_overdue:'まだ期限を過ぎていません',
+               already_paid:'すでに入金済みです',no_contact:'メールアドレスがありません',
+               cancelled:'取消済みの注文です',not_bank:'振込以外の注文です'};
+        toast('送信できませんでした：'+((res&&m[res.error])||(res&&res.error)||''));
+        cancelAsk(no);
+      }
+    })
+    .catch(function(){ busy=false; toast('通信できませんでした。最新にしてから、送信されたか確かめてください'); cancelAsk(no); });
 }
 
 function kindOf(no){
