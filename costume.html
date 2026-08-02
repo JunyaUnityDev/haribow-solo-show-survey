@@ -58,7 +58,7 @@
 <body>
 <div class="wrap">
   <div class="bar"><h1>衣装費</h1><span class="who" id="who"></span></div>
-  <p class="lead" id="lead">読み込んでいます…</p>
+  <p class="lead" id="lead">読み込んでいます。最初の1回だけ20秒ほどかかります…</p>
 
   <div id="body" style="display:none">
     <div class="stats">
@@ -151,25 +151,47 @@ function render(){
   }).join('');
 }
 
-/* 状態は押した瞬間に保存する。ここで保存ボタンを挟むと「押したのに残っていない」が起きる */
+/* 状態は押した瞬間に保存する。ここで保存ボタンを挟むと「押したのに残っていない」が起きる。
+   ★先に手元のデータを書き換えて描き直し、保存は裏で走らせる。
+     GASの応答は実測13〜44秒かかるので、待ってから描くと「押しても何も起きない」時間が長すぎる。
+     失敗したら元に戻して知らせる。 */
 function pick(name, st){
-  if(busy) return; busy=true;
+  var it=(data.items||[]).filter(function(x){ return x.name===name; })[0];
+  if(!it) return;
+  var prev=it.state;
+  it.state=st; recalc(); render();
   post({survey:'costume_update',op:OP,name:name,state:st}).then(function(res){
-    busy=false;
-    if(res&&res.ok){ toast(name+'：'+st); load(false); }
-    else { toast('保存できませんでした：'+((res&&res.error)||'')); }
-  }).catch(function(){ busy=false; toast('通信できませんでした'); });
+    if(res&&res.ok){ toast(name+'：'+st); }
+    else { it.state=prev; recalc(); render(); toast('保存できませんでした：'+((res&&res.error)||'')); }
+  }).catch(function(){ it.state=prev; recalc(); render(); toast('通信できませんでした。もう一度押してください'); });
+}
+
+/* 合計を手元で引き直す。サーバーの再取得を待たずに数字を合わせるため。
+   ★加算するのは「新規発注」だけ。「新規（他案件でも使う）」は別枠（Costume.js と同じ規則）。 */
+function recalc(){
+  var t=0,sh=0,ud=0,ut=0;
+  (data.items||[]).forEach(function(i){
+    var y=Number(i.yen)||0;
+    if(i.state==='新規発注') t+=y;
+    else if(i.state.indexOf('他案件')>=0) sh+=y;
+    if(i.state==='未定') ud++;
+    if(!i.state) ut++;
+  });
+  data.total=t; data.shared=sh; data.remain=data.cap-t; data.undecided=ud; data.untouched=ut;
 }
 
 function save(name){
-  if(busy) return; busy=true;
   var g=function(p){ var el=document.getElementById(p+'-'+name); return el?el.value:''; };
-  post({survey:'costume_update',op:OP,name:name,
-        qty:g('q'), yen:g('y'), receipt:g('r'), memo:g('m')}).then(function(res){
-    busy=false;
-    if(res&&res.ok){ toast(name+'を保存しました'); load(false); }
-    else { toast('保存できませんでした：'+((res&&res.error)||'')); }
-  }).catch(function(){ busy=false; toast('通信できませんでした。もう一度お試しください'); });
+  var it=(data.items||[]).filter(function(x){ return x.name===name; })[0];
+  var payload={survey:'costume_update',op:OP,name:name,
+               qty:g('q'), yen:g('y'), receipt:g('r'), memo:g('m')};
+  /* 先に手元へ反映して合計を動かす。保存は裏で走らせる */
+  if(it){ it.qty=payload.qty; it.yen=payload.yen; it.receipt=payload.receipt; it.memo=payload.memo; recalc(); render(); }
+  toast(name+'を保存しています…');
+  post(payload).then(function(res){
+    if(res&&res.ok) toast(name+'を保存しました');
+    else toast('保存できませんでした：'+((res&&res.error)||''));
+  }).catch(function(){ toast('通信できませんでした。もう一度お試しください'); });
 }
 
 function post(body){
