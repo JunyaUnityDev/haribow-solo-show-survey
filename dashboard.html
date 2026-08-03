@@ -706,6 +706,8 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
  * ========================================================================= */
 
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+/* 実際の取得は下の apiUrl() が組み立てる（鍵と fresh を付けるため）。
+   この定数はどこからも参照されていないが、旧コードの名残として残す。 */
 var ENDPOINT = BASE + '?page=dashboard';
 /* このページは公開されているので、ここに書く鍵は「漏れる前提」で選ぶこと。
    2026-07-30まで運営用の ADMIN_SECRET を置いていたが、あれは席の解放・支払いバッチ・
@@ -1616,8 +1618,13 @@ function renderNext(rows, orgs, castPeople){
  *    キャッシュはGAS側にあるので、ブラウザのリロードだけでは新しくならない。 */
 var FRESH = false;
 
+/* dashboard だけ鍵が要る（2026-08-03〜）。応答にWBSのメモ列が丸ごと入り、
+   そこに顧客の実名・応援金額が書かれているため。cast と orgstats は
+   PII を返さない設計なので鍵なしのままでよい。 */
 function apiUrl(page){
-  return BASE + '?page=' + page + (FRESH ? '&fresh=1' : '') + '&_=' + Date.now();
+  return BASE + '?page=' + page
+    + (page === 'dashboard' ? '&k=' + encodeURIComponent(DASH_SECRET) : '')
+    + (FRESH ? '&fresh=1' : '') + '&_=' + Date.now();
 }
 
 function load(){
