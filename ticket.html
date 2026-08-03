@@ -96,8 +96,16 @@ function render(d){
    + (Number(d.qty) >= 2
         ? '  ・お連れ様（'+Number(d.qty)+'名分）もこの1枚に含まれています。ご一緒にお越しください。<br>'
         : '')
-   + '  ・画面が開けない場合も、受付でお名前をお伝えいただければご入場いただけます。<br>'
-   + '  ・ご不明な点は <a href="mailto:info@haribow.com">info@haribow.com</a> まで。'
+   + '  ・画面が開けない場合も、受付でお名前をお伝えいただければご入場いただけます。'
+   + '</div>'
+   /* お問い合わせの入口。メールへの返信は運営が見落とすため、フォームを一次窓口にする
+      （2026-08-03）。この画面は当日までに必ず開かれるので、導線としてここが一番強い。
+      ?t= を付けて渡すと、フォーム側でどの注文かが分かる＝注文番号を打たせずに済む。 */
+   + '<div class="notes">'
+   + '  <b>お問い合わせ</b><br>'
+   + '  ご不明な点や、お席・お支払いについてのご相談は、下記のフォームから承ります。<br>'
+   + '  <a href="contact.html?t='+encodeURIComponent(d.token)+'">お問い合わせフォームを開く</a><br>'
+   + '  <span style="font-size:11.5px">お急ぎの場合は <a href="mailto:info@haribow.com">info@haribow.com</a> まで。</span>'
    + '</div>';
   document.getElementById('root').innerHTML=html;
 
