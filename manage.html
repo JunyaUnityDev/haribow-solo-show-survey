@@ -311,6 +311,17 @@ function mSave(){
     if(!res.ok){
       if(res.error==='min5'){ alert('5席以上でお願いします。'); calc(); return; }
       if(res.error==='closed'||res.error==='not_editable'){ alert('変更の受付は終了しました（お支払い済み、またはお支払い期限を過ぎています）。'); return; }
+      /* すでに決済が済んでいた（2026-08-03追加）。画面の「未入金」表示は最大24時間遅れることがあり、
+         そのまま席を足すと満額の新しい決済リンクを送ってしまう＝二重にお支払いいただく事故になる。
+         サーバー側で止めているので、ここでは理由を正確に伝えて問い合わせへ送る。 */
+      if(res.error==='already_paid'){
+        alert('お支払いが確認できたため、お席の変更は承れません。\n\n'
+            + 'この画面の表示が「お支払い前」のままになっていることがありますが、決済は完了しています。\n'
+            + 'もう一度お支払いいただく必要はありません。\n\n'
+            + 'お席の変更をご希望の場合は、お問い合わせフォームからご連絡ください。\n'
+            + 'https://junyaunitydev.github.io/haribow-solo-show-survey/contact.html');
+        return;
+      }
       if(res.conflict){ alert(res.conflict.map(fmtSeat).join('・')+' はお取りできませんでした。\n他の団体が予約済みか、団体でお取りいただけないお席です。\nお手数ですが選び直してください。');
         // 他団体在庫を取り直して再描画
         fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
