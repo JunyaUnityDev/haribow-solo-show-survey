@@ -106,6 +106,11 @@
     <h2 class="sec">入金を待っている方</h2>
     <div id="list"></div>
 
+    <!-- 団体の期限超過。2026-08-03に団体の自動キャンセル（席の自動解放）を廃止したので、
+         ここが唯一の解放口。空でないまま放置すると席が死んだまま公演日を迎える。 -->
+    <h2 class="sec" id="relSec" style="display:none">お席の解放を待っている団体</h2>
+    <div id="rel"></div>
+
     <h2 class="sec">最近確認した方</h2>
     <div id="done"></div>
 
@@ -114,7 +119,9 @@
     </div>
 
     <p class="note">
-      この画面からできるのは「入金の確定」と「入金なしの記録」だけです。取り消しや席の解放はできません。<br>［入金なし］は銀行を見た記録を残すだけで、お客様には何も起きません。<br>
+      この画面からできるのは「入金の確定」「入金なしの記録」「団体のお席の解放」です。取り消しはできません。<br>［入金なし］は銀行を見た記録を残すだけで、お客様には何も起きません。<br>
+      <b style="color:#e8a8a8">団体のお席は自動では解放されません（2026-08-03から）。</b>期限を過ぎた団体は上の一覧に出るので、
+      Squareの表示を見たうえで［お席を解放する］を押してください。支払い済み・照合できなかった団体はボタンが出ません。<br>
       ボタンを押すと、席が確定し、お客様へ入金確認メールと電子チケットが自動で送信されます。<br>
       カード決済は個人・団体とも自動で確定するので、ここには出ません。<br>
       団体の振込は、団体名ではなく「振込人名義」で明細に載ります。カードで払った団体はここに出ません。<br>
@@ -222,12 +229,83 @@ function render(){
     }).join('');
   }
 
+  renderRelease();
+
   var D=document.getElementById('done');
   D.innerHTML = done.length
     ? done.map(function(i){ return '<div class="doneline"><b>'+esc(i.name)+'</b> '+yen(i.total)+
         '　席 '+esc(i.seats)+'<br>'+esc(i.confirmedAt||'')+
         (i.confirmedBy?'　'+esc(String(i.confirmedBy).replace('（入金確認コンソール）','')):'')+'</div>'; }).join('')
     : '<div class="doneline">この7日間に、この画面から確定したものはありません。</div>';
+}
+
+/* 団体のお席の解放。2026-08-03に自動キャンセルを廃止したので、ここでしか席は戻らない。
+   ★Squareで支払いが確認できた団体・照合できなかった団体には、ボタン自体を出さない。
+     「未払いのはず」で押されると、払った団体の席を消す。判断材料を出して、押させない。 */
+function renderRelease(){
+  var rows=(data.releasable)||[];
+  var sec=document.getElementById('relSec'), R=document.getElementById('rel');
+  sec.style.display = rows.length ? '' : 'none';
+  if(!rows.length){ R.innerHTML=''; return; }
+  R.innerHTML = rows.map(function(i){
+    var warn = !i.canRelease;
+    return '<div class="card">'
+      + '<div class="row1"><b>'+esc(i.name)+'</b><span class="tag">団体・'+esc(i.method)+'</span></div>'
+      + '<div class="meta">'+esc(i.count)+'名 / '+yen(i.total)+' / 席 '+esc(i.seats)+'</div>'
+      + '<div class="meta">代表 '+esc(i.rep)+'　'+esc(i.contact)+'</div>'
+      + '<div class="meta">期限 '+esc(i.deadline)+'（<b>'+esc(i.overdueDays)+'日超過</b>）'
+      + (i.payer?'　名義 '+esc(i.payer):'')+'</div>'
+      + '<div class="meta" style="color:'+(warn?'#e8a8a8':'#8b919e')+'">'+esc(i.square)+'</div>'
+      + '<div id="r'+esc(i.no)+'">'
+      + (i.canRelease
+          ? '<button class="btn warn" onclick="relAsk(\''+esc(i.no)+'\')">お席を解放する</button>'
+          : '<button class="btn ghost" disabled>解放できません</button>')
+      + '</div></div>';
+  }).join('');
+}
+
+function relAsk(no){
+  var i=(data.releasable||[]).filter(function(x){ return String(x.no)===String(no); })[0];
+  if(!i) return;
+  document.getElementById('r'+no).innerHTML=
+    '<div class="confirmbox"><p><b>'+esc(i.name)+'</b> の席 '+esc(i.seats)+' を解放します。<br>'+
+    '解放すると席は他のお客様に販売され、代表者へ「受付終了・お席を解放しました」のご案内が送信されます。<br>'+
+    '<b>取り消せません。</b></p>'+
+    '<div class="pair"><button class="btn ghost" onclick="relCancel(\''+esc(no)+'\')">やめる</button>'+
+    '<button class="btn danger" onclick="doRelease(\''+esc(no)+'\')">解放する</button></div></div>';
+}
+function relCancel(no){
+  document.getElementById('r'+no).innerHTML=
+    '<button class="btn warn" onclick="relAsk(\''+esc(no)+'\')">お席を解放する</button>';
+}
+function doRelease(no){
+  if(busy) return;
+  var box=document.getElementById('r'+no);
+  if(!box) return;
+  busy=true;
+  box.innerHTML='<button class="btn" disabled>解放しています…</button>';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'pay_release_team',op:OP,no:no})})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      busy=false;
+      if(res && res.ok){
+        toast(res.already ? 'すでに解放済みでした' : (res.name+' の席を解放しました'));
+        load(false);
+      } else {
+        var m={bad_token:'このURLでは操作できません',not_found:'この団体が見つかりません',
+               already_paid:'入金済みの団体です。解放できません',
+               paid_now:'いま確認したところ支払い済みでした。解放していません',
+               square_unknown:'Squareに照合できませんでした。時間をおいてください'};
+        toast('解放できませんでした：'+((res&&m[res.error])||(res&&res.error)||'不明なエラー'));
+        relCancel(no);
+      }
+    })
+    .catch(function(){
+      busy=false;
+      toast('通信できませんでした。最新にしてから、解放されたか確かめてください');
+      relCancel(no);
+    });
 }
 
 /* 押し間違いで「払っていない人」を確定させないための一段構え。
