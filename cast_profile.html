@@ -128,7 +128,8 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       <p class="note">お客さんに「この人が推してるなら見てみよう」と思ってもらう仕掛けです。<br>
       <b>うまい人ではなく、たぶん誰も気づかないけど実はとんでもない人</b>を選んでください。<br>
       できれば1人は自分と同じ演目から、あとの2人は別の演目からだと嬉しいです（必須ではありません）。<br>
-      それぞれに<b>「本番中の癖・見どころ」を一言</b>ください。お客さんはこれを探しながら見ます。</p>
+      それぞれに<b>「本番中の癖・見どころ」を一言</b>ください。お客さんはこれを探しながら見ます。<br>
+      <b>客席から見えるものにしてください。</b>1,200席あるので、後ろの席からでも分かるもの（大きい動作／毎回やること／立ち位置・出てくる場所）だと見つけてもらえます。表情や細かい手の動きは、後ろまで届きません。</p>
 
       <label>1人目</label>
       <select id="rec1"><option value="">まず名前を選んでください</option></select>
@@ -144,9 +145,10 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
     </div>
 
     <div class="card">
-      <p class="q">自分が、本番前・本番中にやってしまうこと</p>
-      <p class="note">自分では気づきにくいので、思い当たるものだけで大丈夫です。</p>
-      <textarea id="ownQuirk" placeholder="例：出る直前に必ず靴紐を結び直す／ミスすると笑ってごまかす"></textarea>
+      <p class="q">自分が、本番中にやってしまうこと</p>
+      <p class="note">自分では気づきにくいので、思い当たるものだけで大丈夫です。<br>
+      <b>こちらも客席から見えるもので。</b>後ろの席の人も探せるように。</p>
+      <textarea id="ownQuirk" placeholder="例：技が決まると必ず片手を上げる／ミスすると笑ってごまかす"></textarea>
     </div>
 
     <div class="card">
@@ -253,7 +255,7 @@ var REQUIRED_ = [
   { k:'rec1',  label:'推薦1人目' },  { k:'quirk1', label:'推薦1人目の見どころ' },
   { k:'rec2',  label:'推薦2人目' },  { k:'quirk2', label:'推薦2人目の見どころ' },
   { k:'rec3',  label:'推薦3人目' },  { k:'quirk3', label:'推薦3人目の見どころ' },
-  { k:'ownQuirk', label:'自分が本番前・本番中にやってしまうこと' },
+  { k:'ownQuirk', label:'自分が本番中にやってしまうこと' },
   { p:'callMe',   label:'お客さんにどうしてほしい' }
 ];
 function sync(){
