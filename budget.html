@@ -135,7 +135,7 @@ function render(){
   document.getElementById('sTotal').textContent=yen(data.total);
   document.getElementById('sFixed').textContent=yen(data.fixed);
   document.getElementById('sRough').textContent=yen(data.rough);
-  var pct = data.detail>0 ? Math.round(data.fixed/data.detail*100) : 0;
+  var pct = data.total>0 ? Math.round(data.fixed/data.total*100) : 0;
   document.getElementById('meter').style.width=pct+'%';
 
   /* まだ動くものを上に出す。確定済みは下に畳む。今日やることが上にある状態を保つ */
@@ -209,16 +209,19 @@ function pick(idx, k){
 /* 合計を手元で引き直す。サーバーの再取得を待たずに数字を合わせるため。
    ★Budget.js の budgetList と同じ順序で組み立てる（明細合計＋配信費、そこへ予備費10%）。 */
 function recalc(){
-  var detail=0, fixed=0, rough=0, rc=0;
+  var detail=0, fixed=0, rc=0;
   (data.items||[]).forEach(function(i){
     var y=Number(i.yen)||0;
     detail+=y;
-    if(i.kubun==='確定') fixed+=y; else { rough+=y; rc++; }
+    if(i.kubun==='確定') fixed+=y; else rc++;
   });
   var subtotal=detail+(data.extra||0);
-  data.detail=detail; data.fixed=fixed; data.rough=rough; data.roughCount=rc;
+  data.detail=detail; data.fixed=fixed; data.roughCount=rc;
   data.reserve=Math.round(subtotal*0.1);
   data.total=Math.round(subtotal*1.1);
+  /* ★差分で出す。明細の概算を足すと、明細表の外の概算（配信費・予備費）が漏れて
+     ダッシュボードと食い違う。Budget.js の budgetList と同じ規則。 */
+  data.rough=data.total-fixed;
 }
 
 function save(idx){
