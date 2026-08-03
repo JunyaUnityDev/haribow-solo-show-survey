@@ -335,7 +335,9 @@
     <div class="ass-grid">
       <div class="ass-item"><div class="ass-t">決済の安全</div><div class="ass-b">お支払いは Square の暗号化決済、または銀行振込。カード情報を当団体で保持することはありません。</div></div>
       <div class="ass-item"><div class="ass-t">キャンセル・返金</div><div class="ass-b">ご購入後の、お客様都合によるキャンセル・変更・払い戻しは承れません。公演が中止となった場合のみ、チケット代金を全額返金します。</div></div>
-      <div class="ass-item"><div class="ass-t">お困りのとき</div><div class="ass-b">ご購入やお席のご相談は info@haribow.com へ。公式LINE開設後は、LINEでも承ります。</div></div>
+      <!-- 問い合わせの一次窓口はフォーム（2026-08-03）。メールへの返信は運営が見落とすため。
+           購入前にこの画面で困った方の受け口もここに寄せる。info@ は補助として残す。 -->
+      <div class="ass-item"><div class="ass-t">お困りのとき</div><div class="ass-b">ご購入やお席のご相談は<a href="contact.html" style="color:#c9a24b">お問い合わせフォーム</a>から承ります。お急ぎの場合は info@haribow.com へ。</div></div>
     </div>
   </section>
 </div>
@@ -766,7 +768,7 @@ function checkout(){
               + '同じお席をご希望の場合は、' + hhmm + ' を過ぎてから画面を更新してください。\n'
               + '別のお席でよろしければ、そのままお選びいただけます。\n\n'
             : 'お手数ですが、もう一度お席をお選びください。\n\n')
-        + '何度も表示される場合は info@haribow.com までご連絡ください。');
+        + '何度も表示される場合は、画面下の「お問い合わせフォーム」からご連絡ください。');
     btn.textContent='決済へ'; btn.disabled=false;
   });
 }
