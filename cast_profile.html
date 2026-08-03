@@ -108,6 +108,15 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       <p class="q">最近ハマってるもの</p>
       <p class="note">お客さんが親近感を持つところなので、ダブルダッチ以外のことでOKです。</p>
       <input id="hobby" placeholder="例：サウナ、カレー作り、韓国ドラマ">
+      <p class="q" style="margin-top:16px">MBTI（分かれば）</p>
+      <p class="note">分からなければ空欄で大丈夫です。</p>
+      <select id="mbti">
+        <option value="">選択してください</option>
+        <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+        <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+        <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+        <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+      </select>
       <p class="q" style="margin-top:6px">一番の自慢を、1つだけ</p>
       <p class="note">大会の実績でも、それ以外でも。1つだけにしてください。<br>
       <b>ダブルダッチを知らない人が読んでもわかるように</b>書いてください。</p>
@@ -227,7 +236,8 @@ el('send').addEventListener('click', function(){
     body: JSON.stringify({ survey:'cast_profile',
       name: val('who'), pname: val('pname'), pkana: val('pkana'),
       years: pick.years, trigger: pick.trigger, before: pick.before,
-      good: pick.good, bad: pick.bad, hobby: val('hobby'), brag: val('brag'),
+      good: pick.good, bad: pick.bad, hobby: val('hobby'),
+      mbti: val('mbti'), brag: val('brag'),
       rec1: val('rec1'), quirk1: val('quirk1'),
       rec2: val('rec2'), quirk2: val('quirk2'),
       rec3: val('rec3'), quirk3: val('quirk3'),
