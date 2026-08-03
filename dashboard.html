@@ -1533,6 +1533,15 @@ function renderNow(data, orgs, cast){
     + cell('黒字まで', (needMore==null?'—':needMore)+'<small>人</small>',
            '支出'+yen(act.expense)+' − 実売'+yen(act.revenueTotal)
            +'＝'+yen(act.gapYen)+' ／ 一人'+yen(act.perHead), (needMore||0)>0)
+    /* ★支出は1つの数字で見せない（2026-08-03）。
+       総支出だけを出すと「もう決まった額」と読まれる。実際そう誤読して報告した。
+       確定と概算の内訳を必ず併記する。未見積が0でない日は赤で警告する。 */
+    + cell('支出の内訳', yen(f.expenseFixed)+'<small> 確定</small>',
+           '概算 '+yen(f.expenseEstimate)+'（動きます）'
+           + ((Number(f.expenseUnknown)||0)>0
+               ? '<br><b style="color:#e08b84">未見積 '+yen(f.expenseUnknown)+' あり・0円のまま放置されています</b>'
+               : '<br>未見積 0円'),
+           (Number(f.expenseUnknown)||0)>0)
     + cell('団体の打診', (orgs?orgs.contacted:0)+'<small>/'+(orgs?orgs.total:0)+'</small>',
            orgs?('受付終了まで'+orgs.daysToClose+'日'):'', orgs && orgs.contacted===0)
     + cell('出演者の動き', (cast?cast.moved:0)+'<small>/'+(cast?cast.people:0)+'名</small>',
