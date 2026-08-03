@@ -49,7 +49,12 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
     <div class="card">
       <label>あなたの名前</label>
       <select id="who" disabled><option value="">名簿を読み込んでいます…</option></select>
-      <p class="note" id="whoNote" style="margin:0">名前を選ぶと、推薦のリストが出ます。</p>
+      <p class="note" id="whoNote">名前を選ぶと、推薦のリストが出ます。</p>
+      <label>プレイヤーネーム</label>
+      <input id="pname" placeholder="例：JUNYA">
+      <label>プレイヤーネーム（ふりがな）</label>
+      <input id="pkana" placeholder="例：じゅんや">
+      <p class="note" style="margin:0">お客さんに出すのはこの名前です。<b>ふりがなは、名前を呼んでもらうときに使います。</b></p>
     </div>
 
     <div class="card">
@@ -214,7 +219,8 @@ el('send').addEventListener('click', function(){
   var b = el('send'); b.disabled = true; b.textContent = '送信中…';
   fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify({ survey:'cast_profile',
-      name: val('who'), years: pick.years, trigger: pick.trigger, before: pick.before,
+      name: val('who'), pname: val('pname'), pkana: val('pkana'),
+      years: pick.years, trigger: pick.trigger, before: pick.before,
       good: pick.good, bad: pick.bad, hobby: val('hobby'), brag: val('brag'),
       rec1: val('rec1'), quirk1: val('quirk1'),
       rec2: val('rec2'), quirk2: val('quirk2'),
