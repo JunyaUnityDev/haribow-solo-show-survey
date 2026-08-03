@@ -234,7 +234,6 @@ el('who').addEventListener('change', onWho);
   el(id).addEventListener('input', sync);
 });
 ['rec1','rec2','rec3'].forEach(function(id){ el(id).addEventListener('change', sync); });
-sync();
 
 /* 必須を実際に required にする（2026-08-03変更）。
    以前は「名前だけで送信できる」にしていたが、それだと名前だけの行が31個並ぶ。
@@ -268,6 +267,8 @@ function sync(){
     ? ('あと：' + missing.map(function(m){ return m.label; }).join('／'))
     : ('あと' + missing.length + '項目（' + missing[0].label + ' ほか）');
 }
+// REQUIRED_ は var なので、この行より前で sync() を呼ぶと落ちる（実際に落として気づいた）
+sync();
 
 el('send').addEventListener('click', function(){
   var b = el('send'); b.disabled = true; b.textContent = '送信中…';
