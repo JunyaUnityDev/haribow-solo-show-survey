@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>見積｜HARIBOW単独公演</title>
+<style>
+  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --text:#f3f1ea; --faint:#8b919e;
+         --ok:#2e8b5f; --warn:#c9a24b; --accent:#2a3f52; --accentline:#39536b; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:560px;margin:0 auto;padding:14px 12px 90px}
+  .bar{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .bar h1{font-size:15px;margin:0;flex:1;letter-spacing:.06em;font-weight:700}
+  .who{font-size:12px;color:var(--faint)}
+  .lead{font-size:12px;color:var(--faint);line-height:1.7;margin:8px 0 14px}
+
+  .stats{display:flex;gap:6px;margin-bottom:8px}
+  .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}
+  .stat b{display:block;font-size:16px;line-height:1.35;font-variant-numeric:tabular-nums}
+  .stat span{font-size:10px;color:var(--faint)}
+  .stat.fixed b{color:#7fd3a6}
+  .stat.rough b{color:#e0c078}
+
+  .meter{height:7px;border-radius:4px;background:#3a3020;overflow:hidden;margin-bottom:16px}
+  .meter i{display:block;height:100%;background:#2e8b5f}
+
+  .grp{font-size:11px;color:var(--faint);letter-spacing:.1em;margin:18px 0 7px;font-weight:700}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px}
+  .card.rough{border-color:#4a3f22}
+  .card.done{opacity:.55}
+  .nm{font-size:15px;font-weight:700;line-height:1.45}
+  .cat{font-size:10.5px;color:var(--faint);letter-spacing:.08em}
+  .amt{font-size:19px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .meta{font-size:11.5px;color:var(--faint);margin-top:4px;line-height:1.7}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+  .seg button{padding:10px 4px;border-radius:8px;border:1px solid var(--line);
+    background:transparent;color:var(--faint);font-size:12.5px;font-weight:700;cursor:pointer}
+  .seg button.on{background:#4a3f22;border-color:#6b5c33;color:#e8d9a8}
+  .seg button.on.fix{background:#22402f;border-color:#356b52;color:#a8e8c9}
+
+  .fields{margin-top:9px}
+  .row2{display:flex;gap:7px}
+  .fld{flex:1;margin-top:7px}
+  .fld label{display:block;font-size:11px;color:var(--faint);margin-bottom:3px}
+  input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);
+    background:#0f1116;color:var(--text);font-size:16px;font-family:inherit}
+  textarea{min-height:64px;resize:vertical}
+  .calc{font-size:12px;color:var(--faint);margin-top:7px;font-variant-numeric:tabular-nums}
+  .calc b{color:var(--text);font-size:14px}
+  .btn{width:100%;padding:11px;border-radius:9px;border:1px solid var(--accentline);
+    background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-top:9px}
+  .ghost{background:transparent;border-color:var(--line);color:var(--faint)}
+
+  details{margin-top:9px}
+  details summary{font-size:11.5px;color:var(--faint);cursor:pointer;padding:4px 0}
+  details .body{font-size:11.5px;color:var(--faint);line-height:1.85;
+    background:#0f1116;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:5px;
+    white-space:pre-wrap;word-break:break-word;max-height:230px;overflow:auto}
+
+  .note{font-size:11.5px;color:var(--faint);line-height:1.8;margin-top:22px;
+    border-top:1px solid var(--line);padding-top:13px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:50;
+    background:#e9e6dc;color:#14161c;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .18s}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><h1>見積</h1><span class="who" id="who"></span></div>
+  <p class="lead" id="lead">読み込んでいます。最初の1回だけ20秒ほどかかります…</p>
+
+  <div id="body" style="display:none">
+    <div class="stats">
+      <div class="stat"><b id="sTotal">¥0</b><span>総支出</span></div>
+      <div class="stat fixed"><b id="sFixed">¥0</b><span>確定した額</span></div>
+      <div class="stat rough"><b id="sRough">¥0</b><span>まだ動く額</span></div>
+    </div>
+    <div class="meter"><i id="meter" style="width:0%"></i></div>
+    <div id="list"></div>
+    <button class="btn ghost" onclick="load(true)">最新にする</button>
+    <p class="note">
+      正式見積が返ってきたら、金額を入れて「確定」を押してください。何度でも書き換えられます。<br>
+      まだ商談中のものは「概算」のままで大丈夫です。金額だけ新しくすることもできます。<br>
+      <b>備考</b>は、これまでの経緯です。消えません。<br>
+      <b>担当メモ</b>は自由に書き換えてください。業者名・いつ誰と話したか・次に何をするかを残しておくと、
+      あとで金額の根拠を探し直さずに済みます。<br><br>
+      <b style="color:#c9a24b">ページが開けないとき</b>：Googleに複数のアカウントでログインしていると弾かれることがあります。
+      <b>info@haribow.com でログインしたブラウザ</b>で開いてください。シークレットウィンドウで開き直しても直ります。
+    </p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var OP=new URLSearchParams(location.search).get('op')||'';
+var data=null;
+var opened={};   /* 確定済みの行は畳んでおく。開いたものだけ覚えておく */
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+/* id に項目名をそのまま使えない（記号・括弧が入る）ので添字で引く */
+function yen(n){ return '¥'+(Number(n)||0).toLocaleString(); }
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('on'); },2600); }
+
+function load(isReload){
+  if(!OP){ document.getElementById('lead').textContent='URLが正しくありません。配布された専用URLをそのまま開いてください。'; return; }
+  return fetch(BASE+'?page=budget&op='+encodeURIComponent(OP)+'&t='+Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d||!d.ok){
+        document.getElementById('lead').textContent =
+          (d&&d.error==='bad_token') ? 'このURLでは開けません。配布された専用URLか確認してください。'
+                                     : 'データを取得できませんでした。Googleに複数アカウントでログインしていると弾かれることがあります。info@haribow.com でログインしたブラウザか、シークレットウィンドウで開き直してください。';
+        return;
+      }
+      data=d; render(); if(isReload) toast('最新にしました');
+    })
+    .catch(function(){ document.getElementById('lead').textContent='通信できませんでした。電波の良いところで開き直してください。それでもだめなときは info@haribow.com でログインしたブラウザか、シークレットウィンドウでお試しください。'; });
+}
+
+function render(){
+  document.getElementById('who').textContent=data.opName+' さん';
+  document.getElementById('lead').textContent=
+    'まだ動く額が'+data.roughCount+'件あります。正式見積が出たものから確定にしてください。（'+data.updatedAt+' 時点）';
+  document.getElementById('body').style.display='';
+
+  document.getElementById('sTotal').textContent=yen(data.total);
+  document.getElementById('sFixed').textContent=yen(data.fixed);
+  document.getElementById('sRough').textContent=yen(data.rough);
+  var pct = data.detail>0 ? Math.round(data.fixed/data.detail*100) : 0;
+  document.getElementById('meter').style.width=pct+'%';
+
+  /* まだ動くものを上に出す。確定済みは下に畳む。今日やることが上にある状態を保つ */
+  var rough=[], done=[];
+  (data.items||[]).forEach(function(it,idx){ (it.kubun==='確定'?done:rough).push(idx); });
+
+  var html='';
+  if(rough.length){ html+='<div class="grp">まだ動く（'+rough.length+'件）</div>'+rough.map(card).join(''); }
+  if(done.length){  html+='<div class="grp">確定済み（'+done.length+'件）</div>'+done.map(card).join(''); }
+  document.getElementById('list').innerHTML=html;
+}
+
+function card(idx){
+  var i=data.items[idx];
+  var isDone=(i.kubun==='確定');
+  var open = !isDone || opened[idx];
+  var seg=(data.kubuns||[]).map(function(k){
+    var on=(i.kubun===k)?(' on'+(k==='確定'?' fix':'')):'';
+    return '<button class="'+on.trim()+'" onclick="pick('+idx+',\''+esc(k)+'\')">'+esc(k)+'</button>';
+  }).join('');
+
+  var h='<div class="card '+(isDone?'done':'rough')+'">'
+    + '<div class="cat">'+esc(i.cat)+'</div>'
+    + '<div class="nm">'+esc(i.name)+'</div>'
+    + '<div class="amt">'+yen(i.yen)+'</div>'
+    + '<div class="meta">'+(i.updatedAt?('最終更新 '+esc(i.updatedAt)+(i.updatedBy?(' ／ '+esc(i.updatedBy)):'')):'まだ誰も触っていません')+'</div>';
+
+  if(!open){
+    h+='<button class="btn ghost" onclick="openRow('+idx+')">開いて直す</button></div>';
+    return h;
+  }
+
+  h+= '<div class="seg">'+seg+'</div>'
+    + '<div class="fields">'
+      + '<div class="row2">'
+        + '<div class="fld"><label>単価（円）</label><input type="number" inputmode="numeric" id="u-'+idx+'" value="'+esc(i.unit)+'" oninput="calc('+idx+')"></div>'
+        + '<div class="fld"><label>数量</label><input type="number" inputmode="numeric" id="q-'+idx+'" value="'+esc(i.qty)+'" oninput="calc('+idx+')"></div>'
+      + '</div>'
+      + '<div class="calc">この費目の合計 <b id="c-'+idx+'">'+yen(i.yen)+'</b></div>'
+      + '<div class="fld"><label>担当メモ（何度でも書き換えられます）</label>'
+        + '<textarea id="m-'+idx+'" placeholder="業者名・いつ誰と話したか・次にやること">'+esc(i.memo)+'</textarea></div>'
+      + (i.note ? ('<details><summary>これまでの経緯を読む</summary><div class="body">'+esc(i.note)+'</div></details>') : '')
+      + '<button class="btn" onclick="save('+idx+')">保存する</button>'
+    + '</div></div>';
+  return h;
+}
+
+function openRow(idx){ opened[idx]=true; render(); }
+
+/* 入力しながら合計が動くようにする。実際の計算はシートの =単価×数量 と同じ */
+function calc(idx){
+  var u=Number(document.getElementById('u-'+idx).value)||0;
+  var q=Number(document.getElementById('q-'+idx).value)||0;
+  document.getElementById('c-'+idx).textContent=yen(u*q);
+}
+
+/* 区分は押した瞬間に保存する。保存ボタンを挟むと「押したのに残っていない」が起きる。
+   ★先に手元のデータを書き換えて描き直し、保存は裏で走らせる。
+     GASの応答は実測10秒以上かかるので、待ってから描くと「押しても何も起きない」時間が長すぎる。
+     失敗したら元に戻して知らせる。 */
+function pick(idx, k){
+  var it=data.items[idx]; if(!it) return;
+  var prev=it.kubun;
+  it.kubun=k; opened[idx]=true; recalc(); render();
+  post({survey:'budget_update',op:OP,name:it.name,kubun:k}).then(function(res){
+    if(res&&res.ok) toast(it.name+'：'+k);
+    else { it.kubun=prev; recalc(); render(); toast('保存できませんでした：'+((res&&res.error)||'')); }
+  }).catch(function(){ it.kubun=prev; recalc(); render(); toast('通信できませんでした。もう一度押してください'); });
+}
+
+/* 合計を手元で引き直す。サーバーの再取得を待たずに数字を合わせるため。
+   ★Budget.js の budgetList と同じ順序で組み立てる（明細合計＋配信費、そこへ予備費10%）。 */
+function recalc(){
+  var detail=0, fixed=0, rough=0, rc=0;
+  (data.items||[]).forEach(function(i){
+    var y=Number(i.yen)||0;
+    detail+=y;
+    if(i.kubun==='確定') fixed+=y; else { rough+=y; rc++; }
+  });
+  var subtotal=detail+(data.extra||0);
+  data.detail=detail; data.fixed=fixed; data.rough=rough; data.roughCount=rc;
+  data.reserve=Math.round(subtotal*0.1);
+  data.total=Math.round(subtotal*1.1);
+}
+
+function save(idx){
+  var it=data.items[idx]; if(!it) return;
+  var u=document.getElementById('u-'+idx).value;
+  var q=document.getElementById('q-'+idx).value;
+  var m=document.getElementById('m-'+idx).value;
+  var payload={survey:'budget_update',op:OP,name:it.name,unit:u,qty:q,memo:m};
+
+  /* 先に手元へ反映して総支出を動かす。保存は裏で走らせる */
+  it.unit=u; it.qty=q; it.memo=m;
+  it.yen=(Number(u)||0)*(Number(q)||0);
+  recalc(); render();
+  toast(it.name+'を保存しています…');
+  post(payload).then(function(res){
+    if(res&&res.ok) toast('保存しました');
+    else toast('保存できませんでした：'+((res&&res.error)||''));
+  }).catch(function(){ toast('通信できませんでした。もう一度お試しください'); });
+}
+
+function post(body){
+  return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(body)}).then(function(r){ return r.json(); });
+}
+
+load(false);
+</script>
+</body>
+</html>
