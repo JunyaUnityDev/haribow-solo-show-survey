@@ -51,7 +51,7 @@
 </head>
 <body>
 <div class="wrap">
-  <img class="logo" src="assets/haribow-logo-white.png" alt="HARIBOW"
+  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW"
        onerror="this.style.display='none'">
   <div id="root">
     <h1>お問い合わせ</h1>
@@ -103,8 +103,12 @@
           <label for="body">お問い合わせ内容<span class="req">必須</span></label>
           <textarea id="body" placeholder="できるだけ具体的にお書きください。&#10;（例）決済のときにエラーが出て、取りたかった3列20番ではなく4列21番になってしまいました。"></textarea>
         </div>
-        <!-- 自動投稿よけ。人には見えない欄なので、埋まっていたら機械と判断する -->
-        <label class="hp" aria-hidden="true">ご住所<input type="text" id="hp" tabindex="-1" autocomplete="off"></label>
+        <!-- 自動投稿よけ。人には見えない欄。
+             ★ラベルに「ご住所」「電話番号」など実在の項目名を書かないこと。
+               スマホの連絡先オートフィルがこの欄まで埋めてしまい、本物のお問い合わせが
+               機械と誤判定される（2026-08-04に実際に指摘された）。
+               サーバー側も「埋まっていたら捨てる」をやめ、シートには必ず残すようにしてある。 -->
+        <label class="hp" aria-hidden="true">この欄は入力しないでください<input type="text" id="hp" name="hbw-nofill" tabindex="-1" autocomplete="off"></label>
       </div>
 
       <button class="send" id="send" onclick="submitForm()">送信する</button>
