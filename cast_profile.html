@@ -98,28 +98,29 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       <p class="note">お客さんが親近感を持つところなので、ダブルダッチ以外のことでOKです。</p>
       <input id="hobby" placeholder="例：サウナ、カレー作り、韓国ドラマ">
       <p class="q" style="margin-top:6px">一番の自慢を、1つだけ</p>
-      <p class="note">大会の実績でも、それ以外でも。1つだけにしてください。</p>
-      <input id="brag" placeholder="例：初めて三重跳びができた日のこと">
+      <p class="note">大会の実績でも、それ以外でも。1つだけにしてください。<br>
+      <b>ダブルダッチを知らない人が読んでもわかるように</b>書いてください。</p>
+      <input id="brag" placeholder="例：初めて〇〇になった時のこと／初めて〇〇ができた日のこと">
     </div>
 
     <div class="card">
-      <p class="q">推薦：この人を見てほしい</p>
+      <p class="q">推薦：この3人を見てほしい</p>
       <p class="note">お客さんに「この人が推してるなら見てみよう」と思ってもらう仕掛けです。<br>
-      <b>うまい人ではなく、たぶん誰も気づかないけど実はとんでもない人</b>を選んでください。</p>
-      <label>自分と同じ演目から 1人</label>
-      <select id="recSame"><option value="">まず名前を選んでください</option></select>
-      <label>別の演目から 1人目</label>
-      <select id="recOther1"><option value="">まず名前を選んでください</option></select>
-      <label>別の演目から 2人目</label>
-      <select id="recOther2"><option value="">まず名前を選んでください</option></select>
-    </div>
+      <b>うまい人ではなく、たぶん誰も気づかないけど実はとんでもない人</b>を選んでください。<br>
+      できれば1人は自分と同じ演目から、あとの2人は別の演目からだと嬉しいです（必須ではありません）。<br>
+      それぞれに<b>「本番中の癖・見どころ」を一言</b>ください。お客さんはこれを探しながら見ます。</p>
 
-    <div class="card">
-      <p class="q">その3人のうち、一番推したい人</p>
-      <select id="recTop"><option value="">上で3人選ぶと出ます</option></select>
-      <p class="q" style="margin-top:6px">その人が、本番中にやりがちなこと</p>
-      <p class="note">お客さんはこれを探しながら見ます。癖・仕草・変な顔、なんでも。</p>
-      <textarea id="recQuirk" placeholder="例：決め技の前に、必ず一回だけ肩を回す"></textarea>
+      <label>1人目</label>
+      <select id="rec1"><option value="">まず名前を選んでください</option></select>
+      <textarea id="quirk1" placeholder="例：決め技の前に、必ず一回だけ肩を回す"></textarea>
+
+      <label>2人目</label>
+      <select id="rec2"><option value="">まず名前を選んでください</option></select>
+      <textarea id="quirk2" placeholder="例：ミスすると笑ってごまかす"></textarea>
+
+      <label>3人目</label>
+      <select id="rec3"><option value="">まず名前を選んでください</option></select>
+      <textarea id="quirk3" placeholder="例：出番が終わると必ず袖でガッツポーズしてる"></textarea>
     </div>
 
     <div class="card">
@@ -142,10 +143,10 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
     <div class="card">
       <p class="q">写真と動画は、内部LINEに送ってください</p>
       <ul class="media">
-        <li><b>顔写真 1枚</b>／明るい場所で・顔が真ん中・胸から上・こっちを見て。<b>背景はこちらで統一する</b>ので、どこで撮っても大丈夫です</li>
+        <li><b>顔写真 1枚</b>／明るい場所で・顔が真ん中・胸から上・こっちを見て。<b>アー写でも大丈夫です。</b>背景はこちらで統一するので、どこで撮っても構いません</li>
         <li><b>自己紹介動画 30秒</b>／<b>縦</b>で自撮り。上の「最近ハマってるもの」と「本番中にやってしまうこと」を喋るだけでOK。<b>15秒でもいい・1テイクでいい・撮り直さなくていい</b></li>
         <li><b>座右の銘</b>／紙に手書きして、その写真を送ってください</li>
-        <li>過去の活躍動画があれば、<b>URLでもOK</b>（任意）</li>
+        <li><b>過去の活躍動画</b>（任意）／<b>長い動画は60秒以内に切って</b>送ってください</li>
       </ul>
     </div>
 
@@ -180,43 +181,29 @@ document.querySelectorAll('.opts').forEach(function(box){
 function el(id){ return document.getElementById(id); }
 function val(id){ return (el(id)||{}).value || ''; }
 
-/* 名前を選んだら、推薦の候補を「自分の演目」「別の演目」に出し分ける。
-   OP＋AGT と ED は全員出演なのでサーバー側で既に除いてある（Profile.js）。 */
+/* 推薦は3枠とも全員から選べるようにする（2026-08-03）。
+   以前は「自分の演目／別の演目」でリストを出し分けていたが、演目データや名簿マッピングに
+   漏れがあると、本来選べるはずの人が候補から消えて気づけない。
+   演目は下の「あなたの演目」表示で伝えるに留め、選択は制限しない。 */
 function onWho(){
   var me = MEMBERS.filter(function(m){ return m.name === val('who'); })[0];
-  var same = [], other = [];
   if(me){
-    MEMBERS.forEach(function(m){
-      if(m.name === me.name) return;
-      var share = m.engi.some(function(e){ return me.engi.indexOf(e) >= 0; });
-      (share ? same : other).push(m);
-    });
     el('whoNote').textContent = me.engi.length
       ? ('あなたの演目：' + me.engi.join(' / '))
-      : 'あなたはOP・ED以外の演目に登録がありません。3人とも「別の演目」から選んでください。';
+      : 'OP・ED以外の演目に登録がありません。';
   }
-  fill('recSame',  same,  same.length ? '選んでください' : '同じ演目の人がいません');
-  fill('recOther1', other, '選んでください');
-  fill('recOther2', other, '選んでください');
-  syncTop();
-}
-function fill(id, list, ph){
-  var s = el(id); s.innerHTML = '';
-  s.appendChild(new Option(ph, ''));
-  list.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
-}
-/* 「一番推したい人」は、上で選んだ3人の中からしか選べない */
-function syncTop(){
-  var chosen = [val('recSame'), val('recOther1'), val('recOther2')].filter(function(v){ return v; });
-  var cur = val('recTop');
-  var s = el('recTop'); s.innerHTML = '';
-  s.appendChild(new Option(chosen.length ? '選んでください' : '上で3人選ぶと出ます', ''));
-  chosen.forEach(function(n){ s.appendChild(new Option(n, n)); });
-  if(chosen.indexOf(cur) >= 0) s.value = cur;
+  var others = MEMBERS.filter(function(m){ return !me || m.name !== me.name; });
+  ['rec1','rec2','rec3'].forEach(function(id){ fill(id, others, '選んでください'); });
   sync();
 }
-['recSame','recOther1','recOther2'].forEach(function(id){ el(id).addEventListener('change', syncTop); });
-el('recTop').addEventListener('change', sync);
+function fill(id, list, ph){
+  var s = el(id), cur = s.value;
+  s.innerHTML = '';
+  s.appendChild(new Option(ph, ''));
+  list.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
+  // 名前を選び直しても、既に選んでいた推薦は消さない（本人でない限り）
+  if(cur && list.some(function(m){ return m.name === cur; })) s.value = cur;
+}
 el('who').addEventListener('change', onWho);
 
 /* 送信の条件は名前だけ。全部埋まっていなくても出せるようにする。
@@ -229,9 +216,10 @@ el('send').addEventListener('click', function(){
     body: JSON.stringify({ survey:'cast_profile',
       name: val('who'), years: pick.years, trigger: pick.trigger, before: pick.before,
       good: pick.good, bad: pick.bad, hobby: val('hobby'), brag: val('brag'),
-      recSame: val('recSame'), recOther1: val('recOther1'), recOther2: val('recOther2'),
-      recTop: val('recTop'), recQuirk: val('recQuirk'), ownQuirk: val('ownQuirk'),
-      callMe: pick.callMe })})
+      rec1: val('rec1'), quirk1: val('quirk1'),
+      rec2: val('rec2'), quirk2: val('quirk2'),
+      rec3: val('rec3'), quirk3: val('quirk3'),
+      ownQuirk: val('ownQuirk'), callMe: pick.callMe })})
   .then(function(r){ return r.json(); })
   .then(function(o){
     if(o && o.ok){ el('form').style.display='none'; el('done').style.display='block'; window.scrollTo(0,0); }
