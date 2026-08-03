@@ -46,9 +46,9 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
   <div class="card" style="border-color:var(--blue);background:rgba(37,99,235,.04)">
     <p class="q" style="margin:0 0 4px">締切：8月10日(月)</p>
     <p class="note" style="margin:0 0 10px">写真・動画も同じ日までにお願いします。</p>
-    <p class="q" style="margin:0 0 4px">全部埋めなくて大丈夫です</p>
-    <p class="note" style="margin:0">名前だけ選べば送信できます。<b>まず埋まるところだけ出して、あとから追記でOK。</b><br>
-    何度でも出し直せます（後から送ると前の回答が上書きされます）。</p>
+    <p class="q" style="margin:0 0 4px">（任意）以外は全部埋めてください</p>
+    <p class="note" style="margin:0">1人でも欠けると、その人だけお客さんに紹介できなくなります。<br>
+    <b>送信したあとでも、何度でも直せます</b>（同じURLを開いて送り直すと上書きされます）。</p>
   </div>
 
   <div id="form">
@@ -158,6 +158,9 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
         <button type="button" class="opt">手を振ってくれたら振り返す</button>
         <button type="button" class="opt">静かに見ててほしい</button>
       </div>
+      <p class="q" style="margin-top:16px">お客さんへの一言（任意）</p>
+      <p class="note">そのままお客さんに見せます。</p>
+      <input id="callWord" placeholder="例：〇〇って呼んでください／緊張してたら手を振ってください">
     </div>
 
     <div class="card">
@@ -170,6 +173,7 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       </ul>
     </div>
 
+    <p class="note" id="missing" style="margin:0 0 8px;text-align:center"></p>
     <button class="btn" id="send" disabled>送信する</button>
     <p class="err" id="err"></p>
   </div>
@@ -225,10 +229,45 @@ function fill(id, list, ph){
   if(cur && list.some(function(m){ return m.name === cur; })) s.value = cur;
 }
 el('who').addEventListener('change', onWho);
+/* 必須の判定を毎回動かす。入力・選択のどちらでも拾う */
+['pname','pkana','hobby','brag','quirk1','quirk2','quirk3','ownQuirk'].forEach(function(id){
+  el(id).addEventListener('input', sync);
+});
+['rec1','rec2','rec3'].forEach(function(id){ el(id).addEventListener('change', sync); });
+sync();
 
-/* 送信の条件は名前だけ。全部埋まっていなくても出せるようにする。
-   完璧を求めると出さない人が出る。空欄は後から追記できる（何度でも上書き可）。 */
-function sync(){ el('send').disabled = !val('who'); }
+/* 必須を実際に required にする（2026-08-03変更）。
+   以前は「名前だけで送信できる」にしていたが、それだと名前だけの行が31個並ぶ。
+   欠けた人はお客さんに紹介できないので、（任意）以外は埋めてもらう。
+   ただし「送信できません」とだけ出すと詰まるので、**何が足りないかを名指しで出す**。 */
+var REQUIRED_ = [
+  { k:'who',  label:'あなたの名前' },
+  { k:'pname',label:'プレイヤーネーム' },
+  { k:'pkana',label:'プレイヤーネームのふりがな' },
+  { p:'years',   label:'ダブルダッチ歴' },
+  { p:'trigger', label:'始めたきっかけ' },
+  { p:'before',  label:'本番直前どっち' },
+  { p:'good',    label:'得意なこと' },
+  { p:'bad',     label:'苦手なこと' },
+  { k:'hobby', label:'最近ハマってるもの' },
+  { k:'brag',  label:'一番の自慢' },
+  { k:'rec1',  label:'推薦1人目' },  { k:'quirk1', label:'推薦1人目の見どころ' },
+  { k:'rec2',  label:'推薦2人目' },  { k:'quirk2', label:'推薦2人目の見どころ' },
+  { k:'rec3',  label:'推薦3人目' },  { k:'quirk3', label:'推薦3人目の見どころ' },
+  { k:'ownQuirk', label:'自分が本番前・本番中にやってしまうこと' },
+  { p:'callMe',   label:'お客さんにどうしてほしい' }
+];
+function sync(){
+  var missing = REQUIRED_.filter(function(r){
+    return r.p ? !pick[r.p] : !val(r.k).trim();
+  });
+  el('send').disabled = missing.length > 0;
+  var box = el('missing');
+  if(!missing.length){ box.textContent = ''; return; }
+  box.textContent = missing.length <= 3
+    ? ('あと：' + missing.map(function(m){ return m.label; }).join('／'))
+    : ('あと' + missing.length + '項目（' + missing[0].label + ' ほか）');
+}
 
 el('send').addEventListener('click', function(){
   var b = el('send'); b.disabled = true; b.textContent = '送信中…';
@@ -241,7 +280,7 @@ el('send').addEventListener('click', function(){
       rec1: val('rec1'), quirk1: val('quirk1'),
       rec2: val('rec2'), quirk2: val('quirk2'),
       rec3: val('rec3'), quirk3: val('quirk3'),
-      ownQuirk: val('ownQuirk'), callMe: pick.callMe })})
+      ownQuirk: val('ownQuirk'), callMe: pick.callMe, callWord: val('callWord') })})
   .then(function(r){ return r.json(); })
   .then(function(o){
     if(o && o.ok){ el('form').style.display='none'; el('done').style.display='block'; window.scrollTo(0,0); }
