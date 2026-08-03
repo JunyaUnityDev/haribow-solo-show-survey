@@ -110,10 +110,27 @@ function yen(n){ return '¥'+(Number(n)||0).toLocaleString(); }
 function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
   clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('on'); },2600); }
 
+/* ★1回失敗しただけで諦めない。
+   GASを再デプロイした直後の数十秒は /exec が「ページが見つかりません」のHTMLを返す窓があり、
+   r.json() が例外して「通信できませんでした」で行き止まりになる（2026-08-04に実際に踏んだ）。
+   本文を先にテキストで受けてから JSON.parse し、JSONでなければ間を空けて2回まで引き直す。 */
+function fetchJson(url, tries){
+  return fetch(url).then(function(r){ return r.text(); }).then(function(t){
+    try{ return JSON.parse(t); }
+    catch(e){
+      if(tries > 0){
+        return new Promise(function(ok){ setTimeout(ok, 1800); })
+          .then(function(){ return fetchJson(url + '&r=' + Date.now(), tries - 1); });
+      }
+      throw new Error('not_json');
+    }
+  });
+}
+
 function load(isReload){
   if(!OP){ document.getElementById('lead').textContent='URLが正しくありません。配布された専用URLをそのまま開いてください。'; return; }
-  return fetch(BASE+'?page=budget&op='+encodeURIComponent(OP)+'&t='+Date.now())
-    .then(function(r){ return r.json(); })
+  document.getElementById('lead').textContent='読み込んでいます…';
+  return fetchJson(BASE+'?page=budget&op='+encodeURIComponent(OP)+'&t='+Date.now(), 2)
     .then(function(d){
       if(!d||!d.ok){
         document.getElementById('lead').textContent =
@@ -123,7 +140,13 @@ function load(isReload){
       }
       data=d; render(); if(isReload) toast('最新にしました');
     })
-    .catch(function(){ document.getElementById('lead').textContent='通信できませんでした。電波の良いところで開き直してください。それでもだめなときは info@haribow.com でログインしたブラウザか、シークレットウィンドウでお試しください。'; });
+    .catch(function(){
+      var el=document.getElementById('lead');
+      el.innerHTML='3回試しましたが取得できませんでした。'
+        + '<br><button class="btn" style="max-width:220px" onclick="load(true)">もう一度読み込む</button>'
+        + '<br>それでもだめなときは、少し時間をおくか、info@haribow.com でログインしたブラウザか'
+        + 'シークレットウィンドウでお試しください。';
+    });
 }
 
 function render(){
