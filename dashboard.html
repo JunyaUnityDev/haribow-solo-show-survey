@@ -183,6 +183,9 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
 .seatrow{display:flex;gap:2px;justify-content:center;align-items:center}
 .seat{flex:1 1 0;max-width:13px;height:7px;border-radius:1.5px;background:rgba(255,255,255,.055)}
 .seat.taken{background:var(--teal);box-shadow:0 0 5px rgba(99,182,204,.75)}
+/* 非売席・補欠席。場所は空けるが何も描かない（薄く描くと空席に見えて実際より空いて見える） */
+.seat.void{background:transparent;box-shadow:none}
+.seatrow .aisle{flex:0 0 7px}
 .seatmap-cap{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0;line-height:1.5}
 
 .scale{margin:20px 0 0}
@@ -1053,25 +1056,52 @@ function renderHero(b){
   document.getElementById('seatmini').innerHTML =
     hasSeats ? ('客席 <b>'+taken+'</b> / '+sellable+'席') : '';
 
+
+/* 座席図。gridNums（その列に物理的に存在する全席）を使い、席番号の位置で描く。
+   ★2026-08-04まで、販売可能席だけを詰めて中央揃えで並べていたため次のズレが出ていた：
+     ・行ごとに幅が変わり（4列22セル／5列32セル）、同じ席番号が行ごとに違う横位置に来る
+     ・非売席の穴（19〜22列の中央＝プロジェクター席）が消えて連続して見える
+     ・販売可能席が0の13列（車椅子席）が行ごと消え、行番号が合わない
+     公開サイト(seats.html)は最初から正しく描けていたので、**運営だけが違う絵を見ていた**。
+   ★色は2状態だけ：光る＝売れた／薄い＝空席。非売席・補欠席は「何も置かない」。
+     非売席を薄く描くと空席に見えてしまい、実際より空いて見える。
+   ★2階席（31〜41列・エリアf2・全429席が非売）は別ブロックなので描かない。
+     販売可能席がある列の範囲（＝1階の販売エリア）だけを対象にする。 */
+function buildSeatMap(rows){
+  var withSale = (rows||[]).filter(function(r){ return r.sellable > 0; });
+  if(!withSale.length) return '';
+  var firstRow = Math.min.apply(null, withSale.map(function(r){ return Number(r.row); }));
+  var lastRow  = Math.max.apply(null, withSale.map(function(r){ return Number(r.row); }));
+  var target = rows.filter(function(r){
+    var n = Number(r.row);
+    return n >= firstRow && n <= lastRow && (r.gridNums||[]).length;
+  });
+  if(!target.length) return '';
+  var lo = null, hi = null;
+  target.forEach(function(r){
+    r.gridNums.forEach(function(n){
+      if(lo === null || n < lo) lo = n;
+      if(hi === null || n > hi) hi = n;
+    });
+  });
+  return target.map(function(r){
+    var grid = {}, sale = {}, taken = {};
+    (r.gridNums||[]).forEach(function(n){ grid[n] = 1; });
+    (r.nums||[]).forEach(function(n){ sale[n] = 1; });
+    (r.takenNums||[]).forEach(function(n){ taken[n] = 1; });
+    var cells = '';
+    for(var n = lo; n <= hi; n++){
+      if(n === 11 || n === 23) cells += '<div class="aisle"></div>';   // 通路
+      var cls = (!grid[n] || !sale[n]) ? 'seat void' : (taken[n] ? 'seat taken' : 'seat');
+      cells += '<div class="' + cls + '" title="' + r.row + '列' + n + '番"></div>';
+    }
+    return '<div class="seatrow" title="' + r.row + '列：' + r.taken + '/' + r.sellable + '席">' + cells + '</div>';
+  }).join('');
+}
+
   /* --- 客席図：金額より「空席」の方が出演者の手は動く --- */
   var seatmap='';
-  if(hasSeats && s.rows && s.rows.length){
-    seatmap = s.rows.map(function(row){
-      var cells='';
-      /* 席番号で塗る。個数だけで塗ると中央の席が売れていても左端が埋まって見える。
-         番号が取れない場合だけ、従来どおり左から順に塗る。 */
-      if(row.nums && row.nums.length){
-        var takenSet={};
-        (row.takenNums||[]).forEach(function(n){ takenSet[n]=1; });
-        row.nums.forEach(function(n){
-          cells+='<div class="seat'+(takenSet[n]?' taken':'')+'" title="'+esc(row.row)+'-'+n+'"></div>';
-        });
-      }else{
-        for(var i=0;i<row.sellable;i++) cells+='<div class="seat'+(i<row.taken?' taken':'')+'"></div>';
-      }
-      return '<div class="seatrow" title="'+esc(row.row)+'列：'+row.taken+'/'+row.sellable+'席">'+cells+'</div>';
-    }).join('');
-  }
+  if(hasSeats && s.rows && s.rows.length){ seatmap = buildSeatMap(s.rows); }
 
   /* --- 実売 / 見込み / 黒字ライン の3点スケール ---
      「見込み」はアンケート・自己申告の柔らかい数字、「実売」は硬い数字。
