@@ -1,141 +1,73 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<title>HARIBOW単独公演 配信視聴アンケート（DD団体向け）</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>視聴ページ｜HARIBOW「Go Beyond」配信</title>
 <style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
-.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
-h1{font-size:20px;font-weight:800;margin:0 0 6px}
-.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
-label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
-select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
-textarea{resize:vertical;min-height:60px}
-select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
-.hint{font-size:12px;color:var(--faint);margin:-10px 0 14px}
-#watchDetail{display:none}
-.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
-.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
-.muted{color:var(--faint);font-size:12.5px}
-.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
-.done{text-align:center;padding:40px 20px}
-.done .ck{font-size:40px;color:var(--ok);font-weight:800}
-.done h2{font-size:20px;margin:12px 0 6px}
+  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --ink:#f3f1ea; --faint:#8b919e; --main:#c9a24b; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:28px 18px 80px}
+  .brand{font-size:12px;letter-spacing:.4em;color:var(--faint);font-weight:700;margin-bottom:8px}
+  h1{font-size:20px;margin:0 0 18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+  .lbl{font-size:11px;color:var(--faint);letter-spacing:.12em;font-weight:700;margin-bottom:4px}
+  .big{font-size:17px;font-weight:700;line-height:1.6;word-break:break-all}
+  .watch{display:block;text-align:center;background:var(--main);color:#14161c;font-weight:800;
+    font-size:17px;border-radius:11px;padding:16px;text-decoration:none;margin:6px 0}
+  .wait{border:1px dashed var(--line);border-radius:11px;padding:16px;text-align:center;color:var(--faint);font-size:14px;line-height:1.9}
+  .note{font-size:12.5px;color:var(--faint);line-height:1.9}
+  a{color:var(--main)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go Beyond">
-  <h1>単独公演 配信視聴アンケート</h1>
-  <p class="lead">2026年9月29日(火) 19:30開演、めぐろパーシモンホールでHARIBOW初の単独公演を行います。もし有料のライブ配信を実施した場合、視聴してみたいか教えてください。ダブルダッチのスクール・大学サークルの代表の方から、団体単位でまとめて回答いただく想定です。何度でも送り直せます（後から送ると前の回答が上書きされます）。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
-
-  <div id="form">
-    <div class="card">
-      <label>団体名</label>
-      <input type="text" id="groupName" placeholder="例：〇〇大学ダブルダッチサークル">
-
-      <label>所在エリア</label>
-      <input type="text" id="area" placeholder="例：北海道、東京都、大阪府 など">
-
-      <label>回答者名</label>
-      <input type="text" id="repName" placeholder="例：山田太郎">
-
-      <label>連絡先（メールまたは電話番号）</label>
-      <input type="text" id="contact" placeholder="例：example@mail.com または 090-xxxx-xxxx">
-
-      <label>配信があれば視聴したいですか</label>
-      <select id="wantWatch">
-        <option value="">選択してください</option>
-        <option>視聴したい</option>
-        <option>わからない</option>
-        <option>視聴しない</option>
-      </select>
-
-      <div id="watchDetail">
-        <label>視聴したい人数（団体内合計・概算でOK）</label>
-        <input type="number" id="watchCount" min="0" placeholder="例：15">
-        <p class="hint">例えば部員15人が観たいと思っていても、実際に何台の画面・何アカウントで観るかは別なので、下の欄で分けて教えてください。</p>
-
-        <label>そのうち何チケット（画面・アカウント）分購入する想定ですか</label>
-        <input type="number" id="ticketCount" min="0" placeholder="例：5（15人が5画面に分かれて観る想定なら5）">
-        <p class="hint">複数人で1つの画面・1アカウントを共有して観る場合も、購入するチケット数（画面数）でお答えください。</p>
-
-        <label>1チケットあたりいくらなら払えますか</label>
-        <select id="price">
-          <option value="">選択してください</option>
-          <option>〜1,000円</option>
-          <option>1,000〜2,000円</option>
-          <option>2,000〜3,000円</option>
-          <option>3,000円以上</option>
-        </select>
-      </div>
-
-      <label>ご要望・ご質問（あれば自由記述）</label>
-      <textarea id="note" placeholder="自由記述（あれば）"></textarea>
-    </div>
-    <div class="card">
-      <button class="btn" id="send">送信する</button>
-      <div class="err" id="err">未入力の項目があります。</div>
-      <p class="muted" style="margin:10px 0 0">回答は配信実施の判断材料としてのみ使います。</p>
-    </div>
-  </div>
-
-  <div class="done" id="done" style="display:none">
-    <div class="ck">✓</div>
-    <h2>送信ありがとうございました！</h2>
-    <p class="muted">回答を受け付けました。</p>
-  </div>
+  <div class="brand">HARIBOW — GO BEYOND</div>
+  <h1>配信 視聴ページ</h1>
+  <div id="body"><p class="note">読み込んでいます…（最初の1回だけ20秒ほどかかります）</p></div>
 </div>
-
 <script>
-var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-
-var wantWatchEl = document.getElementById('wantWatch');
-var watchDetailEl = document.getElementById('watchDetail');
-wantWatchEl.addEventListener('change', function(){
-  watchDetailEl.style.display = (wantWatchEl.value === '視聴したい') ? 'block' : 'none';
-});
-
-document.getElementById('send').addEventListener('click',function(){
-  var groupName=document.getElementById('groupName').value.trim();
-  var area=document.getElementById('area').value.trim();
-  var repName=document.getElementById('repName').value.trim();
-  var contact=document.getElementById('contact').value.trim();
-  var wantWatch=document.getElementById('wantWatch').value;
-  var watching = wantWatch === '視聴したい';
-  var watchCount=watching ? document.getElementById('watchCount').value : '';
-  var ticketCount=watching ? document.getElementById('ticketCount').value : '';
-  var price=watching ? document.getElementById('price').value : '';
-  var note=document.getElementById('note').value.trim();
-
-  if(!groupName||!area||!repName||!contact||!wantWatch||(watching&&(!watchCount||!ticketCount||!price))){
-    document.getElementById('err').style.display='block';
-    window.scrollTo(0,document.body.scrollHeight);
-    return;
-  }
-  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
-  fetch(ENDPOINT,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'stream',groupName:groupName,area:area,repName:repName,contact:contact,wantWatch:wantWatch,watchCount:watchCount,ticketCount:ticketCount,price:price,note:note})
-  }).then(function(){
-    document.getElementById('form').style.display='none';
-    document.getElementById('done').style.display='block';
-    window.scrollTo(0,0);
-  }).catch(function(e){
-    btn.disabled=false; btn.textContent='送信する';
-    document.getElementById('err').textContent='送信に失敗しました：'+e+' もう一度お試しください。';
-    document.getElementById('err').style.display='block';
-  });
-});
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var T=new URLSearchParams(location.search).get('t')||'';
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function load(){
+  if(!T){ document.getElementById('body').innerHTML='<p class="note">チケットの識別コードがありません。メールに記載のURLをそのまま開いてください。</p>'; return; }
+  fetch(BASE+'?page=ticket&t='+encodeURIComponent(T)+'&r='+Date.now())
+  .then(function(r){return r.json();}).then(function(d){
+    var el=document.getElementById('body');
+    if(!d || !d.ok){
+      el.innerHTML='<p class="note">'+(d&&d.error==='unpaid'
+        ? 'お支払いの確認がまだ取れていません。決済がお済みの場合、1時間以内に自動で有効になります。'
+        : 'チケットが見つかりませんでした。メールのURLをご確認いただくか、info@haribow.com までご連絡ください。')+'</p>';
+      return;
+    }
+    var h='<div class="card"><div class="lbl">お名前</div><div class="big">'+esc(d.name)+' 様</div>'
+      +'<div class="lbl" style="margin-top:12px">ご購入内容</div><div class="note">'+esc(d.breakdown)+'</div></div>';
+    h+='<div class="card"><div class="lbl">公演</div><div class="note">'
+      +esc(d.show&&d.show.date||'2026年9月29日(火)')+'　開演 '+esc(d.show&&d.show.start||'19:30')+'<br>'
+      +'配信開始は開演の少し前を予定しています。</div></div>';
+    if(d.stream && d.stream.ready){
+      h+='<div class="card"><div class="lbl">視聴はこちら</div>'
+        +'<a class="watch" href="'+esc(d.stream.url)+'">▶ 配信を開く</a>'
+        +(d.stream.password ? '<div class="note">パスワード: <b>'+esc(d.stream.password)+'</b></div>' : '')
+        +'<p class="note">アーカイブも同じURLで '+esc(d.stream.archiveUntil)+' までご覧いただけます。<br>'
+        +'本番中にURLが開けなくなった場合は、このページを開き直してください。予備URLに切り替わります。</p></div>';
+      if(d.stream.backup){
+        h+='<div class="card"><div class="lbl">予備URL</div><div class="note"><a href="'+esc(d.stream.backup)+'">'+esc(d.stream.backup)+'</a></div></div>';
+      }
+    } else {
+      h+='<div class="card"><div class="lbl">視聴URL</div>'
+        +'<div class="wait">視聴URLは <b>9/28（公演前日）</b>までにここに表示されます。<br>'
+        +'メールでもお送りします。このページをブックマークしておいてください。</div></div>';
+    }
+    h+='<p class="note">ご家族・チームのみなさんと同じ画面での鑑賞も歓迎です。<br>'
+      +'お困りのことは <a href="contact.html">お問い合わせフォーム</a> または info@haribow.com へ。</p>';
+    el.innerHTML=h;
+  }).catch(function(){ document.getElementById('body').innerHTML='<p class="note">通信エラーです。再読み込みしてください。</p>'; });
+}
+load();
 </script>
 </body>
 </html>
