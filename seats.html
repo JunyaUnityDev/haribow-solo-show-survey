@@ -251,6 +251,27 @@
     </div>
   </div>
 
+  <!-- 何で知ったか（2026-08-06追加）。
+       ★これが無いと売れた枚数の出所が分からない。8/6時点で個人109枚のうち、
+         出演者経由と記録されていたのは10枚だけで、残り99枚の出所が不明だった。
+       ★自由記述にしない。表記ゆれが出ると集計できない（サーバー側 SOURCE_OPTS_ で照合）。
+       ★必須にしているが、最後の選択肢に「その他・覚えていない」があるので必ず押せる。
+         行き止まりを作らないこと。ここで詰まると購入が止まる。 -->
+  <div id="srcBox">
+    <p class="step"><b>STEP 5</b>　この公演を何で知りましたか</p>
+    <div class="buyerbox">
+      <p class="don-note">今後のご案内の参考にさせていただきます。1つお選びください。</p>
+      <div class="paymethods" id="srcRow">
+        <button type="button" class="pm" onclick="setSource('HARIBOWのSNS',this)">HARIBOWのSNS</button>
+        <button type="button" class="pm" onclick="setSource('出演者・スタッフから',this)">出演者・スタッフから</button>
+        <button type="button" class="pm" onclick="setSource('友人・家族から',this)">友人・家族から</button>
+        <button type="button" class="pm" onclick="setSource('ワークショップ・イベントで',this)">ワークショップ・イベントで</button>
+        <button type="button" class="pm" onclick="setSource('記事・ニュースで',this)">記事・ニュースで</button>
+        <button type="button" class="pm" onclick="setSource('その他・覚えていない',this)">その他・覚えていない</button>
+      </div>
+    </div>
+  </div>
+
   <div id="creditBox" style="display:none">
     <p class="step"><b>STEP 5</b>　お名前の掲載について</p>
     <div class="buyerbox">
@@ -385,7 +406,13 @@ function phoneOk(){
   return d.length>=10 && d.length<=11;
 }
 // ---- サポーター券の特典項目 ----
-var tshirtSize='', creditOk='';
+var tshirtSize='', creditOk='', srcAnswer='';
+function setSource(v,el){ srcAnswer=v;
+  var r=document.getElementById('srcRow');
+  if(r) Array.prototype.forEach.call(r.querySelectorAll('.pm'),function(b){ b.classList.remove('on'); });
+  if(el) el.classList.add('on');
+  updateCart();
+}
 function setSize(v,el){ tshirtSize=v;
   document.querySelectorAll('#sizeRow .pm').forEach(function(b){b.classList.toggle('active',b===el);}); updateCart(); }
 function setCredit(v,el){ creditOk=v;
@@ -662,13 +689,14 @@ function updateCart(){
   total.innerHTML='¥'+sum.toLocaleString()+' <small>('+keys.length+'席'+(donation>0?'＋応援':'')+')</small>';
   var seatsOk = keys.length>0;
   syncOptionBoxes();
-  var infoOk = buyerName().trim() && buyerKana().trim() && buyerContact().trim() && phoneOk() && payMethod && supOk();
+  var infoOk = buyerName().trim() && buyerKana().trim() && buyerContact().trim() && phoneOk() && payMethod && supOk() && srcAnswer;
   if(seatsOk && !infoOk){
     var why = (isSupporter() && !tshirtSize) ? 'Tシャツのサイズを選ぶと決済に進めます'
             : (needsCredit() && !creditOk) ? 'お名前の掲載について「掲載する／しない」を選ぶと決済に進めます'
             : (buyerPhone().trim() && !phoneOk()) ? 'お電話番号の桁数をご確認ください'
             // ふりがなだけ空のとき「STEP3の情報を入力」だと、埋めたつもりの人がどこが足りないか分からない
             : (buyerName().trim() && !buyerKana().trim()) ? 'お名前のふりがなをご記入ください'
+            : !srcAnswer ? '「この公演を何で知りましたか」をお選びください'
             : 'STEP3の情報を入力すると決済に進めます';
     list.innerHTML += '<br><span style="font-size:11px;color:var(--faint)">'+why+'</span>';
   }
@@ -704,7 +732,7 @@ function checkout(){
       body:JSON.stringify({survey:'ticket_order', orderType:'individual', typeId:curType.id,
         seatIds:keys, donation:donation, method:payMethod,
         name:buyerName(), kana:buyerKana(), contact:buyerContact(), phone:buyerPhone(), lockToken:res.lockToken,
-        tshirt:tshirtSize, creditOk:creditOk, creditName:creditNameVal()})})
+        tshirt:tshirtSize, creditOk:creditOk, creditName:creditNameVal(), source:srcAnswer})})
     .then(function(r){return r.json();}).then(function(o){
       if(o.method==='square' && o.url){ window.location.href=o.url; }        // ③ Squareへ（戻りでconfirm）
       else if(o.method==='cash'){
