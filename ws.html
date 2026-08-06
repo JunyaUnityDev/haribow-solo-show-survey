@@ -84,7 +84,13 @@ p:last-child{margin-bottom:0}
 
 /* 団体カード */
 .org{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:9px}
-.org.past{opacity:.5}
+/* ★2026-08-06：WSが終わった団体を opacity:.5 で薄くしていたが、見出しの
+   「連絡は別経路になります」と合わさって『ここはもう書けない欄』と読まれた。
+   実際には進捗は入れられる（updateOrgProgress_ に日付の制限は無い）。
+   WS直後こそ記録してほしいタイミングなので、薄くするのをやめる。
+   薄くするのは決着した団体（今回は見送り）だけにした。 */
+.org.past{border-color:rgba(255,255,255,.06)}
+.org.dropped{opacity:.5}
 .org.after{border-color:rgba(200,67,58,.32)}
 .org-h{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .org-name{font-size:15px;font-weight:800;letter-spacing:.01em}
@@ -369,7 +375,7 @@ function render(){
     if(block !== lastBlock){
       var note = block === '今日やること'     ? '相手からボールが返っています。次に動くのはこちらです'
                : block === 'これから会える'   ? '対面で話せる回が残っています'
-               : block === 'WS実施ずみ'      ? 'WSは終わっているので、連絡は別経路になります'
+               : block === 'WS実施ずみ'      ? 'WSは終わりました。進捗はここに入れられます（相手への連絡はLINEや電話で）'
                : block === 'WSが受付終了より後' ? 'WSの時点で団体申し込みは閉じています'
                : block === 'WS日程が未定'    ? '日程が決まっていません'
                : block === 'スクール'        ? 'WSツアーの対象外。主担当から直接連絡する相手です'
@@ -425,7 +431,7 @@ function render(){
     }
 
     html +=
-      '<div class="org' + (past ? ' past' : '') + (ws && ws.afterClose ? ' after' : '') + '">' +
+      '<div class="org' + (past ? ' past' : '') + (o.waiting === '今回は見送り' ? ' dropped' : '') + (ws && ws.afterClose ? ' after' : '') + '">' +
         '<div class="org-h">' +
           '<span class="org-name">' + esc(o.name) + '</span>' +
           '<span class="org-date' + (ws ? '' : ' none') + '">' + (ws ? esc(ws.dateLabel) : '日程未定') + '</span>' +
