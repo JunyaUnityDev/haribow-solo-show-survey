@@ -328,7 +328,7 @@
         <div class="map" id="gmap"></div>
         <p style="font-size:11px;color:var(--faint);margin:10px 0 0;text-align:center">後方の左右サイド席から選べます（前方サイド・中央は個人指定席）。8/17以降は空きが個人にも開放されます。</p>
       </div>
-      <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わったらお知らせします）。<br>・お支払い期限は<b>カード決済で1週間、銀行振込で2週間</b>です（8/31が上限）。<br>・<b>新規のお申込みは8/16まで</b>（この日いっぱい）。8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
+      <p class="buyer-note" style="margin-top:14px;line-height:1.8">ご予約後、代表者の連絡先へ<b>お支払いのご案内</b>をメールでお送りします。<br>・<b>お支払い前</b>なら、管理ページで人数（お席）をいつでも増減できます（金額が変わったらお知らせします）。<br>・お支払い期限は<b>カード決済で1週間、銀行振込で2週間</b>です（9/26が上限）。<br>・<b>新規のお申込みは9/12まで</b>（この日いっぱい）。8/17以降に空いたサイド席は、個人指定席として開放されます。</p>
       <div id="gResult" style="font-size:20px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">¥0 <small style="font-size:12px;color:var(--dim);font-weight:600">（人数を入力）</small></div>
       <button class="buy" id="gBuy" style="margin-top:12px;width:100%" disabled onclick="gCheckout()">団体予約を送信</button>
     </div>
@@ -951,7 +951,7 @@ function gMethod(v,el){
   var note=document.getElementById('gMethodNote');
   note.style.display='block';
   note.innerHTML = (v==='bank')
-    ? 'お申込み後、<b>お振込み先の口座をメールでお送りします</b>。お支払い期限は<b>お申込みから2週間</b>です（8/31が上限）。部費を集めてからお支払いになる団体はこちらをお選びください。'
+    ? 'お申込み後、<b>お振込み先の口座をメールでお送りします</b>。お支払い期限は<b>お申込みから2週間</b>です（9/26が上限）。部費を集めてからお支払いになる団体はこちらをお選びください。'
     : 'お申込み後、<b>決済リンクをメールでお送りします</b>。その場でお支払いいただけます。お支払い期限は<b>お申込みから1週間</b>です。';
   gCalc();
 }
@@ -981,7 +981,7 @@ function gCheckout(){
   .then(function(r){return r.json();}).then(function(res){
     if(!res.ok){
       if(res.error==='min5'){ alert('団体は5席以上でお願いします。'); btn.textContent='団体予約を送信'; gCalc(); return; }
-      if(res.error==='team_closed'){ alert('団体予約の受付は終了しました（8/17以降はサイド席を個人指定席として開放しています）。'); btn.textContent='団体予約を送信'; gCalc(); return; }
+      if(res.error==='team_closed'){ alert('団体予約の受付は終了しました（9/12まで）。個人指定席は引き続きお求めいただけます。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       if(res.error==='invalid_team_type'){ alert('団体の種別を選んでください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       if(res.error==='bad_email'){ alert('連絡先メールアドレスの形式をご確認ください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
       if(res.error==='need_payer'){ alert('お振込みされるお名前（カナ）をご記入ください。'); btn.textContent='団体予約を送信'; gCalc(); return; }
