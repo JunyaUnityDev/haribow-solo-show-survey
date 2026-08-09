@@ -780,7 +780,10 @@ function checkout(){
           +'受付でこのQRコードをご提示のうえ、現金をお支払いください。<br>'
           +'当日の受付でお支払いください。お席はお取り置きしています。</p>');
       }
-      else if(o.method==='bank'){ doneScreen('銀行振込のご案内を '+buyerContact()+' へお送りします。お支払い確認後にお席が確定します。'); }
+      else if(o.method==='bank'){ doneScreen(
+        'お席をお取り置きしました。下記のお振込み先へお支払いください。'
+        + 'ご入金を確認しましたら、お席の確定を '+buyerContact()+' へメールでご連絡いたします。',
+        bankBox(o)); }
       else {
         var msg = o.error==='bad_phone' ? 'お電話番号の形式をご確認ください（10〜11桁）。'
                 : o.error==='need_tshirt' ? 'Tシャツのサイズをお選びください。'
@@ -838,6 +841,36 @@ function checkout(){
   });
 }
 function fmtSeat(k){ var a=k.split('-'); return a[0]+'列'+a[1]+'番'; }
+/* 振込先を完了画面に出す（2026-08-08）。
+   ★なぜ画面に出すのか：これまで振込先はメール1通だけに乗っていた。そのメールが
+     迷惑メールに入る・見落とされる・消される、のどれか1つで、お客様は「払う手段」を失う。
+     実際に加藤様が「予約後に何も連絡がなかった」と問い合わせ、振込先を一度も見ないまま
+     期限日を迎えていた（メールは相手サーバーに250で受領済み。不達か見落としかは特定できていない）。
+     完了画面はブラウザに出るので確実に見え、スクリーンショットも残せる。
+   ★口座の値はここに書かない。サーバー（決済設定シート）が bankInfo として返したものを出す。
+     ここに直書きすると org/bank-transfer.md から数えて4つ目の複製になり、必ずどれかが腐る。 */
+function esc(s){ return String(s==null?'':s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function bankBox(o){
+  if(!o || !o.bankInfo) return '';   // 古いサーバー応答でも画面を壊さない
+  var lines = '【ご注文内容】 '+(o.breakdown||'')+'\n'
+            + '【合計金額】 '+(o.totalText||'')+'\n'
+            + (o.seatsText ? '【お席】 '+o.seatsText+'\n' : '')
+            + '【お振込み期限】 '+(o.deadlineDate||o.deadline||'')+'（当日いっぱい）\n\n'
+            + o.bankInfo;
+  return '<div style="margin-top:24px;padding:16px 18px;border:1px solid #3a4350;border-radius:10px;'
+    + 'text-align:left;background:#11141a">'
+    + '<b style="color:#f3f1ea;font-size:14px">お振込み先</b>'
+    + '<div style="color:#6f7684;font-size:12px;margin:6px 0 12px;line-height:1.8">'
+    + '同じ内容をメールでもお送りしますが、迷惑メールに入ることがあります。'
+    + '<b style="color:#a7adba">この画面のスクリーンショットを保存しておくと確実です。</b></div>'
+    + '<div style="color:#cfd4dd;font-size:13px;line-height:1.9;white-space:pre-wrap;word-break:break-word">'
+    + esc(lines) + '</div>'
+    + '<div style="color:#a7adba;font-size:12px;margin-top:12px;line-height:1.8">'
+    + 'お振込みは「'+esc(o.payerName||'')+'」様のお名前でお願いいたします。<br>'
+    + '恐れ入りますが、振込手数料はご負担をお願いいたします。</div>'
+    + '</div>';
+}
 function doneScreen(msg, extra){
   // メールが唯一の連絡手段なので、不達時の逃げ道を必ず出す（キャリアメールは落ちやすい）
   var help = '<div style="margin-top:26px;padding:14px 16px;border:1px solid #2a2d35;border-radius:10px;text-align:left;'
@@ -850,7 +883,7 @@ function doneScreen(msg, extra){
     + '<p style="color:#6f7684;font-size:12px;margin-top:20px;line-height:1.8">'
     + '2026年9月29日(火) 開場18:30／開演19:30<br>めぐろパーシモンホール 大ホール</p>';
   document.body.style.background='#0a0b0e';
-  document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:26px;text-align:center;color:#f3f1ea;font-family:-apple-system,\'Hiragino Sans\',sans-serif"><h2 style="font-size:20px">お申し込みを受け付けました</h2><p style="color:#a7adba;line-height:1.8">'+msg+'</p>'+help+'</div>';
+  document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:26px;text-align:center;color:#f3f1ea;font-family:-apple-system,\'Hiragino Sans\',sans-serif"><h2 style="font-size:20px">お申し込みを受け付けました</h2><p style="color:#a7adba;line-height:1.8">'+msg+'</p>'+(extra||'')+help+'</div>';
 }
 // 決済から戻ってきたら確定（?confirm=決済トークン）。サーバーがSquare実決済を照合してから席を確定。
 (function(){
