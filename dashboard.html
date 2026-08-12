@@ -1696,29 +1696,29 @@ function apiUrl(page){
     + (FRESH ? '&fresh=1' : '') + '&_=' + Date.now();
 }
 
-/* GASはJSONの代わりにHTMLを返してくることがある（2026-08-12）。
-   確認できた形は2つ：
-     ・Googleのサインイン画面。ブラウザはCookieを送るので、アカウントの状態によって
-       アカウント選択へ回されることがある（curlは未認証なので常に素通りし、再現しない）
-     ・GASのエラーページ。処理が重い回に出る
-   どちらも r.json() が「Unexpected token '<'」で落ち、画面全体が読み込み失敗になる。
-   実際には直後に叩き直すと通るので、1回だけ間を置いて再試行する。
-   それでも駄目なら、何が返ってきたのかを画面に出す（次に起きた時に原因を追えるように）。 */
-function fetchJson(url, retried){
+/* GASはJSONの代わりにHTMLの「ページが見つかりません」を返してくることがある（2026-08-12）。
+   r.json() がそれを食うと「Unexpected token '<'」で落ち、画面全体が読み込み失敗になる。
+
+   ★計測した事実：同じURLを12回叩くと1回失敗する（約8%）。Referer・Origin・User-Agent を
+     変えても、Cookieを送らない設定にしても頻度は変わらない。素のcurlでも起きるので、
+     このページの問題でも、ブラウザやGoogleアカウントの問題でもない。Google側の散発的な挙動。
+   ★つまり「直す」ことはできない。当たった時に引き直すしかない。
+     1回引き直せば失敗率は0.6%、2回で0.05%まで落ちる。実際に連続で当たった回があったので2回引く。
+   ★書き込み(postUpdate)にこれを使ってはいけない。二重にメモが入る。読み取り専用。 */
+var FETCH_RETRY_MAX = 2;
+function fetchJson(url, tried){
+  tried = tried || 0;
   return fetch(url).then(function(r){ return r.text(); }).then(function(t){
     try{
       return JSON.parse(t);
     }catch(e){
-      if(!retried){
-        return new Promise(function(res){ setTimeout(res, 800); })
-          .then(function(){ return fetchJson(url, true); });
+      if(tried < FETCH_RETRY_MAX){
+        return new Promise(function(res){ setTimeout(res, 600 * (tried + 1)); })
+          .then(function(){ return fetchJson(url, tried + 1); });
       }
       var title = (t.match(/<title>([^<]*)<\/title>/) || [])[1] || '';
-      var kind = /accounts\.google\.com|Sign in|ログイン/.test(t)
-        ? 'Googleのログイン画面が返りました。ブラウザで複数のGoogleアカウントにログインしていると起きます。'+
-          'アカウントを1つに絞るか、シークレットウィンドウで開くと通ります。'
-        : 'GASがエラーページを返しました（' + (title || '内容不明') + '）。時間をおいて再読み込みしてください。';
-      throw new Error(kind);
+      throw new Error('Googleのサーバーが'+(FETCH_RETRY_MAX+1)+'回とも「'+(title||'内容不明')+
+        '」を返しました。数分おいて開き直すと通ります。');
     }
   });
 }
