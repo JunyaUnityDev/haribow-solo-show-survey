@@ -2,10 +2,30 @@
 !Code.js
 !Config.js
 !Payments.js
-!Cast.js
 !Seats.js
-!Tickets.js
 !Operator.js
 !solo_interest.html
 !solo_interest_en.html
 !appsscript.json
+!Tickets.js
+!Cast.js
+!Orgs.js
+!Decisions.js
+!Health.js
+!Outreach.js
+!Ai.js
+!PayOps.js
+!Costume.js
+!Budget.js
+!Contact.js
+!Profile.js
+!Mailbox.js
+!Streaming.js
+
+# ★このファイルは performance/solo_show/gas/.claspignore の複製。
+#   GASのソースは performance/solo_show/gas/ にあり、こちらの .clasp.json も
+#   rootDir でそこを指している。push は本来 gas/ 側から行う（README §デプロイ手順）。
+#   2026-08-12：こちらが10ファイル版のまま取り残されており、このディレクトリから
+#   clasp push -f した結果、GAS上の Health.js / Orgs.js / Decisions.js / Ai.js /
+#   Mailbox.js など12ファイルが消えた（本番デプロイは固定版のため無傷、HEADのみ）。
+#   gas/ 側に .js を足したら、必ずこちらにも同じ行を足すこと。
