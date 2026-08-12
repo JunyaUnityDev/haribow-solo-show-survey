@@ -954,6 +954,42 @@ function saveModal(){
   }
   next(0);
 }
+/* ------------------------------------------------- メモの遅延読み込み（2026-08-12）
+   一覧の応答からメモ列を外したので、タスクを開いたときに1行ぶんだけ取りに行く。
+   取得済みのメモは memoCache に持ち、閉じて開き直しても再取得しない。 */
+var memoCache = {};
+function toggleTask(el,rowIndex){
+  var task = el.closest('.task');
+  task.classList.toggle('expanded');
+  if(task.classList.contains('expanded')) loadMemo(rowIndex);
+}
+function renderMemo(rowIndex, memoRaw){
+  var box = document.getElementById('memo-'+rowIndex);
+  if(!box) return;
+  var items = String(memoRaw||'').trim();
+  items = items ? items.split('\n').filter(Boolean) : [];
+  box.innerHTML = items.length
+    ? items.map(function(m){ return '<div class="memo-item">'+esc(m)+'</div>'; }).join('')
+    : '<span class="muted">まだありません</span>';
+}
+function loadMemo(rowIndex, force){
+  if(!force && memoCache[rowIndex] !== undefined){ renderMemo(rowIndex, memoCache[rowIndex]); return; }
+  var box = document.getElementById('memo-'+rowIndex);
+  if(box) box.innerHTML = '<span class="muted">読み込み中…</span>';
+  fetch(BASE+'?page=wbsmemo&k='+encodeURIComponent(DASH_SECRET)+'&row='+rowIndex+'&_='+Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok) throw new Error(d && d.error ? d.error : 'unknown');
+      memoCache[rowIndex] = d.memo;
+      renderMemo(rowIndex, d.memo);
+    })
+    .catch(function(e){
+      var b = document.getElementById('memo-'+rowIndex);
+      if(b) b.innerHTML = '<span class="muted">メモを読めませんでした（'+esc(String(e))+
+        '）　<a href="#" onclick="loadMemo('+rowIndex+',1);return false;">再試行</a></span>';
+    });
+}
+
 function addMemo(btn,rowIndex){
   var ta=btn.previousElementSibling, text=ta.value.trim();
   if(!text) return;
@@ -961,7 +997,11 @@ function addMemo(btn,rowIndex){
   postUpdate({survey:'wbs_memo',secret:DASH_SECRET,rowIndex:rowIndex,text:text,author:''})
     .then(function(res){
       btn.disabled=false;
-      if(res.ok){ ta.value=''; stampUpdated(rowIndex,function(){ toast('追加しました'); load(); }); }
+      if(res.ok){
+        ta.value='';
+        delete memoCache[rowIndex];   // 次に開いた時に追記後の内容を取り直す
+        stampUpdated(rowIndex,function(){ toast('追加しました'); load(); });
+      }
       else toast('失敗：'+res.error);
     }).catch(function(e){ btn.disabled=false; toast('通信エラー：'+e); });
 }
@@ -990,12 +1030,11 @@ function renderDetail(r){
   if(r['関連URL']) parts.push('<dt>関連URL</dt><dd><a href="'+esc(r['関連URL'])+'" target="_blank" rel="noopener">'+
     esc(r['関連URL'])+'</a></dd>');
 
-  var memoRaw=String(r['メモ・質問・提案']||'').trim();
-  var items=memoRaw?memoRaw.split('\n').filter(Boolean):[];
+  /* メモは一覧の応答に含まれない（2026-08-12）。全121行ぶんのメモを毎回運ぶと
+     応答がサーバー側キャッシュの上限を超え、毎リクエストがWBSのフル読み込みになって
+     7.7〜83秒かかっていた。開いた時に ?page=wbsmemo でその1行だけ取りに行く。 */
   parts.push('<dt>メモ・質問・提案</dt><dd>'+
-    '<div class="memo-list">'+(items.length
-        ? items.map(function(m){ return '<div class="memo-item">'+esc(m)+'</div>'; }).join('')
-        : '<span class="muted">まだありません</span>')+'</div>'+
+    '<div class="memo-list" id="memo-'+r['_row']+'"><span class="muted">読み込み中…</span></div>'+
     '<div class="memo-add" onclick="event.stopPropagation()">'+
       '<textarea placeholder="質問・提案・進度メモを書く"></textarea>'+
       '<button onclick="addMemo(this,'+r['_row']+')">追加</button>'+
@@ -1013,7 +1052,7 @@ function renderTask(r){
   }
   return '<div class="task'+(cancel?' is-cancel':'')+'" id="task-'+r['_row']+'">'+
     '<div class="task-row">'+
-      '<div class="task-name" onclick="this.closest(\'.task\').classList.toggle(\'expanded\')">'+
+      '<div class="task-name" onclick="toggleTask(this,'+r['_row']+')">'+
         '<span class="arrow">▸</span>'+tag+esc(r['タスク名'])+'</div>'+
       '<div class="task-meta">'+
         (d?'<span class="task-date'+cls+'">'+fmtDate(d)+'</span>':'')+
