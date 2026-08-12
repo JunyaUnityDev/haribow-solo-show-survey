@@ -872,14 +872,14 @@ function renderDecisionBoard(b){
         (isKaigi ? '<p class="dec-note">これは会議で決めるものなので、承認ボタンは出していません。保留か別案で意見を残してください。</p>' : '');
     }
 
-    /* 期限を過ぎたものだけ開いて出す。手を打つ必要があるのはそれなので、
-       畳んだせいで見落とすということが起きないようにする。 */
+    /* 全部畳む。一度「期限を過ぎたものだけ開く」にしたが、この公演は期限超過が常態で
+       3件中2件が開いてしまい、畳んだ意味がなくなった（2026-08-12 実測）。
+       超過は summary に赤字で出るので、閉じていても見落とさない。 */
     var due = parseDate(it.due);
     var overdue = due && daysBetween(today0(), due) < 0;
 
     html +=
-      '<details class="dec ' + (isKaigi ? 'kaigi' : '') + '" data-row="' + it.row + '"' +
-        (overdue ? ' open' : '') + '>' +
+      '<details class="dec ' + (isKaigi ? 'kaigi' : '') + '" data-row="' + it.row + '">' +
         '<summary>' +
           '<div class="dec-h">' +
             '<span class="dec-title">' + esc(it.title) + '</span>' +
