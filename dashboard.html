@@ -1516,7 +1516,7 @@ function renderCastMove(pCast){
   var note = document.getElementById('castNote');
   /* 引数で渡された Promise を使う（load() が dashboard と同時に投げたもの）。
      ここで新たに fetch すると直列に戻ってしまう。 */
-  (pCast || fetch(apiUrl('cast')).then(function(r){ return r.json(); })).then(function(d){
+  (pCast || fetchJson(apiUrl('cast')).catch(function(){ return null; })).then(function(d){
     if(!d){ box.innerHTML='<p class="muted">出演者のデータが取れませんでした。</p>'; return; }
     var people = (d.people||[]).slice();
     if(!people.length){ box.innerHTML='<p class="muted">出演者のデータが取れませんでした。</p>'; return; }
