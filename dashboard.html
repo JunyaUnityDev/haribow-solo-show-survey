@@ -976,8 +976,7 @@ function loadMemo(rowIndex, force){
   if(!force && memoCache[rowIndex] !== undefined){ renderMemo(rowIndex, memoCache[rowIndex]); return; }
   var box = document.getElementById('memo-'+rowIndex);
   if(box) box.innerHTML = '<span class="muted">読み込み中…</span>';
-  fetch(BASE+'?page=wbsmemo&k='+encodeURIComponent(DASH_SECRET)+'&row='+rowIndex+'&_='+Date.now())
-    .then(function(r){ return r.json(); })
+  fetchJson(BASE+'?page=wbsmemo&k='+encodeURIComponent(DASH_SECRET)+'&row='+rowIndex+'&_='+Date.now())
     .then(function(d){
       if(!d || !d.ok) throw new Error(d && d.error ? d.error : 'unknown');
       memoCache[rowIndex] = d.memo;
@@ -1697,13 +1696,40 @@ function apiUrl(page){
     + (FRESH ? '&fresh=1' : '') + '&_=' + Date.now();
 }
 
+/* GASはJSONの代わりにHTMLを返してくることがある（2026-08-12）。
+   確認できた形は2つ：
+     ・Googleのサインイン画面。ブラウザはCookieを送るので、アカウントの状態によって
+       アカウント選択へ回されることがある（curlは未認証なので常に素通りし、再現しない）
+     ・GASのエラーページ。処理が重い回に出る
+   どちらも r.json() が「Unexpected token '<'」で落ち、画面全体が読み込み失敗になる。
+   実際には直後に叩き直すと通るので、1回だけ間を置いて再試行する。
+   それでも駄目なら、何が返ってきたのかを画面に出す（次に起きた時に原因を追えるように）。 */
+function fetchJson(url, retried){
+  return fetch(url).then(function(r){ return r.text(); }).then(function(t){
+    try{
+      return JSON.parse(t);
+    }catch(e){
+      if(!retried){
+        return new Promise(function(res){ setTimeout(res, 800); })
+          .then(function(){ return fetchJson(url, true); });
+      }
+      var title = (t.match(/<title>([^<]*)<\/title>/) || [])[1] || '';
+      var kind = /accounts\.google\.com|Sign in|ログイン/.test(t)
+        ? 'Googleのログイン画面が返りました。ブラウザで複数のGoogleアカウントにログインしていると起きます。'+
+          'アカウントを1つに絞るか、シークレットウィンドウで開くと通ります。'
+        : 'GASがエラーページを返しました（' + (title || '内容不明') + '）。時間をおいて再読み込みしてください。';
+      throw new Error(kind);
+    }
+  });
+}
+
 function load(){
   var head = document.getElementById('updated');
   if(head) head.textContent = FRESH ? '最新を取得しています…' : '読み込み中…';
   // 同時に投げる。cast は dashboard の完了を待たない
-  var pCast = fetch(apiUrl('cast')).then(function(r){ return r.json(); }).catch(function(){ return null; });
-  var pOrgs = fetch(apiUrl('orgstats')).then(function(r){ return r.json(); }).catch(function(){ return null; });
-  fetch(apiUrl('dashboard')).then(function(r){ return r.json(); }).then(function(data){
+  var pCast = fetchJson(apiUrl('cast')).catch(function(){ return null; });
+  var pOrgs = fetchJson(apiUrl('orgstats')).catch(function(){ return null; });
+  fetchJson(apiUrl('dashboard')).then(function(data){
     renderCastMove(pCast);
     latestData=data;
     /* 1画面目は cast と orgstats が揃ってから描く。どちらか失敗しても残りは出す */
@@ -1745,7 +1771,9 @@ function load(){
     renderDecisions(data.decisions);
     renderOwnerViews();
   }).catch(function(e){
-    document.getElementById('content').innerHTML='<div class="err">読み込みに失敗しました：'+e+'</div>';
+    document.getElementById('content').innerHTML=
+      '<div class="err">読み込みに失敗しました<br>'+esc(String(e.message||e))+
+      '<br><button class="refresh" onclick="load()">もう一度読み込む</button></div>';
   });
 }
 /* キャッシュを素通りして取り直す。画面の「最新を取得」から呼ぶ */
