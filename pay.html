@@ -225,6 +225,13 @@ function render(){
           (!team && i.overdue && !i.overdueSent && i.contactOk
             ? '<button class="btn warn" onclick="askOverdue(\''+esc(i.no)+'\')">お支払いのお願いを送る</button>'
             : (!team && i.overdueSent ? '<div class="chk">お支払いのお願いは送信済みです</div>' : ''))+
+          /* 個人の期限超過だけに出す。団体には解放ボタン（下の解放セクション）があるので要らない。
+             ここで席は動かない。JUNYAへ「解放してよいか」を上げるだけ。 */
+          (!team && i.overdue
+            ? (i.releaseReqOn
+                ? '<div class="chk">席の解放依頼を送信済みです（'+esc(i.releaseReqOn)+'）</div>'
+                : '<button class="btn ghost" onclick="relReqAsk(\''+esc(i.no)+'\')">席の解放を依頼する</button>')
+            : '')+
         '</div></div>';
     }).join('');
   }
@@ -330,7 +337,52 @@ function cancelAsk(no){
       '<button class="btn" onclick="ask(\''+esc(no)+'\')">入金を確認した</button>'+
     '</div>'+
     (!team && i.overdue && !i.overdueSent && i.contactOk
-      ? '<button class="btn warn" onclick="askOverdue(\''+esc(no)+'\')">お支払いのお願いを送る</button>' : '');
+      ? '<button class="btn warn" onclick="askOverdue(\''+esc(no)+'\')">お支払いのお願いを送る</button>' : '')+
+    (!team && i.overdue
+      ? (i.releaseReqOn
+          ? '<div class="chk">席の解放依頼を送信済みです（'+esc(i.releaseReqOn)+'）</div>'
+          : '<button class="btn ghost" onclick="relReqAsk(\''+esc(no)+'\')">席の解放を依頼する</button>')
+      : '');
+}
+
+/* 席の解放依頼（2026-08-13）。個人の未入金には解放ボタンが無いので、ここから坂田へ上げる。
+   ★席は一切動かない。お客様にも何も送らない。飛ぶのは坂田の内部LINEだけ。
+     「押したら席が消える」と誤解されると誰も押さなくなるので、確認文でそこを一番強く書く。 */
+function relReqAsk(no){
+  var i=(data.items||[]).filter(function(x){ return String(x.no)===String(no); })[0];
+  if(!i) return;
+  var box=document.getElementById('a'+no); if(!box) return;
+  box.innerHTML=
+    '<div class="confirmbox"><p><b>'+esc(i.name)+' 様</b>（'+esc(i.seats)+'・'+yen(i.total)+'）について<br>'
+    +'「お席を解放してよいか」を坂田へ確認します。<br><br>'
+    +'<b style="color:#e8d9a8">お席はこの操作では解放されません。</b><br>'
+    +'お客様にもメールは届きません。坂田のLINEに通知が飛ぶだけです。<br>'
+    +'解放するかどうかは坂田が判断します。</p>'
+    +'<div class="pair"><button class="btn ghost" onclick="cancelAsk(\''+esc(no)+'\')">やめる</button>'
+    +'<button class="btn" onclick="sendReleaseReq(\''+esc(no)+'\')">依頼を送る</button></div></div>';
+}
+
+function sendReleaseReq(no){
+  if(busy) return;
+  var box=document.getElementById('a'+no); if(!box) return;
+  busy=true;
+  box.innerHTML='<button class="btn" disabled>送信しています…</button>';
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'pay_release_request',op:OP,no:no})})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      busy=false;
+      if(res && res.ok){ toast(res.name+' 様の解放依頼を送りました'); load(false); }
+      else {
+        var m={bad_token:'このURLでは操作できません',not_found:'この注文が見つかりません',
+               already_sent:'すでに依頼済みです',not_overdue:'まだ期限を過ぎていません',
+               already_paid:'すでに入金済みです',cancelled:'取消済みの注文です',
+               line_ng:'LINEに送れませんでした。依頼は記録していません'};
+        toast('依頼できませんでした：'+((res&&m[res.error])||(res&&res.error)||'不明なエラー'));
+        cancelAsk(no);
+      }
+    })
+    .catch(function(){ busy=false; toast('通信できませんでした。最新にしてから、届いたか確かめてください'); cancelAsk(no); });
 }
 
 /* 銀行を見たが入金が無かった、を記録する。支払状態は変えないので確認ダイアログは挟まない。
