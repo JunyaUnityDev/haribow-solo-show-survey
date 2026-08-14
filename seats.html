@@ -420,7 +420,10 @@ var TYPES = [
   {id:'main',    name:'一般S席(特典付)',adv:4500, reg:5000, area:'main',note:'3〜12列中央＋サンクス動画'},
   {id:'ippan',   name:'一般A席',        adv:3500, reg:4000, area:'gen', note:'14〜18列中央・前方サイド'},
   {id:'kodomo',  name:'高校生以下',      adv:3500, reg:4000, area:'gen', note:'一般Aエリア・割引なし'},
-  {id:'gakusei', name:'大学生',          adv:2500, reg:3000, area:'gen', note:'学生証提示・一般Aから-1,000'}
+  /* 2026-08-14 JUNYA決定：大学院生も対象に含める。判定条件が「学生証提示」なので、
+     除外すると受付で学部か院かを聞くことになり、当日いちばん事故る場所に判断が増える。
+     name は変えていない（この文字列が注文シートの内訳にそのまま入るため。変えると既存分と割れる）。 */
+  {id:'gakusei', name:'大学生',          adv:2500, reg:3000, area:'gen', note:'学生証提示・大学院生も対象・一般Aから-1,000'}
 ];
 var curType = null;
 var picked = {}; // key "row-num" -> true
