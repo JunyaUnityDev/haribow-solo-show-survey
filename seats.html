@@ -525,11 +525,23 @@ var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
 var GSOLD = {};                           // 団体マップ：takenGroup（団体保留/確定）
 var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を個人（一般料金）に開放
+/* 8/17の開放から外れている席（乱縄・DSP用にサーバーが期限付きで確保）。seat_avail の groupOnly が正。
+   ここに載っている席は開放日を過ぎても団体専用で、個人タブには売り物として出さない。
+   サーバーの lockSeats も同じ判定で弾く（Seats.js の groupOnlyNow_）ので、
+   選べたのに送信で断られる、という一番わかりにくい失敗を防ぐ。 */
+var GONLY = {};
+/** 8/17の個人開放を席単位で判定する。開放されていれば 'group'→'gen'。 */
+function openArea(row,n){
+  var a = seatArea(row,n);
+  if(SIDESOPEN && a==='group' && !GONLY[row+'-'+n]) a='gen';
+  return a;
+}
 function loadAvail(){
   fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
     SOLD={}; (d.taken||[]).forEach(function(id){ SOLD[id]=1; });
     GSOLD={}; (d.takenGroup||[]).forEach(function(id){ GSOLD[id]=1; });
     SIDESOPEN = !!d.sidesOpen;
+    GONLY={}; (d.groupOnly||[]).forEach(function(id){ GONLY[id]=1; });
     var bankOpen = (d.bankOpen!==false);
     var pbk=document.getElementById('payBank'); if(pbk) pbk.style.display=bankOpen?'':'none';
     var spbk=document.getElementById('sPayBank'); if(spbk) spbk.style.display=bankOpen?'':'none';
@@ -574,7 +586,7 @@ function blockCounts(){
   for(var row=1; row<=22; row++){
     if(!rowInArea(row,curType.area)) continue;
     seatNums(row).forEach(function(o){
-      var a=seatArea(row,o.n); if(SIDESOPEN && a==='group') a='gen';
+      var a=openArea(row,o.n);
       if(a===curType.area) c[blockOf(o.n)]++;
     });
   }
@@ -635,7 +647,7 @@ function render(){
       var fnums=seatNums(row), fblk=document.createElement('div'); fblk.className='blk';
       var drawn=0;
       fnums.forEach(function(o){
-        var a=seatArea(row,o.n); if(SIDESOPEN && a==='group') a='gen';
+        var a=openArea(row,o.n);
         if(a!==curType.area) return;
         if(curBlock && blockOf(o.n)!==curBlock) return;
         fblk.appendChild(makeSeat(row,o.n)); drawn++;
@@ -687,7 +699,7 @@ function makeSeat(row,n){
   var area=seatArea(row,n); var key=row+'-'+n;
   // 全体表示は「見るだけの地図」。席が小さく正確に押せないので選択させず、選ぶ画面へ誘導する
   if(showAll || !curType){
-    if(SIDESOPEN && area==='group') area='gen';
+    area=openArea(row,n);
     if(SOLD[key] || (SIDESOPEN && GSOLD[key])) s.className+=' sold';
     else if(!SELLABLE[area]) s.className+=' dead';
     else if(picked[key]) s.className+=' pick';
@@ -695,7 +707,7 @@ function makeSeat(row,n){
     s.onclick=backToPicker;
     return s;
   }
-  if(SIDESOPEN && area==='group') area='gen'; // 8/17以降：空きサイド席を一般席として個人開放
+  area=openArea(row,n); // 8/17以降：空きサイド席を一般席として個人開放（GROUP_ONLYは除く）
   if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; s.setAttribute('aria-label',row+'列'+n+'番 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
   function act(){ toggle(row,n); }
