@@ -133,6 +133,8 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       <b>いつ</b>：出てくるとき／技の前／決まったあと／ミスしたとき／待っているとき<br>
       後ろの席からでも見えるものにしてください（大きい動作・毎回やること・立ち位置）。表情や細かい手の動きは届きません。</p>
 
+      <p class="note" id="recNote" style="display:none;border-left:2px solid var(--blue);padding-left:11px"></p>
+
       <label>1人目</label>
       <select id="rec1"><option value="">まず名前を選んでください</option></select>
       <textarea id="quirk1" placeholder="例：技が決まったあと、必ず一回だけ跳ねる"></textarea>
@@ -221,14 +223,49 @@ function onWho(){
       : 'OP・ED以外の演目に登録がありません。';
   }
   var others = MEMBERS.filter(function(m){ return !me || m.name !== me.name; });
-  ['rec1','rec2','rec3'].forEach(function(id){ fill(id, others, '選んでください'); });
+
+  /* 1人目だけ「まだ紹介がない人」を先頭グループに出す（2026-08-16）。
+     推薦が0〜1件しかない人が7名いて、そのままだと客がその人に辿り着く経路が無い。
+     ★候補は絞らない。下に「そのほか全員」を必ず置く（2026-08-03の事故の再発防止）。
+     ★共演している人に限る。一緒に跳んでいない相手の見どころは書けず、
+       中身の無い回答が返るだけになる（実例あり）。 */
+  var thin = others.filter(function(m){
+    if((m.recCount || 0) > 1) return false;
+    if(!me || !me.engi.length || !m.engi.length) return false;
+    return m.engi.some(function(e){ return me.engi.indexOf(e) >= 0; });
+  });
+  fill('rec1', others, '選んでください', thin);
+  ['rec2','rec3'].forEach(function(id){ fill(id, others, '選んでください'); });
+
+  el('recNote').textContent = thin.length
+    ? ('1人目は、まだ誰にも紹介されていない人からお願いします：' +
+       thin.map(function(m){ return m.name; }).join('、'))
+    : '';
+  el('recNote').style.display = thin.length ? '' : 'none';
   sync();
 }
-function fill(id, list, ph){
+function fill(id, list, ph, priority){
   var s = el(id), cur = s.value;
   s.innerHTML = '';
   s.appendChild(new Option(ph, ''));
-  list.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
+
+  if(priority && priority.length){
+    var g1 = document.createElement('optgroup');
+    g1.label = 'まだ紹介がない人（ここから1人お願いします）';
+    priority.forEach(function(m){ g1.appendChild(new Option(m.name, m.name)); });
+    s.appendChild(g1);
+
+    var rest = list.filter(function(m){
+      return !priority.some(function(p){ return p.name === m.name; });
+    });
+    var g2 = document.createElement('optgroup');
+    g2.label = 'そのほか全員';
+    rest.forEach(function(m){ g2.appendChild(new Option(m.name, m.name)); });
+    s.appendChild(g2);
+  }else{
+    list.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
+  }
+
   // 名前を選び直しても、既に選んでいた推薦は消さない（本人でない限り）
   if(cur && list.some(function(m){ return m.name === cur; })) s.value = cur;
 }
