@@ -238,7 +238,7 @@ function onWho(){
   ['rec2','rec3'].forEach(function(id){ fill(id, others, '選んでください'); });
 
   el('recNote').textContent = thin.length
-    ? ('1人目は、まだ誰にも紹介されていない人からお願いします：' +
+    ? ('1人目は、この中から選んでもらえると助かります：' +
        thin.map(function(m){ return m.name; }).join('、'))
     : '';
   el('recNote').style.display = thin.length ? '' : 'none';
@@ -251,7 +251,7 @@ function fill(id, list, ph, priority){
 
   if(priority && priority.length){
     var g1 = document.createElement('optgroup');
-    g1.label = 'まだ紹介がない人（ここから1人お願いします）';
+    g1.label = 'この人たちの見どころを聞きたいです';
     priority.forEach(function(m){ g1.appendChild(new Option(m.name, m.name)); });
     s.appendChild(g1);
 
