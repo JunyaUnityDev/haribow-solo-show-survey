@@ -1010,6 +1010,13 @@ function makeGSeat(row,n){
   s.innerHTML='<span class="sn">'+n+'</span>';
   var area=seatArea(row,n); var key=row+'-'+n;
   if(GSOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番（他の団体が予約済み）'; return s; }
+  /* 2026-08-20 追加：個人に売れた席も「売切」で出す。
+     ここは以前 GSOLD（団体に売れた席）しか見ておらず、8/17のサイド開放以降に
+     個人が買った団体エリアの席が、団体タブでは選べるまま残っていた。
+     サーバーの teamReserve は状態が「空」でなければ弾く（Seats.js）ので、
+     代表者が席を選んで送信した瞬間に「他の方に確保されました」と出る。
+     個人タブ側の同じ問題（openArea の GONLY 参照漏れ）と対になる不具合。 */
+  if(SOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; return s; }
   if(area==='group'){
     var gact=function(){ gToggle(row,n); };
     var gkey=function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); gact(); } };
