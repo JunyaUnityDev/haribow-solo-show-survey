@@ -1136,7 +1136,15 @@ function renderG(){
 function makeGSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
-  var area=openArea(row,n); var key=row+'-'+n;
+  /* ★団体タブは openArea ではなく**生のエリア**を見る（2026-08-25 修正）。
+       openArea は 8/17のサイド開放（決定No.6）で 'group'→'gen' に変換するため、
+       それを通すと開放済みの団体席が団体タブから消える。実際に1階の4席
+       （15-1・16-1・20-25・22-25）が団体タブに出ず、2階の左右サイドを団体にしても
+       1席も選べなかった。
+     ★決定No.6は「売れ残ったサイド席は個人**にも**開放する」＝団体と個人の共有プール。
+       サーバーも teamReserve は区分が「団体」なら通し、lockSeats は sideOpen なら
+       個人にも通す。画面だけが団体を締め出していた。 */
+  var area=areaAt(row,n); var key=row+'-'+n;
   if(GSOLD[key]){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+'（他の団体が予約済み）'; return s; }
   /* 2026-08-20 追加：個人に売れた席も「売切」で出す。
      ここは以前 GSOLD（団体に売れた席）しか見ておらず、8/17のサイド開放以降に
