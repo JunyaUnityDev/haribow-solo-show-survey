@@ -1088,6 +1088,17 @@ function showTab(t,el){
   if(t==='group') renderG();
 }
 
+/* URLで最初に開くタブを指定できるようにする（2026-08-24追加）。
+   公式サイトの「配信チケットを見る」から ?tab=stream で直接飛ばすため。
+   これが無いと、配信を見に来た人が個人・指定席の座席表に着地して迷う。 */
+(function openTabFromUrl(){
+  var t = new URLSearchParams(location.search).get('tab');
+  if(!t || ['personal','group','stream'].indexOf(t) < 0) return;
+  var idx = {personal:0, group:1, stream:2}[t];
+  var btn = document.querySelectorAll('.tab')[idx];
+  if(btn) showTab(t, btn);
+})();
+
 // ---- 団体タブ ----
 var gTypeVal=null, gUnit=0, gPayVal=null, gpicked={};
 function gType(id,el,unit){ gTypeVal=id; gUnit=unit; document.querySelectorAll('.gt').forEach(function(b){b.classList.toggle('active',b===el);});
