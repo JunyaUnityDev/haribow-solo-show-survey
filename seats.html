@@ -458,6 +458,25 @@ function setCredit(v,el){ creditOk=v;
   updateCart(); }
 function creditNameVal(){ return (document.getElementById('creditName')||{}).value||''; }
 function isSupporter(){ return !!(curType && curType.id==='sup'); }
+
+/* サポーター券の販売状態を画面へ反映する（2026-08-24追加・決定No.14）。
+   ★9/5までは「お申し込みは9月5日まで」を出す。WBS行126の未着手分。
+   ★9/6以降はボタンごと消す。選ばせてから決済で断るのが一番わかりにくい失敗なので、
+     サーバーで止めるだけにせず画面からも消す。 */
+function applySupState(){
+  var note = document.getElementById('supDeadline');
+  document.querySelectorAll('[data-type="sup"]').forEach(function(el){
+    el.style.display = SUPOPEN ? '' : 'none';
+  });
+  if(note){
+    note.textContent = SUPOPEN
+      ? 'お申し込みは' + SUPEND + 'まで（横断幕へのお名前掲載とTシャツの手配のため）'
+      : 'サポーター券の受付は' + SUPEND + 'で終了しました。2列中央のお席は一般S席（特典付）としてお選びいただけます。';
+    note.style.display = '';
+  }
+  // 締切後にサポーター券を選んだ状態で残っていたら解除する
+  if(!SUPOPEN && curType && curType.id==='sup'){ curType = null; }
+}
 // 掲載の対象＝サポーター券 または 応援金を出した人（2026-07-27 決定）
 function needsCredit(){ return isSupporter() || donation>0; }
 function supOk(){
@@ -536,6 +555,13 @@ var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
 var GSOLD = {};                           // 団体マップ：takenGroup（団体保留/確定）
 var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を個人（一般料金）に開放
+/* 来場サポーター券の販売期間（決定No.14・9/5まで）。サーバーの supOpen が正。
+   ★端末の時計で判定しないこと。9/6以降は
+     ・サポーター券のボタンを消す
+     ・2列中央（11〜22番）を一般S席として売り直す（決定No.14 後半）
+   サーバー側も priceIndividualOrder_ で同じ2つを行う。片方だけ直さないこと。 */
+var SUPOPEN = true;
+var SUPEND  = '9月5日';
 /* 8/17の開放から外れている席（乱縄・DSP用にサーバーが期限付きで確保）。seat_avail の groupOnly が正。
    ここに載っている席は開放日を過ぎても団体専用で、個人タブには売り物として出さない。
    サーバーの lockSeats も同じ判定で弾く（Seats.js の groupOnlyNow_）ので、
@@ -545,6 +571,7 @@ var GONLY = {};
 function openArea(row,n){
   var a = seatArea(row,n);
   if(SIDESOPEN && a==='group' && !GONLY[row+'-'+n]) a='gen';
+  if(a==='sup' && !SUPOPEN) a='main';   // 9/6以降＝サポーター席は一般S席として売り直す
   return a;
 }
 function loadAvail(){
@@ -552,6 +579,9 @@ function loadAvail(){
     SOLD={}; (d.taken||[]).forEach(function(id){ SOLD[id]=1; });
     GSOLD={}; (d.takenGroup||[]).forEach(function(id){ GSOLD[id]=1; });
     SIDESOPEN = !!d.sidesOpen;
+    SUPOPEN = (d.supOpen !== false);
+    if(d.supEnd) SUPEND = d.supEnd;
+    applySupState();
     GONLY={}; (d.groupOnly||[]).forEach(function(id){ GONLY[id]=1; });
     var bankOpen = (d.bankOpen!==false);
     var pbk=document.getElementById('payBank'); if(pbk) pbk.style.display=bankOpen?'':'none';
@@ -749,6 +779,10 @@ function toggle(row,n){
   render(); updateCart();
 }
 function selectType(t){
+  if(t && t.id==='sup' && !SUPOPEN){
+    alert('サポーター券の受付は'+SUPEND+'で終了しました。2列中央のお席は一般S席（特典付）としてお選びいただけます。');
+    return;
+  }
   curType=t; picked={}; showAll=false; curBlock=null;
   document.querySelectorAll('.type').forEach(function(el){ el.classList.toggle('active', el.dataset.id===t.id); });
   syncOptionBoxes();
@@ -839,6 +873,7 @@ function checkout(){
                 : o.error==='bad_email' ? 'メールアドレスの形式をご確認ください。'
                 : o.error==='seats_lost' ? '選んでいる間にお席が確保できませんでした。選び直してください。'
                 : o.error==='sales_closed' ? 'チケットの販売は終了しました。'
+                : o.error==='sup_closed' ? 'サポーター券の受付は' + SUPEND + 'で終了しました。\n2列中央のお席は一般S席（特典付）としてお選びいただけます。'
                 : o.error==='cash_closed' ? '現金でのお支払いは公演当日の受付でのみ承っております。'
                 : o.error==='bank_closed' ? '銀行振込の受付は終了しました（9/26まで）。クレジットカードをご利用ください。'
                 : o.error==='square_not_configured'
@@ -965,11 +1000,17 @@ function doneScreen(msg, extra){
 var tc=document.getElementById('types');
 TYPES.forEach(function(t){
   var b=document.createElement('button'); b.className='type'+(t.big?' big':''); b.dataset.id=t.id;
+  b.setAttribute('data-type', t.id);   // applySupState がサポーター券だけ隠すために使う
   var priceLine = (t.adv===t.reg) ? ('¥'+t.adv.toLocaleString()) : ('前売¥'+t.adv.toLocaleString()+' / 通常¥'+t.reg.toLocaleString());
   b.innerHTML='<div class="tn">'+t.name+'</div><div class="tp">'+priceLine+'</div><div class="ta">'+t.note+'</div>';
   b.onclick=function(){ selectType(t); };
   tc.appendChild(b);
 });
+// 締切の告知欄（券種ボタンの直下）。中身は applySupState がサーバーの値から入れる
+var supNote=document.createElement('p'); supNote.id='supDeadline';
+supNote.style.cssText='margin:10px 2px 0;font-size:12.5px;line-height:1.8;color:var(--sup);display:none';
+tc.parentNode.insertBefore(supNote, tc.nextSibling);
+
 render(); updateCart(); loadAvail();
 
 // ---- タブ切替 ----

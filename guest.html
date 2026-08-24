@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>ご来場登録｜Go Beyond</title>
+<!--
+  関係者ご来場登録（2026-08-24・決定事項一覧 No.29）
+
+  ★このページは公開サイト（go-beyond.haribow.com / seats.html）からリンクしない。
+    招待先ごとの ?k= 付きURLを個別に配る。
+
+  ★このリポジトリは公開なので、静的側には具体的な数字を一切書かない。
+    招待先の名前・枠の席数・追加席の単価・席の場所は、すべて invite_meta が
+    トークン認証のうえで返す。静的側に書いた値は GitHub 上で誰でも読める。
+-->
+<style>
+  :root{
+    --bg:#0a0b0e; --panel:#14161c; --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280; --line:#262a33;
+    --accent:#63b6cc; --gold:#c9a24b; --warn:#c8433a; --dead:#33373f;
+    --shadow:0 8px 28px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.7}
+  .wrap{max-width:640px;margin:0 auto;padding:34px 16px 120px}
+  .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0 0 8px}
+  h1{font-size:23px;font-weight:800;margin:0 0 6px;letter-spacing:.01em}
+  .sub{color:var(--dim);font-size:13.5px;margin:0 0 26px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:18px}
+  .card h2{font-size:13px;font-weight:800;margin:0 0 14px;letter-spacing:.06em;color:var(--accent)}
+
+  label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin:0 0 6px}
+  input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:11px 12px;font-size:16px;font-family:inherit;margin-bottom:16px}
+  textarea{min-height:84px;resize:vertical;line-height:1.6}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .hint{font-size:12px;color:var(--dim);margin:-10px 2px 16px;line-height:1.65}
+
+  .srow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .srow:last-child{border-bottom:none}
+  .srow .k{color:var(--dim)}
+  .srow .v{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .total .v{font-size:19px;color:var(--gold)}
+
+  .btn{background:var(--accent);color:#06222b;border:none;border-radius:10px;padding:14px 22px;
+    font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;width:100%}
+  .btn:disabled{background:var(--dead);color:var(--faint);cursor:not-allowed}
+  .err{color:var(--warn);font-size:13.5px;font-weight:700;margin:10px 2px 0;min-height:20px}
+  .note{font-size:12.5px;color:var(--dim);line-height:1.85;margin:16px 2px 0}
+  .note b{color:var(--ink)}
+
+  .seatbox{background:rgba(99,182,204,.09);border:1px solid rgba(99,182,204,.3);border-radius:12px;padding:16px;margin:6px 0 0}
+  .seatbox .lab{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.1em;margin:0 0 6px}
+  .seatbox .val{font-size:17px;font-weight:800;line-height:1.6}
+  .center{text-align:center;color:var(--dim);padding:60px 20px;font-size:14px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">HARIBOW SOLO SHOW 2026</p>
+  <h1>ご来場登録</h1>
+  <p class="sub" id="sub">読み込んでいます…</p>
+
+  <div id="loading" class="center">読み込んでいます…</div>
+
+  <div id="bad" class="card hide">
+    <h2>URLをご確認ください</h2>
+    <p style="margin:0;font-size:14px;color:var(--dim)">
+      お手元のご案内に記載されたURLから、もう一度お開きください。<br>
+      うまくいかない場合は <b style="color:var(--ink)">info@haribow.com</b> までご連絡ください。
+    </p>
+  </div>
+
+  <div id="form" class="hide">
+    <div class="card">
+      <h2 id="orgline">お申し込み内容</h2>
+      <p class="hint" id="quota" style="margin-top:-6px"></p>
+
+      <label for="rep">ご担当者さまのお名前</label>
+      <input id="rep" type="text" autocomplete="name" placeholder="例：山田 太郎">
+
+      <label for="contact">ご連絡先（メールアドレス）</label>
+      <input id="contact" type="email" autocomplete="email" inputmode="email" placeholder="example@example.com">
+      <p class="hint">お席の確定をこちらへお送りします。</p>
+
+      <label for="useFree">ご来場人数</label>
+      <select id="useFree"></select>
+
+      <label for="extra">追加のお席</label>
+      <select id="extra"></select>
+      <p class="hint" id="extraHint"></p>
+
+      <label for="guests">ご来場者のお名前（任意）</label>
+      <textarea id="guests" placeholder="改行区切りでご記入ください。当日の受付がスムーズになります。"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>ご確認</h2>
+      <div class="srow"><span class="k">ご来場人数</span><span class="v" id="sumTotal">—</span></div>
+      <div class="srow total"><span class="k" id="feeLabel">追加のお席</span><span class="v" id="sumFee">—</span></div>
+      <div id="seatWrap" class="seatbox hide">
+        <p class="lab">確定しているお席</p>
+        <p class="val" id="seatVal">—</p>
+      </div>
+      <p class="err" id="err"></p>
+      <button class="btn" id="go">この内容で申し込む</button>
+      <p class="note">
+        当日の人数追加も空席状況によって承ります。ただし、その場合は<b>お席が離れることがございます</b>。
+        できる限り事前にご人数をご確定いただけますと幸いです。<br>
+        このページからは、いつでもご人数を変更いただけます。
+      </p>
+    </div>
+  </div>
+
+  <div id="done" class="card hide">
+    <h2>お申し込みを承りました</h2>
+    <div class="srow"><span class="k">お名前</span><span class="v" id="dName">—</span></div>
+    <div class="srow"><span class="k">ご来場人数</span><span class="v" id="dTotal">—</span></div>
+    <div class="srow" id="dFeeRow"><span class="k">追加のお席</span><span class="v" id="dFee">—</span></div>
+    <div class="seatbox" style="margin-top:14px">
+      <p class="lab">お席</p>
+      <p class="val" id="dSeat">—</p>
+    </div>
+    <p class="note" id="dSplit"></p>
+    <p class="note">
+      確定内容をメールでお送りしました。当日は受付でお名前をお伝えください。<br>
+      ご人数の変更は、このページを開き直してお手続きいただけます。
+    </p>
+    <p style="margin:18px 0 0"><a href="#" id="again" style="color:var(--accent);font-size:13.5px">内容を変更する</a></p>
+  </div>
+</div>
+
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var K = new URLSearchParams(location.search).get('k') || '';
+var META = null;
+
+function $(id){ return document.getElementById(id); }
+function show(id){ $(id).classList.remove('hide'); }
+function hide(id){ $(id).classList.add('hide'); }
+function yen(n){ return '¥' + (Number(n)||0).toLocaleString(); }
+
+/* ---- 初期化 ---------------------------------------------------- */
+if(!K){ boot(null); }
+else {
+  fetch(BASE + '?page=invite_meta&k=' + encodeURIComponent(K))
+    .then(function(r){ return r.json(); })
+    .then(boot)
+    .catch(function(){ boot(null); });
+}
+
+function boot(d){
+  hide('loading');
+  if(!d || !d.ok){ $('sub').textContent=''; show('bad'); return; }
+  META = d;
+  $('sub').textContent = '下記のご入力をお願いいたします。';
+  $('orgline').textContent = d.name + ' 様';
+
+  /* 枠の説明も金額も、ここで初めて画面に出る（静的HTMLには書かない） */
+  $('quota').textContent = 'ご招待枠は ' + d.free + '席です。'
+    + (d.free > 0 ? '' : '（追加のお席のみ承ります）');
+  /* 追加のお席は、専用の申込ページ（Form B）ができるまで閉じている。
+     maxExtra=0 がサーバーから返るので、欄ごと隠す。
+     ★ここを勝手に開けないこと。いま開けると無料招待のプール（余裕ゼロ）を食う。 */
+  var extraOpen = Number(d.maxExtra) > 0;
+  if(!extraOpen){
+    $('extra').parentNode.querySelector('label[for="extra"]').style.display = 'none';
+    $('extra').style.display = 'none';
+    $('extraHint').style.display = 'none';
+    $('feeLabel').parentNode.style.display = 'none';
+  } else {
+    $('extraHint').textContent = 'ご招待枠を超える分は、1席あたり ' + yen(d.extraPrice) + ' で承ります。'
+      + 'お支払い方法は、お申し込み後に運営よりご連絡いたします。';
+    $('feeLabel').textContent = '追加のお席（' + yen(d.extraPrice) + ' / 席）';
+  }
+
+  var uf = $('useFree');
+  for(var i=0;i<=d.free;i++) uf.add(new Option(i + '名', i));
+  uf.value = d.free;                       // 既定は枠いっぱい
+
+  var ex = $('extra');
+  for(var j=0;j<=d.maxExtra;j++) ex.add(new Option(j===0 ? 'なし' : j + '席', j));
+
+  if(d.answered && d.current){
+    uf.value = d.current.useFree;
+    ex.value = d.current.extra;
+    $('rep').value = d.current.rep;
+    $('contact').value = d.current.contact;
+    $('guests').value = d.current.guests;
+    $('go').textContent = 'この内容に変更する';
+    if(d.current.seatsText){
+      $('seatVal').textContent = d.current.seatsText;
+      show('seatWrap');
+    }
+  }
+  if(d.closed){
+    $('go').disabled = true;
+    $('err').textContent = '受付を終了しました。お手数ですが info@haribow.com までご連絡ください。';
+  }
+  uf.onchange = ex.onchange = recalc;
+  recalc();
+  show('form');
+}
+
+function recalc(){
+  if(!META) return;
+  /* 入力を直した瞬間に前のエラーを消す。残しておくと、もう直っているのに
+     赤い字が出たままになり「まだ何か間違っている」と読める */
+  $('err').textContent = '';
+  var uf = Number($('useFree').value)||0, ex = Number($('extra').value)||0;
+  $('sumTotal').textContent = (uf + ex) + '名';
+  $('sumFee').textContent = ex === 0 ? '—' : (ex + '席　' + yen(ex * META.extraPrice));
+}
+
+/* ---- 送信 ------------------------------------------------------ */
+$('go').onclick = function(){
+  var rep = $('rep').value.trim(), contact = $('contact').value.trim();
+  var uf = Number($('useFree').value)||0, ex = Number($('extra').value)||0;
+  $('err').textContent = '';
+  if(!rep){ $('err').textContent = 'ご担当者さまのお名前をご入力ください。'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)){ $('err').textContent = 'メールアドレスをご確認ください。'; return; }
+  if(uf + ex <= 0){ $('err').textContent = 'ご来場人数をお選びください。'; return; }
+  /* サーバー側でも同じ判定をしている。ここで止めるのは、送信してから
+     エラーで戻される往復をなくすため（判定の正はサーバー） */
+  if(ex > 0 && uf < META.free){
+    $('err').textContent = 'ご招待枠（' + META.free + '席）を使い切ってから、追加のお席をお選びください。';
+    return;
+  }
+
+  $('go').disabled = true;
+  $('go').textContent = '送信しています…';
+  fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ survey:'invite_submit', k:K, rep:rep, contact:contact,
+                           useFree:uf, extra:ex, guests:$('guests').value.trim() }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      $('go').disabled = false;
+      $('go').textContent = 'この内容で申し込む';
+      if(!d || !d.ok){ $('err').textContent = errText(d); return; }
+      $('dName').textContent  = d.name;
+      $('dTotal').textContent = d.total + '名';
+      if(d.fee > 0){ $('dFee').textContent = d.extra + '席　' + yen(d.fee); }
+      else { hide('dFeeRow'); }
+      $('dSeat').textContent  = d.seatsText;
+      $('dSplit').textContent = d.split
+        ? '※ 今回は連続したお席をご用意できず、離れたお席が含まれます。申し訳ございません。' : '';
+      hide('form'); show('done');
+      window.scrollTo(0,0);
+    })
+    .catch(function(){
+      $('go').disabled = false;
+      $('go').textContent = 'この内容で申し込む';
+      $('err').textContent = '通信に失敗しました。少し時間をおいて、もう一度お試しください。';
+    });
+};
+
+function errText(d){
+  var e = d && d.error;
+  if(e==='invalid_key')     return 'URLをご確認ください。うまくいかない場合は info@haribow.com までご連絡ください。';
+  if(e==='closed')          return '受付を終了しました。お手数ですが info@haribow.com までご連絡ください。';
+  if(e==='need_rep')        return 'ご担当者さまのお名前をご入力ください。';
+  if(e==='bad_contact')     return 'メールアドレスをご確認ください。';
+  if(e==='need_count')      return 'ご来場人数をお選びください。';
+  if(e==='fill_free_first') return 'ご招待枠（' + d.free + '席）を使い切ってから、追加のお席をお選びください。';
+  if(e==='extra_closed')    return '追加のお席のお申し込みは、別途ご案内するページから承ります。';
+  if(e==='not_enough')      return 'ご希望の席数をご用意できませんでした（残り ' + (d['残り']||0) + '席）。'
+                                 + 'お手数ですが info@haribow.com までご連絡ください。';
+  return 'お申し込みを受け付けられませんでした。info@haribow.com までご連絡ください。';
+}
+
+$('again').onclick = function(ev){ ev.preventDefault(); location.reload(); };
+</script>
+</body>
+</html>

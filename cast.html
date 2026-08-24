@@ -215,13 +215,16 @@ var CAST_SECRET = 'hbw-2026-cast-s1udbmrnoy';
    ★2階席（31〜41列・エリアf2・全429席が非売）は別ブロックなので描かない。
      販売可能席がある列の範囲（＝1階の販売エリア）だけを対象にする。 */
 function buildSeatMap(rows){
-  var withSale = (rows||[]).filter(function(r){ return r.sellable > 0; });
-  if(!withSale.length) return '';
-  var firstRow = Math.min.apply(null, withSale.map(function(r){ return Number(r.row); }));
-  var lastRow  = Math.max.apply(null, withSale.map(function(r){ return Number(r.row); }));
-  var target = rows.filter(function(r){
+  /* ★描く列を明示する（2026-08-24修正）。
+       もとは「販売可能席がある列の最小〜最大」で範囲を出していたが、
+       1階以外に1席でも売り物ができると lastRow がそこまで伸びて、
+       間の2階(31〜41列)が空白行として描かれ、幅も1〜32→1〜39に広がる。
+       実際に LB2列の6席で lastRow が 22→52 になり客席図が崩れた。
+       範囲の推測をやめ、1階(1〜22列)だけを対象にする。
+       2階を開けるときは 31〜41 を別ブロックとして明示的に足すこと。 */
+  var target = (rows||[]).filter(function(r){
     var n = Number(r.row);
-    return n >= firstRow && n <= lastRow && (r.gridNums||[]).length;
+    return n >= 1 && n <= 22 && (r.gridNums||[]).length;
   });
   if(!target.length) return '';
   var lo = null, hi = null;
