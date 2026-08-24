@@ -86,6 +86,9 @@
   .seat.dead{background:var(--dead);background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,0,0,.28) 3px,rgba(0,0,0,.28) 4px)}
   .seat.sold{background:var(--sold);background-image:radial-gradient(rgba(255,255,255,.28) 1px,transparent 1.4px);background-size:5px 5px}
   .rrow{display:flex;align-items:center;gap:0}
+  /* 1階と2階の境目。スクロール順で1階から埋まるように、2階は必ず1階の下に描く */
+  .floordiv{margin:14px auto 8px;text-align:center;font-size:11px;font-weight:800;letter-spacing:.24em;
+    color:var(--faint);border-top:1px solid var(--line);padding-top:12px;max-width:70%}
   .rlab{flex:0 0 var(--lab);text-align:right;padding-right:6px;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
   /* 席のかたまりだけを中央寄せ。ラベルは外の固定列なので行ごとにズレない */
   .rseats{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:var(--rgap);
@@ -191,7 +194,7 @@
       <span><span class="sw" style="background:var(--sup)"></span>サポーター席</span>
       <span><span class="sw" style="background:var(--pick)"></span>選択中</span>
       <span><span class="sw" style="background:var(--sold)"></span>売切</span>
-      <span><span class="sw" style="background:var(--dead)"></span>販売なし（サイド/車椅子/機材/カメラ）</span>
+      <span><span class="sw" style="background:var(--dead)"></span>販売なし（車椅子/機材/カメラ/関係者席）</span>
     </div>
   </div>
 
@@ -490,19 +493,9 @@ function syncOptionBoxes(){
   var cb=document.getElementById('creditBox'); if(cb) cb.style.display = needsCredit() ? '' : 'none';
 }
 
-// ---- 中央ブロックの座席番号（列ごと） ----
-function seatNums(row){
-  var left, right;
-  if(row===1){ left=[5,10]; right=[23,28]; }
-  else if(row===2){ left=[3,10]; right=[23,30]; }
-  else if(row===3){ left=[2,10]; right=[23,31]; }
-  else { left=[1,10]; right=[23,32]; }
-  var arr=[];
-  for(var n=left[0];n<=left[1];n++) arr.push({n:n,blk:'L'});
-  for(var n=11;n<=22;n++) arr.push({n:n,blk:'C'});
-  for(var n=right[0];n<=right[1];n++) arr.push({n:n,blk:'R'});
-  return arr;
-}
+/* seatNums() は削除した（2026-08-24）。
+   最大32番までしか返さず、2階の33〜39番＝77席が画面から消えるため。
+   席番号は LAYOUT.rows[].grid（サーバーが座席在庫から作る）を gridOf() で使う。 */
 /* ---- 右前サイドの臨時団体開放（2026-08-16） ----------------------------
    後方サイド170席が団体で埋まり切り、乱縄37人が入らなくなったため、
    8〜12列の25〜32番（40席・購入実績が内側23〜26番に偏り外側が丸ごと残っていた区画）を
@@ -516,40 +509,67 @@ function seatNums(row){
    ★サーバー側の teamReserve は座席在庫シートの「区分」列しか見ない（Seats.js:486）ので、
      ここを直すだけでは足りない。シートの区分も「個人」→「団体」に変えてある。
      戻すときは この配列を空にする ＋ シートの区分を「個人」へ戻す の2つが要る。 */
-var TEMP_GROUP_ = {};
-[8,9,10,11,12].forEach(function(r){ for(var n=25;n<=32;n++){ TEMP_GROUP_[r+'-'+n]=1; } });
-/* 2026-08-16 追加：17・18列の中央11〜22番（24席・2列連続の長方形）。
-   DSP20〜30人が1ブロックで座れる場所がここしか残っていないため先に確保する。
-   個人は前の列から順に買っており、16列は12席中8席が埋まった（20番は8/16に売れた）。
-   次は17・18列なので、団体からも取れる状態にしておかないと9月には残らない。 */
-[17,18].forEach(function(r){ for(var n=11;n<=22;n++){ TEMP_GROUP_[r+'-'+n]=1; } });
-/* 2026-08-20 追加：左前サイド 8〜12列1〜9番（DSP40名の前方28席）。
-   ★これが無いと購入画面が「買える席」として出してしまう。
-     seatArea() は 2〜12列のサイドを無条件で 'gen' と判定するので、TEMP_GROUP_ に載せない限り
-     openArea() の SIDESOPEN 分岐（'group' のときだけ GONLY を見る）に一度も入らない。
-     結果、サーバーの GROUP_ONLY_ が弾く席を画面が売り物として表示し、決済ボタンを押した
-     瞬間に「他の方に確保されました」という事実と違うアラートが出る。
-     8/18〜8/20のあいだ実際にこの状態だった（DSP枠を17・18列中央から移設した際、
-     サーバーの GROUP_ONLY_ROWS_ だけ直してここを直し忘れたため）。
-   ★18列（後方14席）はこの配列に足す必要がない。14列以降のサイドも中央も
-     seatArea() が最初から 'group' を返すので、GONLY が正しく参照される。 */
-[8,9,10,11,12].forEach(function(r){ for(var n=1;n<=9;n++){ TEMP_GROUP_[r+'-'+n]=1; } });
+/* TEMP_GROUP_ は削除した（2026-08-24）。
+   「どの席が団体枠か」を画面側にハードコードしていたが、シート側の区分を変えるたびに
+   この配列も直す必要があり、片方だけ直して3日間の事故になった（2026-08-18〜20）。
+   いまはサーバーの ?page=seat_layout が座席在庫の実エリアを返すので、
+   手でブロックを団体へ振り替えれば自動で画面にも反映される。ここに配列を戻さないこと。 */
 
 // ---- 席の区分（中央帯11〜22=個人／サイド=前方個人(一般A)・後方団体） ----
-function seatArea(row,n){
-  if(row===1) return 'cam';               // 1列=カメラマン(非売)
-  if(row===13) return 'wheel';            // 13列=車椅子(非売)
-  if((row===4||row===14) && n>=23&&n<=32) return 'reserve'; // 補欠
-  if(TEMP_GROUP_[row+'-'+n]) return 'group';  // 2026-08-16 臨時開放（下の TEMP_GROUP_ を参照）
-  if(n<=10 || n>=23) return (row>=2&&row<=12) ? 'gen' : 'group'; // 前方サイド=個人一般A／後方サイド=団体
-  // ここから中央帯(11〜22番)
-  if(row===2) return 'sup';               // 2列中央=サポーター
-  if(row>=3&&row<=12) return 'main';       // 3〜12列中央=一般S(特典付)
-  if(row>=14&&row<=18) return 'gen';       // 14〜18列中央=一般A
-  if(row>=19&&row<=22) return 'proj';      // 19〜22列中央=プロジェクター(非売)
-  return 'gen';
-}
+/* seatArea() は削除した（2026-08-24）。
+   末尾が return 'gen' ＝**デフォルト許可**で、2階を通すと演者席・クルー席・招待席まで
+   「買える席」として点灯し、決済で弾かれる（2026-08-18〜20 の3日間事故と同型）。
+   エリアの判定は areaAt()／openArea() がサーバーのレイアウトから行う。 */
 var SELLABLE = {main:1,gen:1,sup:1};      // 個人が買う区分
+
+/* ============================================================
+ *  座席レイアウト（2026-08-24〜・サーバーの ?page=seat_layout が正）
+ *
+ *  ★ここが入るまで、この画面は seatArea()・seatNums()・席ラベルを自前で持っていて、
+ *    サーバーの seatArea_ / seatLabel_ と非同期だった。
+ *    2026-08-18〜20 の3日間事故（買えると見せた席を決済が弾く）はそれが原因。
+ *    2階を足すと同じ形で必ず再発するので、**描く情報は全部サーバーから受ける**。
+ *
+ *  ★LAYOUT にバルコニー（LB/RB）は入らない。サーバーが返さない。
+ *    あそこには招待51席・チアリーマンズ35席・有料の追加席6席が入っている。
+ * ============================================================ */
+var LAYOUT = null;          // { rows:[{row,floor,label,grid,runs}], saleIndividual, saleGroup, f2Open }
+var AREA_OF = {};           // "row-num" → エリア。売り物でないものは "x:" 前置き
+var ROWS = [];              // 描く列の定義（LAYOUT.rows と同じ並び。1階→2階）
+
+/** 席の表記。1階＝「5列8番」／2階＝「2階1列14番」。
+ *  ★ここ1つに寄せる。以前は14か所で '列'+n+'番' を組み立てており、
+ *    2階を足すと直し漏れた画面だけ「31列14番」と出てメールと食い違う。 */
+function fmtSeatLabel(row,n){
+  var r = ROWS_BY_NUM[row];
+  return (r ? r.label : (row+'列')) + n + '番';
+}
+var ROWS_BY_NUM = {};
+
+/** レイアウトを取り込む。取れなければ画面を出さない（推測で描かない） */
+function applyLayout(d){
+  if(!d || !d.ok || !d.rows || !d.rows.length) return false;
+  LAYOUT = d; ROWS = d.rows; AREA_OF = {}; ROWS_BY_NUM = {};
+  d.rows.forEach(function(r){
+    ROWS_BY_NUM[r.row] = r;
+    r.runs.forEach(function(run){
+      for(var n=run[0]; n<=run[1]; n++) AREA_OF[r.row+'-'+n] = run[2];
+    });
+  });
+  return true;
+}
+
+/** その席のエリア。売り物でなければ null を返す（＝デフォルト拒否）。
+ *  ★以前の seatArea() は末尾が return 'gen' でデフォルト許可だった。
+ *    2階を通すと演者席・クルー席・招待席まで「買える」と点灯する。 */
+function areaAt(row,n){
+  var a = AREA_OF[row+'-'+n];
+  if(a === undefined) return null;          // 物理的に席が無い
+  if(a.indexOf('x:') === 0) return null;    // 存在するが売り物ではない
+  return a;
+}
+/** その列に物理的に存在する席番号 */
+function gridOf(row){ var r=ROWS_BY_NUM[row]; return r ? r.grid : []; }
 var GROUP_OPEN = new Date() >= new Date(2026,7,17); // 8/17以降サイドを個人開放（実挙動はサーバーのsidesOpen=SIDESOPENが正）
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
@@ -569,10 +589,26 @@ var SUPEND  = '9月5日';
 var GONLY = {};
 /** 8/17の個人開放を席単位で判定する。開放されていれば 'group'→'gen'。 */
 function openArea(row,n){
-  var a = seatArea(row,n);
+  /* エリアはサーバーのレイアウト（＝座席在庫の実値）が正。
+     手でブロックを団体へ振り替えた分もそのまま反映されるので、
+     以前あった TEMP_GROUP_ のハードコードは要らない。 */
+  var a = areaAt(row,n);
+  if(a === null) return 'dead';
   if(SIDESOPEN && a==='group' && !GONLY[row+'-'+n]) a='gen';
   if(a==='sup' && !SUPOPEN) a='main';   // 9/6以降＝サポーター席は一般S席として売り直す
   return a;
+}
+/* レイアウト→空席状況 の順で取る。レイアウトが無いと1席も描けない（推測で描かない）。 */
+function loadLayoutThenAvail(){
+  fetch(BASE+'?page=seat_layout').then(function(r){return r.json();}).then(function(d){
+    if(!applyLayout(d)){ throw new Error('layout'); }
+    loadAvail();
+  }).catch(function(){
+    var m=document.getElementById('map');
+    if(m) m.innerHTML='<p style="color:#a7adba;text-align:center;padding:40px 12px;line-height:1.9">'
+      +'座席の情報を読み込めませんでした。<br>通信環境をご確認のうえ、ページを再読み込みしてください。<br>'
+      +'解決しない場合は info@haribow.com までご連絡ください。</p>';
+  });
 }
 function loadAvail(){
   fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
@@ -604,6 +640,18 @@ function loadAvail(){
 }
 
 var showAll=false;
+/** その列を全体地図に描くか。
+ *  ★売り物が0席でも描く。1列（カメラマン席）・13列（車椅子席）を落とすと、
+ *    行番号が実際の客席とずれてお客様が自分の席を探せなくなる
+ *    （ダッシュボード側で同じ問題が起き gridNums を足して直した経緯がある）。
+ *  ★落とすのは「2階がまだ開いていないとき、2階の列すべて」だけ。
+ *    開いていない席を11行ぶん灰色で並べても、あると誤解させるだけなので出さない。 */
+function rowVisible(row){
+  var r = ROWS_BY_NUM[row];
+  if(!r) return false;
+  if(r.floor===2 && LAYOUT && !LAYOUT.f2Open) return false;
+  return true;
+}
 function rowInArea(row,area){
   if(area==='main') return row>=3 && row<=12;   // 一般S(特典付)
   // 一般A＝前方サイド(2〜12列)＋中央後方(14〜18列)。
@@ -615,8 +663,15 @@ function rowInArea(row,area){
   if(area==='sup')  return row===2;             // サポーター
   return true;
 }
-/** 席番号からブロックを判定（実際の客席の並びと対応させる） */
-function blockOf(n){ return n<=10 ? 'L' : (n<=22 ? 'C' : 'R'); }
+/** 席番号からブロックを判定（実際の客席の並びと対応させる）。
+ *  ★階で境界が違う。1階＝左1〜10／中央11〜22／右23〜32、
+ *    2階＝左1〜13／中央14〜26／右27〜39（公式客席図）。
+ *    1階の境界を2階に当てると11〜13番が「中央」に入って実際の並びと食い違う。 */
+function blockOf(row,n){
+  var r = ROWS_BY_NUM[row];
+  if(r && r.floor===2) return n<=13 ? 'L' : (n<=26 ? 'C' : 'R');
+  return n<=10 ? 'L' : (n<=22 ? 'C' : 'R');
+}
 var BLK_LABEL={L:'左サイド', C:'中央', R:'右サイド'};
 var curBlock=null;   // フォーカス表示で今どのブロックを見せているか
 
@@ -624,13 +679,12 @@ var curBlock=null;   // フォーカス表示で今どのブロックを見せ�
 function blockCounts(){
   var c={L:0,C:0,R:0};
   if(!curType) return c;
-  for(var row=1; row<=22; row++){
-    if(!rowInArea(row,curType.area)) continue;
-    seatNums(row).forEach(function(o){
-      var a=openArea(row,o.n);
-      if(a===curType.area) c[blockOf(o.n)]++;
+  ROWS.forEach(function(r){
+    if(!rowInArea(r.row,curType.area)) return;
+    gridOf(r.row).forEach(function(n){
+      if(openArea(r.row,n)===curType.area) c[blockOf(r.row,n)]++;
     });
-  }
+  });
   return c;
 }
 
@@ -669,10 +723,20 @@ function render(){
   var tog=document.getElementById('mapToggle');
   if(tog){ tog.style.display = curType?'':'none'; tog.textContent = showAll?'選んだエリアだけ大きく表示':'客席全体を見る'; }
   renderBlockPicker();
-  for(var row=1; row<=22; row++){
+  /* ★描く列はサーバーのレイアウトが決める。1〜22 のベタ書きループに戻さないこと。
+       戻すと2階が消え、逆に上限を伸ばすとバルコニーが混ざる。
+       LAYOUT.rows は 1階(1〜22) → 2階(31〜41) の順で、バルコニーは入っていない。 */
+  for(var ri=0; ri<ROWS.length; ri++){
+    var row = ROWS[ri].row;
     if(focus && !rowInArea(row,curType.area)) continue;
+    /* その列に買える席が1つも無いなら行ごと出さない（未開放の2階・関係者枠だけの列） */
+    if(!rowVisible(row)) continue;
     var rr=document.createElement('div'); rr.className='rrow';
-    var lab=document.createElement('div'); lab.className='rlab'; lab.textContent=row+'列';
+    if(ri>0 && ROWS[ri].floor===2 && ROWS[ri-1].floor===1){
+      var fd=document.createElement('div'); fd.className='floordiv'; fd.textContent='2階席';
+      map.appendChild(fd);
+    }
+    var lab=document.createElement('div'); lab.className='rlab'; lab.textContent=ROWS[ri].label;
     rr.appendChild(lab);                       // ラベルは常に固定列（行ごとにズレないように）
     var rs=document.createElement('div'); rs.className='rseats';
     if(!focus) rs.appendChild(makeSide(row,'LB'));
@@ -685,24 +749,25 @@ function render(){
       // フォーカス時：買える席（券種エリア一致）だけを1ブロックで表示→スマホでも横幅に収まる
       // 対象エリアのうち、選択中のブロック（左サイド/中央/右サイド）だけを描く。
       // 左右サイドを1列に連結すると20席になり画面に収まらず、実際の座席配置とも食い違うため分けている。
-      var fnums=seatNums(row), fblk=document.createElement('div'); fblk.className='blk';
+      var fnums=gridOf(row), fblk=document.createElement('div'); fblk.className='blk';
       var drawn=0;
-      fnums.forEach(function(o){
-        var a=openArea(row,o.n);
+      fnums.forEach(function(n){
+        var a=openArea(row,n);
         if(a!==curType.area) return;
-        if(curBlock && blockOf(o.n)!==curBlock) return;
-        fblk.appendChild(makeSeat(row,o.n)); drawn++;
+        if(curBlock && blockOf(row,n)!==curBlock) return;
+        fblk.appendChild(makeSeat(row,n)); drawn++;
       });
       if(!drawn){ continue; }        // このブロックに席が無い列は行ごと出さない
       rs.appendChild(fblk);
     } else {
-      var nums=seatNums(row), curBlk='', blkEl=null;
-      nums.forEach(function(o){
-        if(o.blk!==curBlk){
+      var nums=gridOf(row), curBlk='', blkEl=null;
+      nums.forEach(function(n){
+        var b=blockOf(row,n);
+        if(b!==curBlk){
           if(curBlk==='C'||(curBlk==='L')){ var g=document.createElement('div'); g.className='gap'; rs.appendChild(g); }
-          blkEl=document.createElement('div'); blkEl.className='blk'; rs.appendChild(blkEl); curBlk=o.blk;
+          blkEl=document.createElement('div'); blkEl.className='blk'; rs.appendChild(blkEl); curBlk=b;
         }
-        blkEl.appendChild(makeSeat(row,o.n));
+        blkEl.appendChild(makeSeat(row,n));
       });
     }
     if(!focus) rs.appendChild(makeSide(row,'RB'));
@@ -737,7 +802,7 @@ function toggleAll(){ showAll=!showAll; render(); }
 function makeSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
-  var area=seatArea(row,n); var key=row+'-'+n;
+  var area=openArea(row,n); var key=row+'-'+n;
   // 全体表示は「見るだけの地図」。席が小さく正確に押せないので選択させず、選ぶ画面へ誘導する
   if(showAll || !curType){
     area=openArea(row,n);
@@ -749,19 +814,19 @@ function makeSeat(row,n){
     return s;
   }
   area=openArea(row,n); // 8/17以降：空きサイド席を一般席として個人開放（GROUP_ONLYは除く）
-  if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; s.setAttribute('aria-label',row+'列'+n+'番 売切'); return s; }
+  if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+' 売切'; s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
   function act(){ toggle(row,n); }
   function keyact(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); act(); } }
   if(picked[key]){ // 選択中（再クリック/Enterで解除）
-    s.className+=' pick'; s.title=row+'列'+n+'番（選択中・押すと解除）';
-    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','true'); s.setAttribute('aria-label',row+'列'+n+'番 選択中');
+    s.className+=' pick'; s.title=fmtSeatLabel(row,n)+'（選択中・押すと解除）';
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','true'); s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 選択中');
     s.onclick=act; s.onkeydown=keyact;
   }
   else if(!curType){ s.className+=' '+area; } // 券種未選択：素の色
   else if(area===curType.area){ // 買える席
-    s.className+=' '+area+' buyable'; s.title=row+'列'+n+'番';
-    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','false'); s.setAttribute('aria-label',row+'列'+n+'番 空席');
+    s.className+=' '+area+' buyable'; s.title=fmtSeatLabel(row,n);
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-pressed','false'); s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 空席');
     s.onclick=act; s.onkeydown=keyact;
   }
   else { s.className+=' dim'; } // 対応外エリアは減光
@@ -798,7 +863,7 @@ function updateCart(){
   var p=price(), sum=keys.length*p + donation;
   if(keys.length===0){ list.innerHTML='<b>'+curType.name+'</b>（¥'+p.toLocaleString()+'）… 席を選んでください'; }
   else {
-    var seatsTxt=keys.map(function(k){var a=k.split('-');return a[0]+'列'+a[1]+'番';}).join('・');
+    var seatsTxt=keys.map(function(k){var a=k.split('-');return fmtSeatLabel(a[0],a[1]);}).join('・');
     var donTxt = donation>0 ? '<br><span style="font-size:11.5px;color:var(--sup)">＋応援金 ¥'+donation.toLocaleString()+'</span>' : '';
     list.innerHTML='<b>'+curType.name+'</b> ¥'+p.toLocaleString()+' × '+keys.length+'席<br><span style="font-size:11.5px">'+seatsTxt+'</span>'+donTxt;
   }
@@ -923,7 +988,7 @@ function checkout(){
     btn.textContent='決済へ'; btn.disabled=false;
   });
 }
-function fmtSeat(k){ var a=k.split('-'); return a[0]+'列'+a[1]+'番'; }
+function fmtSeat(k){ var a=k.split('-'); return fmtSeatLabel(a[0],a[1]); }
 /* 振込先を完了画面に出す（2026-08-08）。
    ★なぜ画面に出すのか：これまで振込先はメール1通だけに乗っていた。そのメールが
      迷惑メールに入る・見落とされる・消される、のどれか1つで、お客様は「払う手段」を失う。
@@ -1011,7 +1076,7 @@ var supNote=document.createElement('p'); supNote.id='supDeadline';
 supNote.style.cssText='margin:10px 2px 0;font-size:12.5px;line-height:1.8;color:var(--sup);display:none';
 tc.parentNode.insertBefore(supNote, tc.nextSibling);
 
-render(); updateCart(); loadAvail();
+render(); updateCart(); loadLayoutThenAvail();
 
 // ---- タブ切替 ----
 function showTab(t,el){
@@ -1032,16 +1097,22 @@ function gPay(m,el){ gPayVal=m; document.querySelectorAll('.gp').forEach(functio
 function renderG(){
   var map=document.getElementById('gmap'); if(!map) return;
   map.innerHTML='';
-  for(var row=1; row<=22; row++){
+  for(var gi=0; gi<ROWS.length; gi++){
+    var row = ROWS[gi].row;
+    if(!rowVisible(row)) continue;
     var rr=document.createElement('div'); rr.className='rrow';
-    var lab=document.createElement('div'); lab.className='rlab'; lab.textContent=row+'列';
+    var lab=document.createElement('div'); lab.className='rlab'; lab.textContent=ROWS[gi].label;
     rr.appendChild(lab);
     if(row===13){ var w=document.createElement('div'); w.className='blk';
       for(var k=0;k<26;k++){ var s=document.createElement('div'); s.className='seat dead'; w.appendChild(s);} rr.appendChild(w); map.appendChild(rr); continue; }
-    var nums=seatNums(row), curBlk='', blkEl=null;
-    nums.forEach(function(o){
-      if(o.blk!==curBlk){ if(curBlk==='L'||curBlk==='C'){var g=document.createElement('div');g.className='gap';rr.appendChild(g);} blkEl=document.createElement('div');blkEl.className='blk';rr.appendChild(blkEl);curBlk=o.blk; }
-      blkEl.appendChild(makeGSeat(row,o.n));
+    if(gi>0 && ROWS[gi].floor===2 && ROWS[gi-1].floor===1){
+      var gfd=document.createElement('div'); gfd.className='floordiv'; gfd.textContent='2階席'; map.appendChild(gfd);
+    }
+    var nums=gridOf(row), curBlk='', blkEl=null;
+    nums.forEach(function(n){
+      var b=blockOf(row,n);
+      if(b!==curBlk){ if(curBlk==='L'||curBlk==='C'){var g=document.createElement('div');g.className='gap';rr.appendChild(g);} blkEl=document.createElement('div');blkEl.className='blk';rr.appendChild(blkEl);curBlk=b; }
+      blkEl.appendChild(makeGSeat(row,n));
     });
     map.appendChild(rr);
   }
@@ -1049,21 +1120,21 @@ function renderG(){
 function makeGSeat(row,n){
   var s=document.createElement('div'); s.className='seat';
   s.innerHTML='<span class="sn">'+n+'</span>';
-  var area=seatArea(row,n); var key=row+'-'+n;
-  if(GSOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番（他の団体が予約済み）'; return s; }
+  var area=openArea(row,n); var key=row+'-'+n;
+  if(GSOLD[key]){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+'（他の団体が予約済み）'; return s; }
   /* 2026-08-20 追加：個人に売れた席も「売切」で出す。
      ここは以前 GSOLD（団体に売れた席）しか見ておらず、8/17のサイド開放以降に
      個人が買った団体エリアの席が、団体タブでは選べるまま残っていた。
      サーバーの teamReserve は状態が「空」でなければ弾く（Seats.js）ので、
      代表者が席を選んで送信した瞬間に「他の方に確保されました」と出る。
      個人タブ側の同じ問題（openArea の GONLY 参照漏れ）と対になる不具合。 */
-  if(SOLD[key]){ s.className+=' sold'; s.title=row+'列'+n+'番 売切'; return s; }
+  if(SOLD[key]){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+' 売切'; return s; }
   if(area==='group'){
     var gact=function(){ gToggle(row,n); };
     var gkey=function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); gact(); } };
-    if(gpicked[key]){ s.className+=' pick'; s.title=row+'列'+n+'番（選択中・押すと解除）'; s.setAttribute('aria-pressed','true'); }
-    else { s.className+=' group buyable'; s.title=row+'列'+n+'番'; s.setAttribute('aria-pressed','false'); }
-    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-label',row+'列'+n+'番 団体サイド席'); s.onclick=gact; s.onkeydown=gkey;
+    if(gpicked[key]){ s.className+=' pick'; s.title=fmtSeatLabel(row,n)+'（選択中・押すと解除）'; s.setAttribute('aria-pressed','true'); }
+    else { s.className+=' group buyable'; s.title=fmtSeatLabel(row,n); s.setAttribute('aria-pressed','false'); }
+    s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 団体サイド席'); s.onclick=gact; s.onkeydown=gkey;
   } else { s.className+=' dim'; }  // 中央帯・非売は選べない
   return s;
 }
