@@ -298,12 +298,21 @@
       <label>団体名</label>
       <input id="gName" placeholder="例：〇〇大学ダブルダッチサークル" oninput="gCalc()">
       <label>団体の種別</label>
+      <!-- 券種名は決定事項No.3／ADR-003 の「大学生団体券」「コミュニティ団体券」が正。
+           2026-08-25まで、この画面だけ「大学DDサークル／その他団体」と別名で出しており、
+           公式サイトの料金表（大学生団体／コミュニティ団体）と食い違っていた。
+           非DDの大学団体がどちらの単価か画面から判断できず、安い方を無検証で押せる状態だった。
+           ★対象条件をボタンの下に明記して、選び間違いを画面で止める。 -->
       <div class="paymethods">
-        <button type="button" class="pm gt" onclick="gType('circle',this,2000)">大学DDサークル ¥2,000/人</button>
-        <button type="button" class="pm gt" onclick="gType('other',this,3000)">その他団体 ¥3,000/人</button>
+        <button type="button" class="pm gt" onclick="gType('circle',this,2000)">大学生団体 ¥2,000/人</button>
+        <button type="button" class="pm gt" onclick="gType('other',this,3000)">コミュニティ団体 ¥3,000/人</button>
       </div>
+      <p class="buyer-note" style="margin-top:8px">
+        <b>大学生団体</b>＝大学生・大学院生・OB・社会人1年目までの5名以上。当日、代表の方の学生証等をご提示ください。<br>
+        <b>コミュニティ団体</b>＝上記に当てはまらない5名以上のグループ。
+      </p>
       <div id="gCommonBox" style="display:none">
-        <label style="margin-top:14px;display:block">団体の共通点（その他団体の方）</label>
+        <label style="margin-top:14px;display:block">団体の共通点（コミュニティ団体の方）</label>
         <input id="gCommon" placeholder="例：過去に組んだチーム／同じ区在住／同じ会社 など" oninput="gCalc()">
       </div>
       <label style="margin-top:14px;display:block">代表者名</label>
@@ -1185,7 +1194,7 @@ function gCalc(){
   var sum=gUnit*num;
   res.innerHTML='¥'+sum.toLocaleString()+' <small style="font-size:12px;color:var(--dim);font-weight:600">('+(gUnit?'¥'+gUnit.toLocaleString()+'×':'')+num+'席'+(num>0&&num<5?' ⚠ 5席以上':'')+')</small>';
   var name=(document.getElementById('gName')||{}).value||'', rep=(document.getElementById('gRep')||{}).value||'', c=(document.getElementById('gContact')||{}).value||'';
-  var commonOk = (gTypeVal!=='other') || gCommon().trim(); // その他団体は共通点必須
+  var commonOk = (gTypeVal!=='other') || gCommon().trim(); // コミュニティ団体は共通点必須
   var payerOk = (gMethodVal!=='bank') || ((document.getElementById('gPayer')||{}).value||'').trim();
   btn.disabled=!(gTypeVal && gMethodVal && num>=5 && name.trim() && rep.trim() && c.trim() && commonOk && payerOk);
 }
@@ -1195,6 +1204,13 @@ function gCheckout(){
   fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({survey:'team_reserve',seatIds:keys,
       groupName:document.getElementById('gName').value,
+      /* ★シートに保存する文字列は「大学DDサークル」「その他団体」のまま据え置く（2026-08-25）。
+           画面表示だけ正式名（大学生団体／コミュニティ団体）に揃えた。
+           団体予約タブに既存13件がこの表記で入っており、ここを変えると同じタブ内で
+           表記が割れて集計・目視の両方で取りこぼす。
+           決定No.28で大学生券の name を変えなかったのと同じ判断。
+           ★対応表：大学DDサークル＝大学生団体（¥2,000）／その他団体＝コミュニティ団体（¥3,000）。
+           表記を統一するなら、既存13件の書き換えとセットで行うこと。 */
       groupType:(gTypeVal==='circle'?'大学DDサークル':'その他団体'),
       teamTypeId:gTypeVal,
       commonality:gCommon(),
