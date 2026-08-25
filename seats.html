@@ -638,8 +638,10 @@ function openArea(row,n){
   return a;
 }
 /* レイアウト→空席状況 の順で取る。レイアウトが無いと1席も描けない（推測で描かない）。 */
+/* ★return を足しただけ（2026-08-25）。呼び出し側が「読み終わったか」を待てるようにするため。
+     一般の購入画面は戻り値を使っていないので、挙動は1ミリも変わらない。 */
 function loadLayoutThenAvail(){
-  fetch(BASE+'?page=seat_layout').then(function(r){return r.json();}).then(function(d){
+  return fetch(BASE+'?page=seat_layout').then(function(r){return r.json();}).then(function(d){
     if(!applyLayout(d)){ throw new Error('layout'); }
     loadAvail();
   }).catch(function(){
@@ -1149,20 +1151,34 @@ if(INVITE_TOKEN){
   if(pane){ pane.style.display='none'; pane.parentNode.insertBefore(gate, pane); }
   document.querySelectorAll('.tab').forEach(function(b){ b.style.display='none'; });
 
-  fetch(BASE+'?page=invite_extra_meta&k='+encodeURIComponent(INVITE_TOKEN))
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(!(d && d.ok)) throw new Error(d && d.error ? d.error : 'unknown');
+  /* ★2つの問い合わせを**並列**で投げて、両方そろってから画面を出す（2026-08-25）。
+       直列にしていたときは、招待の確認が返ってゲートが外れた直後に
+       座席レイアウトの読み込みが始まり、**座席表だけが空のまま数十秒残っていた**
+       （どちらもGASの立ち上がりを含み、遅い回で28秒。直列だと最悪56秒）。
+       JUNYAが「席が出ない」と報告したのがこの状態。
+     ★席は互いに独立なので並列で問題ない。待ち時間はおよそ半分になる。 */
+  Promise.all([
+    fetch(BASE+'?page=invite_extra_meta&k='+encodeURIComponent(INVITE_TOKEN))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!(d && d.ok)) throw new Error(d && d.error ? d.error : 'invite');
+        return d;
+      }),
+    loadLayoutThenAvail()
+  ])
+    .then(function(arr){
+      var d = arr[0];
       INVITE_MODE=true; INVITE_ORG=d.name; INVITE_PRICE=Number(d.price)||2000;
       INVITE_EXTRAS = (d.extras||[]);
       INVITE_EXTRAS.forEach(function(x){ EXTRA_LABEL[x.row+'-'+x.num] = x.label; });
       applyInviteMode();
       if(pane) pane.style.display='';
       if(gate.parentNode) gate.parentNode.removeChild(gate);
-      render(); updateCart(); loadLayoutThenAvail();
+      render(); updateCart();
     })
     .catch(function(e){
       /* ここで一般画面を出さない。価格が違うので、出すほうが害が大きい。 */
+      if(pane) pane.style.display='none';   // 一般価格の画面は出さない（出すほうが害が大きい）
       gate.innerHTML = 'ご招待の内容を確認できませんでした。<br>'
         + 'お手数ですが、ページを再読み込みしてください。<br>'
         + '何度も出る場合は info@haribow.com までご連絡ください。<br>'
