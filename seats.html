@@ -1187,6 +1187,10 @@ function renderExtraBlock(){
   if(old) old.parentNode.removeChild(old);
   if(!INVITE_EXTRAS.length) return;
 
+  /* ★置く場所は「STEP 2（席を選ぶ）の直前」。2026-08-25 JUNYA指摘で修正。
+       もとは .cart の前に入れていたが、.cart はページ末尾の固定バーなので
+       応援金・アンケートより下＝**座席表のはるか下**に出ていた。
+       ご招待のお席のとなりは、一般の座席表より先に見せる。 */
   var box = document.createElement('div');
   box.id = 'extraBlock';
   box.style.cssText = 'margin:16px 2px 4px;padding:14px 14px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)';
@@ -1220,8 +1224,15 @@ function renderExtraBlock(){
   });
 
   box.appendChild(h); box.appendChild(p); box.appendChild(row);
-  var cart = host.querySelector('.cart');
-  if(cart) host.insertBefore(box, cart); else host.appendChild(box);
+
+  /* STEP 2 の見出しを探して、その手前に入れる。
+     見つからないときだけ従来どおり末尾へ（壊れても表示自体は残す）。 */
+  var anchor = null;
+  host.querySelectorAll('p.step').forEach(function(el){
+    if(!anchor && el.textContent.indexOf('STEP 2') >= 0) anchor = el;
+  });
+  if(anchor) anchor.parentNode.insertBefore(box, anchor);
+  else host.appendChild(box);
 }
 
 // ---- タブ切替 ----
