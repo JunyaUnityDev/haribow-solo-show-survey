@@ -1130,20 +1130,45 @@ var supNote=document.createElement('p'); supNote.id='supDeadline';
 supNote.style.cssText='margin:10px 2px 0;font-size:12.5px;line-height:1.8;color:var(--sup);display:none';
 tc.parentNode.insertBefore(supNote, tc.nextSibling);
 
-/* トークンがあれば先に確認する。有効なら追加席モードで描き直す */
+/* トークンがあれば先に確認する。有効なら追加席モードで描き直す。
+ *
+ * ★確認が返るまで購入画面を隠す（2026-08-25）。
+ *   もとは一般の購入画面を出したまま裏で問い合わせ、返ってから差し替えていた。
+ *   この口はGASの立ち上がりを含むので実測3秒前後、遅い回は**28秒**かかる。
+ *   その間ずっと一般S席¥4,500・一般A席¥3,500が並んだ画面が出ていて、
+ *   **¥2,000で買えるはずの方が定価で買えてしまう**。差し替わる瞬間に
+ *   選択がリセットされるのも、操作中だと何が起きたか分からない。
+ * ★失敗したときに黙って一般画面へ落とさない。旧コードは .catch を空にしていたので、
+ *   通信が落ちるとご招待の方に一般価格の画面が出るところだった。 */
 if(INVITE_TOKEN){
+  var pane = document.getElementById('tab-personal');
+  var gate = document.createElement('p');
+  gate.id = 'inviteGate';
+  gate.style.cssText = 'margin:24px 2px;font-size:14px;line-height:1.9;color:var(--dim)';
+  gate.textContent = 'ご招待の内容を確認しています…';
+  if(pane){ pane.style.display='none'; pane.parentNode.insertBefore(gate, pane); }
+  document.querySelectorAll('.tab').forEach(function(b){ b.style.display='none'; });
+
   fetch(BASE+'?page=invite_extra_meta&k='+encodeURIComponent(INVITE_TOKEN))
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if(d && d.ok){
-        INVITE_MODE=true; INVITE_ORG=d.name; INVITE_PRICE=Number(d.price)||2000;
-        INVITE_EXTRAS = (d.extras||[]);
-        INVITE_EXTRAS.forEach(function(x){ EXTRA_LABEL[x.row+'-'+x.num] = x.label; });
-        applyInviteMode();
-      }
+      if(!(d && d.ok)) throw new Error(d && d.error ? d.error : 'unknown');
+      INVITE_MODE=true; INVITE_ORG=d.name; INVITE_PRICE=Number(d.price)||2000;
+      INVITE_EXTRAS = (d.extras||[]);
+      INVITE_EXTRAS.forEach(function(x){ EXTRA_LABEL[x.row+'-'+x.num] = x.label; });
+      applyInviteMode();
+      if(pane) pane.style.display='';
+      if(gate.parentNode) gate.parentNode.removeChild(gate);
+      render(); updateCart(); loadLayoutThenAvail();
     })
-    .catch(function(){})
-    .then(function(){ render(); updateCart(); loadLayoutThenAvail(); });
+    .catch(function(e){
+      /* ここで一般画面を出さない。価格が違うので、出すほうが害が大きい。 */
+      gate.innerHTML = 'ご招待の内容を確認できませんでした。<br>'
+        + 'お手数ですが、ページを再読み込みしてください。<br>'
+        + '何度も出る場合は info@haribow.com までご連絡ください。<br>'
+        + '<button type="button" style="margin-top:12px;padding:9px 16px;border-radius:8px;cursor:pointer" '
+        + 'onclick="location.reload()">再読み込み</button>';
+    });
 } else {
   render(); updateCart(); loadLayoutThenAvail();
 }
