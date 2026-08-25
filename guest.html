@@ -57,6 +57,18 @@
   .seatbox .lab{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.1em;margin:0 0 6px}
   .seatbox .val{font-size:17px;font-weight:800;line-height:1.6}
   .center{text-align:center;color:var(--dim);padding:60px 20px;font-size:14px}
+
+  /* 席の位置を示す図（2026-08-25追加）。
+     「LB席2列19番」と番号だけ出しても初めて来る方には伝わらないため。
+     ★ホールの形は会場が公開している情報なので静的側に置いてよい。
+       どこを光らせるかだけサーバー（invite_meta の zone）が決める。 */
+  .hall{margin:14px 0 0}
+  .hall svg{width:100%;height:auto;display:block}
+  .hall .cap{font-size:11.5px;color:var(--faint);text-align:center;margin:8px 0 0;line-height:1.7}
+  .zone{background:rgba(99,182,204,.09);border:1px solid rgba(99,182,204,.3);
+    border-radius:12px;padding:16px 16px 12px;margin:6px 0 0}
+  .zone .lab{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.1em;margin:0 0 6px}
+  .zone .val{font-size:15px;font-weight:800;line-height:1.7;margin:0}
   .hide{display:none}
 </style>
 </head>
@@ -80,6 +92,13 @@
     <div class="card">
       <h2 id="orgline">お申し込み内容</h2>
       <p class="hint" id="quota" style="margin-top:-6px"></p>
+
+      <div class="zone" id="zoneBox">
+        <p class="lab">お席の場所</p>
+        <p class="val" id="zoneText">—</p>
+        <div class="hall" id="hallBox"></div>
+      </div>
+      <div style="height:18px"></div>
 
       <label for="rep">ご担当者さまのお名前</label>
       <input id="rep" type="text" autocomplete="name" placeholder="例：山田 太郎">
@@ -125,6 +144,8 @@
     <div class="seatbox" style="margin-top:14px">
       <p class="lab">お席</p>
       <p class="val" id="dSeat">—</p>
+      <p class="val" id="dZone" style="font-size:13.5px;font-weight:600;color:var(--dim);margin-top:8px"></p>
+      <div class="hall" id="dHall"></div>
     </div>
     <p class="note" id="dSplit"></p>
     <p class="note">
@@ -144,6 +165,53 @@ function $(id){ return document.getElementById(id); }
 function show(id){ $(id).classList.remove('hide'); }
 function hide(id){ $(id).classList.add('hide'); }
 function yen(n){ return '¥' + (Number(n)||0).toLocaleString(); }
+
+/* ============================================================
+ *  ホールの見取り図（2026-08-25追加）
+ *
+ *  ★「LB席2列19番」と番号だけ出しても、初めて来る方には**どこか伝わらない**。
+ *    舞台との位置関係を一目で分かるようにする。
+ *  ★形はめぐろパーシモンホールが公開している客席図に合わせた概念図。
+ *    正確な縮尺ではなく「舞台に対してどのあたりか」を示すもの。
+ *  ★どこを光らせるかは**サーバーが決める**（invite_meta の zone.blocks）。
+ *    ここに「招待席はここ」とハードコードしないこと。このリポジトリは公開されている。
+ * ============================================================ */
+function hallSvg(blocks, f2Rows){
+  var on = {}; (blocks||[]).forEach(function(b){ on[b]=1; });
+  var ACT='#63b6cc', OFF='#242830', LINE='#2f343d', TXT='#8b919e';
+  function box(x,y,w,h,lit,label,fs){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" '
+      + 'fill="'+(lit?ACT:OFF)+'" fill-opacity="'+(lit?'0.85':'1')+'" stroke="'+(lit?ACT:LINE)+'"/>'
+      + '<text x="'+(x+w/2)+'" y="'+(y+h/2+3.5)+'" text-anchor="middle" '
+      + 'font-size="'+(fs||9)+'" fill="'+(lit?'#0a0b0e':TXT)+'" font-weight="'+(lit?'800':'500')+'">'+label+'</text>';
+  }
+  var sv = '<svg viewBox="0 0 260 200" role="img" aria-label="客席の見取り図">';
+  // 舞台
+  sv += '<rect x="70" y="8" width="120" height="18" rx="3" fill="#0d3947" stroke="#1f5b6e"/>'
+     +  '<text x="130" y="21" text-anchor="middle" font-size="9.5" fill="#cfeaf2" font-weight="800" letter-spacing="2">STAGE</text>';
+  sv += '<text x="130" y="38" text-anchor="middle" font-size="8" fill="'+TXT+'">▲ 舞台に近いほど前</text>';
+  // 1階：左バルコニー / 中央 / 右バルコニー
+  sv += box(14, 46, 34, 74, on.LB, 'LB席');
+  sv += box(56, 46, 148, 74, on.F1, '1階席');
+  sv += box(212, 46, 34, 74, on.RB, 'RB席');
+  // 2階
+  sv += box(56, 130, 148, 40, on.F2, '2階席');
+  if(on.F2 && f2Rows && f2Rows.length){
+    sv += '<text x="130" y="182" text-anchor="middle" font-size="8" fill="'+ACT+'">'
+       +  f2Rows.map(function(r){ return r+'列'; }).join('・') + '</text>';
+  }
+  sv += '</svg>';
+  return sv;
+}
+/** 図と説明文を差し込む */
+function renderHall(zone, svgEl, textEl){
+  if(!zone){ if(svgEl) svgEl.innerHTML=''; return; }
+  if(svgEl){
+    svgEl.innerHTML = hallSvg(zone.blocks, zone.f2Rows)
+      + '<p class="cap">色が付いているところが、お客さまのお席のあるエリアです。</p>';
+  }
+  if(textEl) textEl.textContent = zone.text || '';
+}
 
 /* ---- 初期化 ---------------------------------------------------- */
 if(!K){ boot(null); }
@@ -179,6 +247,8 @@ function boot(d){
     $('feeLabel').textContent = '追加のお席（' + yen(d.extraPrice) + ' / 席）';
   }
 
+  renderHall(d.zone, $('hallBox'), $('zoneText'));
+
   var uf = $('useFree');
   for(var i=0;i<=d.free;i++) uf.add(new Option(i + '名', i));
   uf.value = d.free;                       // 既定は枠いっぱい
@@ -196,6 +266,7 @@ function boot(d){
     if(d.current.seatsText){
       $('seatVal').textContent = d.current.seatsText;
       show('seatWrap');
+      if(d.current.zone) renderHall(d.current.zone, $('hallBox'), $('zoneText'));
     }
   }
   if(d.closed){
@@ -247,6 +318,7 @@ $('go').onclick = function(){
       if(d.fee > 0){ $('dFee').textContent = d.extra + '席　' + yen(d.fee); }
       else { hide('dFeeRow'); }
       $('dSeat').textContent  = d.seatsText;
+      renderHall(d.zone, $('dHall'), $('dZone'));
       $('dSplit').textContent = d.split
         ? '※ 今回は連続したお席をご用意できず、離れたお席が含まれます。申し訳ございません。' : '';
       hide('form'); show('done');
