@@ -1209,6 +1209,12 @@ function applyInviteMode(){
     tc.appendChild(b);
   });
   // 見出しを差し替える
+  /* ★前売価格のバッジを消す（2026-08-25 JUNYA指摘）。
+       追加席は前売も当日も ¥2,000 の同額なので「前売」という概念が無い。
+       出したままだと「前売は9/28まで／お申し込みの締切は9月22日」と
+       **締切が2つ並んで見える**。9/28まで買えると読まれると、9/23以降に
+       開いて閉じている、という一番まずい形になる。 */
+  var phase=document.getElementById('phase'); if(phase) phase.style.display='none';
   var h=document.querySelector('h1'); if(h) h.textContent='ご招待の追加のお席';
   var sub=document.querySelector('.sub'); if(sub) sub.textContent=INVITE_ORG+' 様のご招待でお越しになる方の、4名様以降のお席です。';
   // 団体・配信タブは出さない
