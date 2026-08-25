@@ -483,6 +483,12 @@ function applySupState(){
   document.querySelectorAll('[data-type="sup"]').forEach(function(el){
     el.style.display = SUPOPEN ? '' : 'none';
   });
+  /* ★ご招待の追加席モードでは、この注記を触らない（2026-08-25）。
+       applyInviteMode が「締切は9月22日」を入れた直後に loadAvail→applySupState が走り、
+       サポーター券の「お申し込みは9月5日まで」で**上書きしていた**。
+       招待の追加席の締切は9/22なので、17日早い締切が出てお客様が諦める。
+       サポーター券そのものは招待モードでは券種に出ていないので、注記も要らない。 */
+  if(INVITE_MODE) return;
   if(note){
     note.textContent = SUPOPEN
       ? 'お申し込みは' + SUPEND + 'まで（横断幕へのお名前掲載とTシャツの手配のため）'
@@ -1147,7 +1153,10 @@ function applyInviteMode(){
   // 券種を「ご招待 追加席」だけにする
   TYPES.length = 0;
   TYPES.push({ id:'invextra', name:'ご招待 追加席', adv:INVITE_PRICE, reg:INVITE_PRICE,
-               area:'gen', note:'2階のお席・'+INVITE_ORG+' 様のご招待', big:true });
+               area:'gen',
+               note:(INVITE_EXTRAS.length ? 'ご招待のお席のとなり、または2階のお席・'
+                                          : '2階のお席・') + INVITE_ORG + ' 様のご招待',
+               big:true });
   tc.innerHTML='';
   TYPES.forEach(function(t){
     var b=document.createElement('button'); b.className='type big'; b.dataset.id=t.id;
