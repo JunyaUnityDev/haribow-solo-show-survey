@@ -1222,9 +1222,19 @@ function applyInviteMode(){
   var note=document.getElementById('supDeadline');
   /* ★締切をベタ書きしない（2026-08-25）。サーバー（invite_extra_meta の closeLabel）が持つ。
        INVITE_CLOSE_ を動かしたときに、ここを直し忘れて画面だけ古い日付が残るのを防ぐ。 */
-  if(note){ note.textContent='お申し込みの締切は' + (INVITE_CLOSE_LABEL || '9月22日')
-    + 'です。ご招待枠（3席）とは別に、1席 ¥'+INVITE_PRICE.toLocaleString()+' で承ります。';
-    note.style.display=''; }
+  /* ★フォールバックに日付を書かない（2026-08-25）。
+       もとは (INVITE_CLOSE_LABEL || '9月22日') と書いていたが、これでは
+       **締切の出どころが2つ**になる。INVITE_CLOSE_ を動かしたときに
+       こちらだけ古い日付のまま残り、しかも普段は表示されないので気づけない。
+       この画面はサーバーの応答が返ってからしか出ないので closeLabel は必ず入っている。
+       万一空なら、嘘の日付を出すより締切に触れないほうが安全。 */
+  if(note){
+    note.textContent = (INVITE_CLOSE_LABEL
+        ? 'お申し込みの締切は' + INVITE_CLOSE_LABEL + 'です。'
+        : '')
+      + 'ご招待枠（3席）とは別に、1席 ¥' + INVITE_PRICE.toLocaleString() + ' で承ります。';
+    note.style.display='';
+  }
   renderExtraBlock();
   selectType(TYPES[0]);
 }
