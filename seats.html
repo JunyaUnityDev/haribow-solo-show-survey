@@ -1231,7 +1231,7 @@ function gCheckout(){
       alert('選んでいる間に '+c+' が他の団体に予約されました。\nお手数ですが選び直してください。');
       gpicked={}; loadAvail(); btn.textContent='団体予約を送信'; gCalc(); return;
     }
-    var murl='https://junyaunitydev.github.io/haribow-solo-show-survey/manage.html?id='+encodeURIComponent(res.resId);
+    var murl='https://ticket.haribow.com/manage.html?id='+encodeURIComponent(res.resId);
     var isBank=(res.method==='振込');
     var dueTxt=res.dueText||'メールに記載の期限';
     doneScreen('団体予約を受け付けました。<br>予約ID：<b>'+res.resId+'</b><br><br>'
