@@ -140,10 +140,14 @@
       </div>
       <p class="err" id="err"></p>
       <button class="btn" id="go">この内容で申し込む</button>
+      <!-- ★締切をここに出す（2026-08-25追加）。それまでこのページには締切が1文字も無く、
+           9/23 0:00 になると予告なしに「受付は終了しました」に変わっていた。
+           日付はベタ書きせず invite_meta の closeLabel を入れる。 -->
       <p class="note">
-        当日の人数追加も空席状況によって承ります。ただし、その場合は<b>お席が離れることがございます</b>。
-        できる限り事前にご人数をご確定いただけますと幸いです。<br>
-        このページからは、いつでもご人数を変更いただけます。
+        お申し込み・ご変更の締切は <b id="closeA">—</b> です。
+        それまでは、このページから何度でもご人数を変更いただけます。<br>
+        締切後のご変更は info@haribow.com で承ります。その場合は<b>お席が離れることがございます</b>ので、
+        できる限り<b id="closeB">—</b>までにご確定いただけますと幸いです。
       </p>
     </div>
   </div>
@@ -162,7 +166,7 @@
     <p class="note" id="dSplit"></p>
     <p class="note">
       確定内容をメールでお送りしました。当日は受付でお名前をお伝えください。<br>
-      ご人数の変更は、このページを開き直してお手続きいただけます。
+      ご人数の変更は <b id="closeC">—</b> まで、このページを開き直してお手続きいただけます。
     </p>
     <p style="margin:18px 0 0"><a href="#" id="again" style="color:var(--accent);font-size:13.5px">内容を変更する</a></p>
   </div>
@@ -351,6 +355,10 @@ function boot(d){
   META = d;
   $('sub').textContent = '下記のご入力をお願いいたします。';
   $('orgline').textContent = d.name + ' 様';
+  /* 締切はサーバー（invite_meta の closeLabel）が持つ。画面に日付を書かない。 */
+  ['closeA','closeB','closeC'].forEach(function(id){
+    var el = $(id); if(el && d.closeLabel) el.textContent = d.closeLabel;
+  });
 
   /* 枠の説明も金額も、ここで初めて画面に出る（静的HTMLには書かない） */
   $('quota').textContent = 'ご招待枠は ' + d.free + '席です。'

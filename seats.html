@@ -620,6 +620,7 @@ var INVITE_MODE = false, INVITE_ORG = '', INVITE_PRICE = 2000;
      返すと招待席・チアリーマンズ席の配置が公開ページから読めてしまうため。
      だからこの数席だけは、本体のマップとは別の小さなブロックとして描く。 */
 var INVITE_EXTRAS = [];
+var INVITE_CLOSE_LABEL = '';   // 締切の表示（サーバーが持つ・画面に日付を書かない）
 var EXTRA_LABEL = {};   // "52-20" -> "LB席2列20番"（fmtSeatLabel の補完に使う）
 /* 8/17の開放から外れている席（乱縄・DSP用にサーバーが期限付きで確保）。seat_avail の groupOnly が正。
    ここに載っている席は開放日を過ぎても団体専用で、個人タブには売り物として出さない。
@@ -1170,6 +1171,7 @@ if(INVITE_TOKEN){
       var d = arr[0];
       INVITE_MODE=true; INVITE_ORG=d.name; INVITE_PRICE=Number(d.price)||2000;
       INVITE_EXTRAS = (d.extras||[]);
+      INVITE_CLOSE_LABEL = d.closeLabel || '';
       INVITE_EXTRAS.forEach(function(x){ EXTRA_LABEL[x.row+'-'+x.num] = x.label; });
       applyInviteMode();
       if(pane) pane.style.display='';
@@ -1212,7 +1214,11 @@ function applyInviteMode(){
   // 団体・配信タブは出さない
   document.querySelectorAll('.tab').forEach(function(b,i){ if(i>0) b.style.display='none'; });
   var note=document.getElementById('supDeadline');
-  if(note){ note.textContent='お申し込みの締切は9月22日です。ご招待枠（3席）とは別に、1席 ¥'+INVITE_PRICE.toLocaleString()+' で承ります。'; note.style.display=''; }
+  /* ★締切をベタ書きしない（2026-08-25）。サーバー（invite_extra_meta の closeLabel）が持つ。
+       INVITE_CLOSE_ を動かしたときに、ここを直し忘れて画面だけ古い日付が残るのを防ぐ。 */
+  if(note){ note.textContent='お申し込みの締切は' + (INVITE_CLOSE_LABEL || '9月22日')
+    + 'です。ご招待枠（3席）とは別に、1席 ¥'+INVITE_PRICE.toLocaleString()+' で承ります。';
+    note.style.display=''; }
   renderExtraBlock();
   selectType(TYPES[0]);
 }
