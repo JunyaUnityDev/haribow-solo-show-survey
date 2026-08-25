@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>推し診断 ｜ HARIBOW「Go Beyond」</title>
+<meta name="description" content="31人は多すぎます。あなたが今日見る3人と、その人の何を探すかを渡します。">
+<meta name="theme-color" content="#0a0b0e">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<style>
+/* 公式サイト（go-beyond.haribow.com）のトークンをそのまま継承する。
+   別の見た目を作らない。同じ公演の続きの画面だと分かることが優先。 */
+:root{
+  --bg:#0a0b0e; --bg2:#101218; --bg3:#161a22;
+  --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280;
+  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.18);
+  --teal:#63b6cc; --teal-d:#1f5b6e; --teal-dd:#132f3a; --cream:#f0ece0;
+  --disp:"Clash Display","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--body); font-feature-settings:"palt"; -webkit-font-smoothing:antialiased;
+  line-height:1.7; word-break:keep-all; overflow-wrap:anywhere;
+}
+.wrap{max-width:560px;margin:0 auto;padding:22px 20px calc(72px + env(safe-area-inset-bottom))}
+img,video{max-width:100%;display:block}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+
+/* ---- 共通のことば ---- */
+.ey{font-family:var(--disp);font-weight:600;letter-spacing:.3em;text-transform:uppercase;
+    font-size:10.5px;color:var(--teal)}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* ---- 導入 ---- */
+.brand{height:34px;width:auto;opacity:.92;margin-bottom:26px}
+h1{font-family:var(--jp);font-weight:900;font-size:clamp(27px,7.4vw,38px);line-height:1.3;
+   margin:10px 0 12px;letter-spacing:.01em;text-wrap:balance}
+.lead{color:var(--dim);font-size:14.5px;margin:0 0 30px;max-width:34em}
+.lead b{color:var(--ink);font-weight:700}
+
+/* ---- 進捗（点ではなく1本の線。まだ何問残っているかだけ伝える） ---- */
+.rail{position:sticky;top:0;z-index:9;background:linear-gradient(var(--bg) 70%,transparent);
+      padding:10px 0 14px;margin:0 0 4px}
+.rail .bar{height:2px;background:var(--line);position:relative;overflow:hidden}
+.rail .bar i{position:absolute;inset:0 auto 0 0;background:var(--teal);width:0;transition:width .45s cubic-bezier(.2,.7,.3,1)}
+.rail .n{font-family:var(--disp);font-size:10.5px;letter-spacing:.24em;color:var(--faint);
+         margin-top:8px;display:block;font-variant-numeric:tabular-nums}
+
+/* ---- 設問 ---- */
+.q{margin:0 0 34px}
+.q h2{font-family:var(--jp);font-weight:700;font-size:19px;line-height:1.5;margin:8px 0 16px;letter-spacing:.01em}
+.q .sub{color:var(--faint);font-size:12.5px;margin:-10px 0 16px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{
+  appearance:none;background:var(--bg2);border:1px solid var(--line);color:var(--ink);
+  border-radius:2px;padding:16px 17px;font-size:15.5px;text-align:left;cursor:pointer;
+  line-height:1.5;transition:border-color .18s,background .18s,transform .18s;
+}
+.opt:hover{border-color:var(--line2);background:var(--bg3)}
+.opt[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-dd);color:var(--cream)}
+.opt .s{display:block;color:var(--faint);font-size:12px;margin-top:3px}
+.opt[aria-pressed="true"] .s{color:var(--teal)}
+select{
+  width:100%;margin-top:10px;background:var(--bg2);color:var(--ink);
+  border:1px solid var(--line);border-radius:2px;padding:14px 15px;font-size:15.5px;font-family:inherit;
+}
+.hide{display:none !important}
+
+.go{
+  width:100%;margin-top:8px;background:var(--teal);color:#06222b;border:0;border-radius:2px;
+  padding:17px;font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.16em;
+  text-transform:uppercase;cursor:pointer;transition:opacity .2s;
+}
+.go:disabled{opacity:.28;cursor:default}
+.ghost{
+  width:100%;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:2px;
+  padding:15px;font-family:var(--disp);font-weight:500;font-size:12.5px;letter-spacing:.16em;
+  text-transform:uppercase;cursor:pointer;margin-top:12px;
+}
+.ghost:hover{border-color:var(--line2);color:var(--ink)}
+
+/* ---- 結果カード ---- */
+.card{margin:0 0 40px}
+.card .hd{display:flex;align-items:baseline;gap:9px;margin-bottom:11px}
+.card .hd .via{font-size:11px;color:var(--faint);letter-spacing:.02em}
+.card .hd .via b{color:var(--teal);font-family:var(--disp);font-weight:600;letter-spacing:.06em}
+
+/* 肖像。顔が分からないと客席で見つけられないので、暗く沈めず素直に見せる
+   （ラインナップ写真を背景テクスチャとして沈める公式サイトのルールとは意図的に変える） */
+.por{position:relative;background:var(--bg2);border:1px solid var(--line);overflow:hidden;aspect-ratio:4/5}
+.por>img,.por>video{width:100%;height:100%;object-fit:cover}
+.por .scrim{position:absolute;inset:auto 0 0 0;height:62%;pointer-events:none;
+  background:linear-gradient(to top,rgba(8,9,12,.94) 6%,rgba(8,9,12,.55) 42%,transparent)}
+/* 写真がまだ無い人。灰色の人型を出さず、名前そのものを絵にする */
+.por.none{display:grid;place-items:center;background:
+  radial-gradient(120% 90% at 50% 0%,var(--teal-dd),var(--bg2))}
+.por.none span{font-family:var(--disp);font-weight:700;font-size:clamp(30px,10vw,52px);
+  color:rgba(243,241,234,.16);letter-spacing:.02em;padding:0 18px;text-align:center;line-height:1.05}
+.por .cap{position:absolute;inset:auto 0 0 0;padding:18px 18px 16px}
+.pn{font-family:var(--disp);font-weight:600;font-size:clamp(30px,8.4vw,42px);line-height:1;
+    margin:0;letter-spacing:.005em;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.kn{font-size:12px;color:var(--dim);margin:5px 0 0;letter-spacing:.06em}
+/* 再生ボタン。絵文字を使わず三角形だけ置く */
+.play{position:absolute;right:14px;top:14px;width:46px;height:46px;border-radius:50%;
+  border:1px solid var(--line2);background:rgba(10,11,14,.5);backdrop-filter:blur(6px);
+  display:grid;place-items:center;cursor:pointer;transition:background .2s,border-color .2s}
+.play:hover{background:rgba(10,11,14,.78);border-color:var(--teal)}
+.play svg{width:13px;height:15px;fill:var(--cream);margin-left:2px}
+
+.meta{display:flex;gap:10px;align-items:baseline;margin:12px 0 0;font-size:12px;color:var(--faint)}
+.meta .real{color:var(--dim)}
+.brag{font-size:14px;color:var(--dim);margin:9px 0 0}
+
+/* 探すもの＝この画面の主役。公演中に手を動かす唯一の場所なので一番強く出す */
+.task{display:flex;gap:13px;align-items:flex-start;margin:20px 0 0;padding:17px 17px 17px 16px;
+  background:var(--bg2);border:1px solid var(--line);border-left:2px solid var(--teal);border-radius:2px;
+  cursor:pointer;transition:background .2s}
+.task:hover{background:var(--bg3)}
+.task .box{flex:0 0 auto;width:19px;height:19px;border:1px solid var(--teal);border-radius:1px;
+  margin-top:3px;display:grid;place-items:center;transition:background .2s}
+.task .box svg{width:12px;height:12px;stroke:#06222b;stroke-width:2.6;fill:none;opacity:0;transition:opacity .15s}
+.task[data-done="1"] .box{background:var(--teal)}
+.task[data-done="1"] .box svg{opacity:1}
+.task .t{margin:0}
+.task .t .lb{display:block;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:5px}
+.task .t p{margin:0;font-size:15px;line-height:1.65}
+.task .t .src{display:block;margin-top:7px;font-size:11px;color:var(--faint);letter-spacing:.02em}
+.task[data-done="1"] .t p{color:var(--dim)}
+
+/* 生の一言。カードで最初に目に入る場所。ここだけ大きく、他を静かにする */
+.hook{margin:18px 0 0;padding:0}
+.hook p{margin:0;font-family:var(--jp);font-weight:700;font-size:clamp(19px,4.9vw,23px);
+  line-height:1.55;letter-spacing:.005em;color:var(--cream);text-wrap:balance}
+.hook cite{display:block;margin-top:10px;font-family:var(--disp);font-weight:600;font-style:normal;
+  font-size:11px;letter-spacing:.16em;color:var(--teal)}
+.hook cite::before{content:"— "}
+.hook.self cite{color:var(--faint)}
+.facts{margin:16px 0 0;font-size:12px;color:var(--faint);line-height:1.9;letter-spacing:.01em}
+
+.fav-set{background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:16px;margin:0 0 30px}
+.fav-set .q2{margin:0 0 4px;font-family:var(--jp);font-weight:700;font-size:14.5px}
+.fav-set .note2{margin:8px 0 0;font-size:11.5px;color:var(--faint)}
+/* 相性の内訳。数字だけ出すと占いになるので、何が効いたかを必ず並べる */
+.rate{margin:16px 0 0;padding:15px 16px;background:var(--bg2);border:1px solid var(--line);
+  border-left:2px solid var(--teal);border-radius:2px}
+.rate .big{font-family:var(--disp);font-weight:700;font-size:34px;line-height:1;color:var(--teal);
+  font-variant-numeric:tabular-nums}
+.rate .big small{font-size:15px;margin-left:2px}
+.rate .lb2{font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--faint);display:block;margin-bottom:8px}
+.rate table{width:100%;border-collapse:collapse;margin-top:13px;font-size:12.5px}
+.rate td{padding:5px 0;vertical-align:top;border-top:1px solid var(--line)}
+.rate td:first-child{color:var(--faint);width:6.5em;white-space:nowrap}
+.rate td:last-child{text-align:right;color:var(--teal);white-space:nowrap;font-size:11.5px}
+.rate td.no:last-child{color:var(--faint)}
+/* 名前は押せる。押せるものだけ色を変える（未回答の人は押せない） */
+.nm{background:none;border:0;padding:0;font:inherit;color:var(--teal);cursor:pointer;
+  font-family:var(--disp);font-weight:600;letter-spacing:.06em;
+  border-bottom:1px solid rgba(99,182,204,.35)}
+.nm:hover{border-bottom-color:var(--teal)}
+.nm.off{color:var(--dim)}
+/* 名前から開いたカードを重ねる */
+#sheet{position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;
+  display:none;-webkit-overflow-scrolling:touch}
+#sheet.on{display:block}
+.sheet-in{max-width:560px;margin:0 auto;padding:14px 20px calc(60px + env(safe-area-inset-bottom))}
+.sheet-x{position:sticky;top:0;z-index:2;width:100%;margin:0 0 14px;background:var(--bg2);
+  border:1px solid var(--line);color:var(--dim);border-radius:2px;padding:12px;
+  font-family:var(--disp);font-weight:500;font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;cursor:pointer}
+.sheet-x:hover{border-color:var(--line2);color:var(--ink)}
+.mbti-note{margin:30px 0 0;font-size:11.5px;color:var(--faint);line-height:1.9}
+
+/* 実績。演目から導いたもの。数字を主役にせず、事実として静かに置く */
+.ach{margin:16px 0 0;padding:14px 16px;background:var(--bg2);border:1px solid var(--line);border-radius:2px}
+.ach .lb{display:block;font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.ach p{margin:0 0 6px;font-size:14px;line-height:1.7;color:var(--ink)}
+.ach p:last-child{margin-bottom:0}
+
+/* 出演する演目。「誰を見るか」の次に要るのは「いつ見るか」 */
+.when{margin:15px 0 0;padding-left:15px;border-left:1px solid var(--line)}
+.when .lb{display:block;font-size:11px;color:var(--faint);margin-bottom:7px;letter-spacing:.04em}
+.when ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.when li{font-family:var(--jp);font-weight:700;font-size:14.5px;line-height:1.4;color:var(--ink);
+  padding-left:14px;position:relative}
+.when li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:1px;background:var(--teal)}
+.when .also{margin:8px 0 0;font-size:12px;color:var(--faint);line-height:1.6}
+
+/* なぜこの人なのかの内訳。診断が当てずっぽうに見えないための説明 */
+.why{margin:15px 0 0;padding:13px 15px;background:rgba(99,182,204,.055);
+  border:1px solid rgba(99,182,204,.2);border-radius:2px}
+.why .lb{display:block;font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:8px}
+.why p{margin:0 0 7px;font-size:13.5px;line-height:1.75;color:var(--ink)}
+.why p:last-child{margin-bottom:0}
+.why p.you{color:var(--teal);font-size:12.5px;margin-bottom:9px}
+.why.plain p{margin:0;font-size:13px;color:var(--dim)}
+.why.plain p b{color:var(--teal);font-family:var(--disp);font-weight:600;letter-spacing:.06em}
+
+.blk{margin:16px 0 0;padding-left:15px;border-left:1px solid var(--line)}
+.blk .lb{display:block;font-size:11px;color:var(--faint);margin-bottom:4px;letter-spacing:.04em}
+.blk .lb b{color:var(--dim);font-family:var(--disp);font-weight:600;letter-spacing:.06em}
+.blk p{margin:0;font-size:14px;line-height:1.7}
+.blk .say{color:var(--cream)}
+
+.motto{margin:16px 0 0;display:flex;gap:13px;align-items:center}
+.motto img{width:74px;height:74px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto;background:var(--bg2)}
+.motto .lb{font-size:11px;color:var(--faint);letter-spacing:.04em}
+.motto .lb b{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
+
+.foot{color:var(--faint);font-size:12px;line-height:1.8;margin:34px 0 0;padding-top:20px;border-top:1px solid var(--line)}
+.foot a{color:var(--dim)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header id="intro">
+    <img class="brand" src="assets/go-beyond-logo.png" alt="HARIBOW 単独公演 Go Beyond">
+    <span class="ey">Oshi Finder</span>
+    <h1>31人は、<br>多すぎます。</h1>
+    <p class="lead">全員を覚えて客席に座るのは無理です。<br>
+    4つ質問するので、<b>あなたが今日見る3人</b>と、<b>その人の何を探すか</b>を持って入ってください。</p>
+    <hr class="rule">
+  </header>
+
+  <main id="quiz">
+  <div class="card fav-set" id="favSet">
+    <p class="q2">お目当ての人がいれば、先に選んでください。</p>
+    <select id="fav" aria-label="お目当ての出演者"><option value="">とくにいない</option></select>
+    <p class="note2">選ぶと、その人が必ず1人目に入ります。</p>
+  </div>
+
+    <div class="rail"><div class="bar"><i id="bar"></i></div><span class="n" id="cnt">0 / 4</span></div>
+
+    <section class="q" data-k="mbti">
+      <span class="ey">01</span>
+      <h2>MBTI、分かりますか。</h2>
+      <p class="sub">分からなければ飛ばして大丈夫です。残りの3問だけで診断します。</p>
+      <select id="mbti" aria-label="あなたのMBTI">
+        <option value="">分からない／使わない</option>
+      </select>
+    </section>
+
+    <section class="q" data-k="bt">
+      <span class="ey">02</span>
+      <h2>見ていて、いちばん気持ちいいのはどれですか。</h2>
+      <div class="opts">
+        <button type="button" class="opt" data-v="kime"  aria-pressed="false">決まった瞬間に、はっきり出す人<span class="s">通ったら顎を上げる、指をさす</span></button>
+        <button type="button" class="opt" data-v="kyaku" aria-pressed="false">客席に返してくれる人<span class="s">ファンサをする、こっちを見る</span></button>
+        <button type="button" class="opt" data-v="waza"  aria-pressed="false">技そのものを見せる人<span class="s">縄さばき、フロア、アクロ</span></button>
+        <button type="button" class="opt" data-v="soto"  aria-pressed="false">出番じゃないときも面白い人<span class="s">袖でお散歩している、口が動いている</span></button>
+      </div>
+    </section>
+
+    <section class="q" data-k="ky">
+      <span class="ey">03</span>
+      <h2>客席で、あなたはどうしたいですか。</h2>
+      <div class="opts">
+        <button type="button" class="opt" data-v="yobu"  aria-pressed="false">名前を呼びたい</button>
+        <button type="button" class="opt" data-v="furu"  aria-pressed="false">手を振ってみたい</button>
+        <button type="button" class="opt" data-v="sizuka" aria-pressed="false">静かに見ていたい</button>
+      </div>
+    </section>
+
+    <section class="q" data-k="ouen">
+      <span class="ey">04</span>
+      <h2>つい応援してしまうのは。</h2>
+      <div class="opts">
+        <button type="button" class="opt" data-v="kansei"  aria-pressed="false">もう完璧に上手い人</button>
+        <button type="button" class="opt" data-v="seicho"  aria-pressed="false">まだ荒いけど、伸びそうな人</button>
+        <button type="button" class="opt" data-v="keizoku" aria-pressed="false">ずっと変わらず続けてる人</button>
+      </div>
+    </section>
+
+    <button class="go" id="go" disabled>3人を受け取る</button>
+  </main>
+
+  <div id="result" class="hide"></div>
+</div>
+
+<div id="sheet" aria-live="polite"></div>
+
+<script src="cast_data.js"></script>
+<script>
+/* 推し診断 — 公開版
+   正典：performance/solo_show/推し診断_設計.md
+
+   ★軸は全部「画面に出るもの」から作る。選択肢の一致を相性と呼ばない。
+     以前は得意・本番直前といった申告値でマッチしていたが、画面に出るのは
+     「今日これを探す（癖）」なので、答えと出力が別の言語になっていた。
+   ★MBTIは4文字の一致数で点にする。定説が無いので断定しない（注記を必ず出す）。 */
+var BY={}; M.forEach(function(m){ BY[m.n]=m; });
+var VOICE={}; V.forEach(function(v){ (VOICE[v[1]]=VOICE[v[1]]||[]).push({f:v[0],t:v[2]}); });
+
+var TYPES=["INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP",
+           "ISTJ","ISFJ","ESTJ","ESFJ","ISTP","ISFP","ESTP","ESFP"];
+var A={mbti:"",bt:"",ky:"",ouen:"",fav:""};
+
+var KY2C={yobu:"名前、呼んでほしい",furu:"手を振ってくれたら振り返す",sizuka:"呼ばれたら嬉しいけど、恥ずかしい"};
+var MB_SCORE=[40,55,70,85,100];               // 一致0〜4文字
+function mbMatch(a,b){ var n=0; for(var i=0;i<4;i++) if(a[i]===b[i]) n++; return n; }
+function isChamp(m){ return /世界|日本一|優勝|champion|470/.test(m.br); }
+
+/* 内訳を返す。数字だけ出さず、何が効いたかを必ず一緒に持ち回る */
+function rate(m){
+  var rows=[], got=0, max=0;
+  if(A.mbti && m.mb){
+    var n=mbMatch(A.mbti,m.mb), p=MB_SCORE[n]/100*40;
+    got+=p; max+=40;
+    rows.push({k:"MBTI", v:A.mbti+" ／ "+m.mb, hit:n>=3,
+      note:n===4?"同じ型":(n===3?"3文字が同じ":(n===0?"一文字も合わない":n+"文字が同じ"))});
+  }else if(A.mbti && !m.mb){
+    rows.push({k:"MBTI", v:"この人は未回答", hit:false, note:"—"});
+  }
+  if(A.bt){ var h=(m.bt===A.bt); got+=h?25:0; max+=25;
+    rows.push({k:"見たいもの", v:{kime:"決まった瞬間に出す",kyaku:"客席に返す",waza:"技そのもの",soto:"出番じゃないとき"}[A.bt],
+      hit:h, note:h?"一致":"—"}); }
+  if(A.ky){ var h2=(m.c===KY2C[A.ky]); got+=h2?20:0; max+=20;
+    rows.push({k:"客席で", v:{yobu:"名前を呼びたい",furu:"手を振りたい",sizuka:"静かに見たい"}[A.ky],
+      hit:h2, note:h2?"一致":"—"}); }
+  if(A.ouen){
+    var h3 = A.ouen==="kansei" ? isChamp(m)
+           : A.ouen==="seicho" ? (m.y==="3〜5年"||m.y==="6〜9年")
+           : (m.y==="10年以上" && !isChamp(m));
+    got+=h3?15:0; max+=15;
+    rows.push({k:"応援するのは", v:{kansei:"もう完璧な人",seicho:"伸びそうな人",keizoku:"続けてる人"}[A.ouen],
+      hit:h3, note:h3?"一致":"—"});
+  }
+  return {pct: max? Math.round(got/max*100) : 0, rows: rows, raw: got};
+}
+
+/* 抽選。相性が高いほど出やすいが、誰も0にはしない（露出を回すため） */
+function wpick(pool){
+  var w=pool.map(function(m){ return Math.pow(rate(m).pct,2)/100 + 3; });
+  var t=w.reduce(function(a,b){return a+b;},0), x=Math.random()*t;
+  for(var i=0;i<pool.length;i++){ x-=w[i]; if(x<=0) return pool[i]; }
+  return pool[pool.length-1];
+}
+function pick(){
+  var out=[], has=function(n){ return out.some(function(o){return o.m.n===n;}); };
+  if(A.fav&&BY[A.fav]) out.push({m:BY[A.fav],via:null});
+  else out.push({m:wpick(M),via:null});
+  while(out.length<3){
+    var prev=out[out.length-1].m,next=null;
+    var c=prev.r.map(function(n){return BY[n];}).filter(function(x){return x&&!has(x.n);});
+    if(c.length) next={m:wpick(c),via:prev};
+    else { var rest=M.filter(function(m){return !has(m.n);}); if(rest.length) next={m:wpick(rest),via:null}; }
+    if(!next) break;
+    out.push(next);
+  }
+  return out;
+}
+
+var ACH={
+ "2025 IJRU世界選手権 優勝演技":"2025年、世界選手権で優勝した演技。その時のメンバーです。",
+ "YOUNG BLOOD":"2026年、世界一になったチームです。",
+ "Roar（復活）":"2021年に世界3位になった『Roar』。8年続いてきたチームです。",
+ "Cirque du Soleil オーディション演技":"シルク・ドゥ・ソレイユのオーディションで披露した作品に出ています。",
+ "DOUBLE DUTCH CONTEST JAPAN 2023":"国内最大の大会に出た、HARIBOWの原点の演技に立ちます。"
+};
+function achievements(m){ var o=[]; (m.e||[]).forEach(function(x){ if(ACH[x]) o.push(ACH[x]); }); return o; }
+var START={"部活・サークル":"部活・サークルで","友達に誘われた":"友達に誘われて",
+           "テレビ・動画で見た":"テレビや動画を見て","家族の影響":"家族の影響で","その他":""};
+function facts(m){
+  var a=["歴 "+m.y];
+  if(START[m.t]) a.push(START[m.t]+"始めた");
+  if(m.h) a.push("最近は"+m.h);
+  return a;
+}
+
+function esc(s){ return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];}); }
+var CHECK='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.4 5.4 11 12 3.4"/></svg>';
+var TRI='<svg viewBox="0 0 13 15" aria-hidden="true"><path d="M0 0l13 7.5L0 15z"/></svg>';
+
+/* 名前を押したら、その人のカードを開けるようにする。
+   データが無い人（未回答5名）は押せない普通の文字のまま。 */
+function nameLink(n){
+  var m=BY[n];
+  if(!m) return '<span class="nm off">'+esc(n)+'</span>';
+  return '<button type="button" class="nm" data-n="'+esc(n)+'">'+esc(m.p)+'</button>';
+}
+
+function card(o,i){
+  var m=o.m, a=m.a||{}, base='assets/cast/'+m.id+'/', vs=VOICE[m.n]||[], r=rate(m);
+  var h='<article class="card">';
+  var ey = i<0 ? 'Profile' : (i===0?'Your Pick':'Chain '+(i+1));
+  h+='<div class="hd"><span class="ey">'+ey+'</span>';
+  h+='<span class="via">'+(i<0?'名前から開いた人':(o.via?nameLink(o.via.n)+' さんが「見てほしい」と言っていた人':'診断からの1人目'))+'</span></div>';
+
+  h+='<div class="por'+(a.p?'':' none')+'" data-id="'+m.id+'">';
+  h+= a.p ? '<img src="'+base+'photo.jpg" alt="'+esc(m.p)+'" loading="lazy">' : '<span>'+esc(m.p)+'</span>';
+  h+='<div class="scrim"></div>';
+  if(a.i) h+='<button class="play" type="button" aria-label="'+esc(m.p)+'さんの自己紹介を再生">'+TRI+'</button>';
+  h+='<div class="cap"><p class="pn">'+esc(m.p)+'</p><p class="kn">'+esc(m.k)+'</p></div></div>';
+
+  /* 相性度。数字の下に必ず内訳を出す（何が効いたか分からないと占いになる） */
+  h+='<div class="rate"><span class="lb2">Match</span>'+
+     '<span class="big">'+r.pct+'<small>%</small></span><table>';
+  r.rows.forEach(function(x){
+    h+='<tr><td>'+esc(x.k)+'</td><td>'+esc(x.v)+'</td><td'+(x.hit?'':' class="no"')+'>'+esc(x.note)+'</td></tr>';
+  });
+  h+='</table></div>';
+
+  var task = m.alt ? m.alt.t : m.o;
+  var taskBy = m.alt ? ((BY[m.alt.by]||{}).p || m.alt.by) : null;
+  h+='<div class="task" data-key="'+m.id+'" role="button" tabindex="0" aria-pressed="false" data-done="0">'+
+     '<span class="box">'+CHECK+'</span>'+
+     '<span class="t"><span class="lb">今日これを探す</span><p>'+esc(task)+'</p>'+
+     (m.alt?'<span class="src">'+nameLink(m.alt.by)+' さんが見つけたこと</span>':'')+'</span></div>';
+
+  var e=m.e||[];
+  h+='<div class="when"><span class="lb">この人が出る演目</span>';
+  if(e.length){ h+='<ul>'; e.forEach(function(x){ h+='<li>'+esc(x)+'</li>'; }); h+='</ul>';
+    h+='<p class="also">＋ オープニングとエンディング（全員出演）</p>'; }
+  else h+='<p class="also">オープニングとエンディングに出ます。31人が揃うこの2つが、探せる場面です。</p>';
+  h+='</div>';
+
+  var ach=achievements(m);
+  if(ach.length){ h+='<div class="ach"><span class="lb">この人が通ってきたもの</span>';
+    ach.forEach(function(t){ h+='<p>'+esc(t)+'</p>'; }); h+='</div>'; }
+
+  if(vs.length){ var v=vs[Math.floor(Math.random()*vs.length)];
+    h+='<div class="blk"><span class="lb">'+nameLink(v.f)+' さんいわく</span><p class="say">'+esc(v.t)+'</p></div>'; }
+  if(m.br) h+='<div class="blk"><span class="lb">本人が挙げた自慢</span><p>'+esc(m.br)+'</p></div>';
+  h+='<p class="facts">'+facts(m).map(esc).join(' ／ ')+'</p>';
+  h+='<div class="blk"><span class="lb">呼びかけについて</span><p>'+esc(m.c)+
+     (m.w?'<br><span style="color:var(--dim)">「'+esc(m.w)+'」</span>':'')+'</p></div>';
+  if(a.m) h+='<div class="motto"><img src="'+base+'motto.jpg" alt="'+esc(m.p)+'さんの座右の銘" loading="lazy">'+
+             '<span class="lb">座右の銘<b>本人の手書きです</b></span></div>';
+  return h+'</article>';
+}
+
+function show(list){
+  var h='<span class="ey">Your Three</span>'+
+    '<h1>この3人を、<br>見てください。</h1>'+
+    '<p class="lead">覚えるのは名前だけで大丈夫です。<br><b>「今日これを探す」は、見つけたら押してください。</b></p>'+
+    '<hr class="rule" style="margin-bottom:30px">';
+  list.forEach(function(o,i){ h+=card(o,i); });
+
+  if(A.mbti){
+    var same=M.filter(function(m){ return m.mb===A.mbti; });
+    var far=M.filter(function(m){return m.mb;}).slice().sort(function(a,b){
+      return mbMatch(A.mbti,a.mb)-mbMatch(A.mbti,b.mb); })[0];
+    h+='<div class="ach"><span class="lb">'+esc(A.mbti)+' のあなたへ</span>';
+    h+= same.length
+      ? '<p>同じ '+esc(A.mbti)+' は、この公演に'+same.length+'人います。<br>'+
+        same.map(function(m){return nameLink(m.n);}).join(' ／ ')+'</p>'
+      : '<p>同じ '+esc(A.mbti)+' は、この公演にはいません。</p>';
+    if(far) h+='<p>いちばん遠いのは '+nameLink(far.n)+'（'+esc(far.mb)+'）です。'+
+               '自分と逆の人が舞台で何をするか、というのも見どころです。</p>';
+    h+='</div>';
+    h+='<p class="mbti-note">相性度は、MBTIの4文字が何文字合っているかを数えて出しています。'+
+       '<b style="color:var(--dim)">科学ではありません。算数です。</b><br>'+
+       '当たっていたら喜んでください。外れていたら、その人のことは4文字では分かりません。'+
+       'どちらにしても、見てもらえれば分かります。</p>';
+  }
+
+  h+='<button class="ghost" type="button" id="again">もう一度診断する</button>';
+  var r=document.getElementById('result');
+  r.innerHTML=h; r.classList.remove('hide');
+  document.getElementById('quiz').classList.add('hide');
+  document.getElementById('intro').classList.add('hide');
+  window.scrollTo(0,0);
+  bindResult();
+}
+
+/* 名前から開いた人を重ねて表示する。閉じると元の位置に戻る。
+   開いた先でも名前を押せるので、推薦をたどって回遊できる。 */
+var SHEET=[];
+function openPerson(n){
+  var m=BY[n]; if(!m) return;
+  SHEET.push(window.scrollY);
+  var el=document.getElementById('sheet');
+  el.innerHTML='<div class="sheet-in">'+
+    '<button type="button" class="sheet-x" id="sheetX" aria-label="閉じる">閉じる</button>'+
+    card({m:m,via:null},-1)+'</div>';
+  el.classList.add('on');
+  document.body.style.overflow='hidden';
+  el.scrollTop=0;
+  bindCard(el);
+  document.getElementById('sheetX').addEventListener('click',closePerson);
+}
+function closePerson(){
+  var el=document.getElementById('sheet');
+  el.classList.remove('on'); el.innerHTML='';
+  document.body.style.overflow='';
+  var y=SHEET.pop(); if(y!=null) window.scrollTo(0,y);
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.getElementById('sheet').classList.contains('on')) closePerson();
+});
+
+/* カード内の操作をまとめて張る（結果画面でもシート内でも同じものを使う） */
+function bindCard(root){
+  root.querySelectorAll('.nm').forEach(function(b){
+    b.addEventListener('click',function(){ openPerson(b.dataset.n); });
+  });
+  root.querySelectorAll('.task').forEach(function(t){
+    var k='oshi.found.'+t.dataset.key;
+    if(localStorage.getItem(k)==='1'){ t.dataset.done='1'; t.setAttribute('aria-pressed','true'); }
+    var flip=function(){ var on=t.dataset.done==='1'?'0':'1';
+      t.dataset.done=on; t.setAttribute('aria-pressed',on==='1');
+      try{ localStorage.setItem(k,on); }catch(e){} };
+    t.addEventListener('click',flip);
+    t.addEventListener('keydown',function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); flip(); } });
+  });
+  root.querySelectorAll('.play').forEach(function(b){
+    b.addEventListener('click',function(){
+      var por=b.closest('.por'), id=por.dataset.id, v=document.createElement('video');
+      v.src='assets/cast/'+id+'/intro.mp4'; v.controls=true; v.autoplay=true;
+      v.playsInline=true; v.setAttribute('playsinline',''); v.preload='auto';
+      var img=por.querySelector('img'); if(img) img.replaceWith(v); else por.prepend(v);
+      b.remove();
+      var sc=por.querySelector('.scrim'); if(sc) sc.remove();
+      var cp=por.querySelector('.cap'); if(cp) cp.remove();
+    });
+  });
+}
+
+function bindResult(){
+  bindCard(document.getElementById('result'));
+  document.getElementById('again').addEventListener('click',function(){ location.reload(); });
+}
+
+/* ---- 操作 ---- */
+var sel=document.getElementById('fav');
+M.slice().sort(function(a,b){return a.n.localeCompare(b.n,'ja');})
+ .forEach(function(m){ sel.appendChild(new Option(m.p+'（'+m.n+'）',m.n)); });
+sel.addEventListener('change',function(){ A.fav=sel.value; });
+
+var msel=document.getElementById('mbti');
+TYPES.forEach(function(t){ msel.appendChild(new Option(t,t)); });
+msel.addEventListener('change',function(){ A.mbti=msel.value; sync(); });
+
+document.querySelectorAll('.q').forEach(function(sec){
+  sec.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      sec.querySelectorAll('.opt').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+      btn.setAttribute('aria-pressed','true');
+      A[sec.dataset.k]=btn.dataset.v; sync();
+    });
+  });
+});
+function sync(){
+  var done=['mbti','bt','ky','ouen'].filter(function(k){ return A[k]; }).length;
+  document.getElementById('bar').style.width=(done/4*100)+'%';
+  document.getElementById('cnt').textContent=done+' / 4';
+  document.getElementById('go').disabled=!(A.bt&&A.ky&&A.ouen);
+}
+document.getElementById('go').addEventListener('click',function(){ show(pick()); });
+</script>
+</body>
+</html>

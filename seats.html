@@ -553,6 +553,10 @@ var ROWS = [];              // 描く列の定義（LAYOUT.rows と同じ並び�
  *  ★ここ1つに寄せる。以前は14か所で '列'+n+'番' を組み立てており、
  *    2階を足すと直し漏れた画面だけ「31列14番」と出てメールと食い違う。 */
 function fmtSeatLabel(row,n){
+  /* バルコニーの追加席はレイアウトに載っていないので、サーバーが返した表記を使う。
+     これが無いと「52列20番」という実在しない席名がカートと確認メールに出る。 */
+  var ex = EXTRA_LABEL[row+'-'+n];
+  if(ex) return ex;
   var r = ROWS_BY_NUM[row];
   return (r ? r.label : (row+'列')) + n + '番';
 }
@@ -604,6 +608,13 @@ var SUPEND  = '9月5日';
      価格の正はサーバー（PRICE_TABLE_.invextra）。ここの数字は表示用。 */
 var INVITE_TOKEN = new URLSearchParams(location.search).get('k') || '';
 var INVITE_MODE = false, INVITE_ORG = '', INVITE_PRICE = 2000;
+/* ご招待の団体に割り当てたバルコニーの追加席（2026-08-25）。
+   サーバー（invite_extra_meta）が {id,row,num,label} で返す。
+   ★座席レイアウト（?page=seat_layout）はバルコニーを1行も返さない。
+     返すと招待席・チアリーマンズ席の配置が公開ページから読めてしまうため。
+     だからこの数席だけは、本体のマップとは別の小さなブロックとして描く。 */
+var INVITE_EXTRAS = [];
+var EXTRA_LABEL = {};   // "52-20" -> "LB席2列20番"（fmtSeatLabel の補完に使う）
 /* 8/17の開放から外れている席（乱縄・DSP用にサーバーが期限付きで確保）。seat_avail の groupOnly が正。
    ここに載っている席は開放日を過ぎても団体専用で、個人タブには売り物として出さない。
    サーバーの lockSeats も同じ判定で弾く（Seats.js の groupOnlyNow_）ので、
@@ -804,6 +815,9 @@ function render(){
   var hint=document.getElementById('mapHint');
   if(hint) hint.style.display = focus ? 'none' : '';
   if(!focus) fitOverview();
+  /* 追加席（バルコニー）のブロックも一緒に描き直す。
+     本体マップの外にあるので、ここで呼ばないと選択状態や売切が反映されない。 */
+  if(INVITE_MODE) renderExtraBlock();
 }
 
 /**
@@ -928,7 +942,11 @@ function checkout(){
   var btn=document.getElementById('buyBtn'); btn.disabled=true; btn.textContent='処理中…';
   // ① 席を5分ロック（二重販売防止）
   fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'seat_lock',seatIds:keys,buyer:buyerName()})})
+    /* ★招待トークンを添える（2026-08-25）。バルコニーの追加席は
+         サーバーが「このトークンの団体に割り当てた席か」を照合してからでないと通さない。
+         添えないと従来どおり全部拒否になる（安全側）。 */
+    body:JSON.stringify({survey:'seat_lock',seatIds:keys,buyer:buyerName(),
+                         inviteToken: INVITE_MODE ? INVITE_TOKEN : ''})})
   .then(function(r){return r.json();}).then(function(res){
     if(!res.ok){
       alert('申し訳ありません。選んでいる間に '+((res.conflict||keys).map(fmtSeat).join('・'))+' が他の方に確保されました。\nお席を選び直してください。');
@@ -1113,6 +1131,8 @@ if(INVITE_TOKEN){
     .then(function(d){
       if(d && d.ok){
         INVITE_MODE=true; INVITE_ORG=d.name; INVITE_PRICE=Number(d.price)||2000;
+        INVITE_EXTRAS = (d.extras||[]);
+        INVITE_EXTRAS.forEach(function(x){ EXTRA_LABEL[x.row+'-'+x.num] = x.label; });
         applyInviteMode();
       }
     })
@@ -1143,7 +1163,56 @@ function applyInviteMode(){
   document.querySelectorAll('.tab').forEach(function(b,i){ if(i>0) b.style.display='none'; });
   var note=document.getElementById('supDeadline');
   if(note){ note.textContent='お申し込みの締切は9月22日です。ご招待枠（3席）とは別に、1席 ¥'+INVITE_PRICE.toLocaleString()+' で承ります。'; note.style.display=''; }
+  renderExtraBlock();
   selectType(TYPES[0]);
+}
+
+/** ご招待のお席のとなりに用意した追加席（バルコニー）を、本体のマップとは別に描く。
+ *  ★ここに出る席は「その団体のために運営が押さえた席」で、他の誰も買えない。
+ *    サーバーは招待マスタU列の許可リストと突き合わせてから通す（lockSeats / submitTicketOrder）。
+ *  ★0席のときは何も出さない（2階だけの従来表示になる）。 */
+function renderExtraBlock(){
+  var host = document.getElementById('tab-personal');
+  if(!host) return;
+  var old = document.getElementById('extraBlock');
+  if(old) old.parentNode.removeChild(old);
+  if(!INVITE_EXTRAS.length) return;
+
+  var box = document.createElement('div');
+  box.id = 'extraBlock';
+  box.style.cssText = 'margin:16px 2px 4px;padding:14px 14px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)';
+  var h = document.createElement('div');
+  h.style.cssText = 'font-size:13.5px;font-weight:700;margin-bottom:4px';
+  h.textContent = 'ご招待のお席のとなり（' + INVITE_EXTRAS.length + '席）';
+  var p = document.createElement('div');
+  p.style.cssText = 'font-size:12.5px;line-height:1.8;color:var(--dim);margin-bottom:10px';
+  p.textContent = INVITE_ORG + ' 様のご招待の3席と続きのお席です。'
+    + 'ここが埋まっている場合や、さらに人数が増える場合は、下の2階席からお選びください。';
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+
+  INVITE_EXTRAS.forEach(function(x){
+    var key = x.row + '-' + x.num;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.key = key;
+    b.style.cssText = 'padding:9px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--line);background:transparent;color:inherit';
+    function paint(){
+      var on = !!picked[key];
+      b.style.background = on ? 'var(--accent,#63b6cc)' : 'transparent';
+      b.style.color      = on ? '#0a0b0e' : 'inherit';
+      b.style.fontWeight = on ? '700' : '400';
+      b.textContent      = x.label + (on ? '（選択中）' : '');
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    b.onclick = function(){ toggle(x.row, x.num); paint(); };
+    paint();
+    row.appendChild(b);
+  });
+
+  box.appendChild(h); box.appendChild(p); box.appendChild(row);
+  var cart = host.querySelector('.cart');
+  if(cart) host.insertBefore(box, cart); else host.appendChild(box);
 }
 
 // ---- タブ切替 ----
