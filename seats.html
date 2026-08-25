@@ -594,6 +594,16 @@ var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を�
    サーバー側も priceIndividualOrder_ で同じ2つを行う。片方だけ直さないこと。 */
 var SUPOPEN = true;
 var SUPEND  = '9月5日';
+
+/* ご招待の追加席モード（2026-08-25）。
+   ?k=<招待トークン> 付きで開くと切り替わる。
+   ★専用ページに座席図をもう1つ作らない。2026-08-18〜20 の3日間事故は
+     購入画面とサーバーで席の判定を二重に持っていたのが原因で、
+     ここで座席図を複製すると同じ形に戻る。
+   ★券種は「ご招待 追加席 ¥2,000」だけにし、2階の席に限定する。
+     価格の正はサーバー（PRICE_TABLE_.invextra）。ここの数字は表示用。 */
+var INVITE_TOKEN = new URLSearchParams(location.search).get('k') || '';
+var INVITE_MODE = false, INVITE_ORG = '', INVITE_PRICE = 2000;
 /* 8/17の開放から外れている席（乱縄・DSP用にサーバーが期限付きで確保）。seat_avail の groupOnly が正。
    ここに載っている席は開放日を過ぎても団体専用で、個人タブには売り物として出さない。
    サーバーの lockSeats も同じ判定で弾く（Seats.js の groupOnlyNow_）ので、
@@ -662,6 +672,9 @@ function rowVisible(row){
   var r = ROWS_BY_NUM[row];
   if(!r) return false;
   if(r.floor===2 && LAYOUT && !LAYOUT.f2Open) return false;
+  /* ご招待の追加席は2階のみ。1階を¥2,000で買われると一般A席¥3,500と衝突する。
+     サーバーも submitTicketOrder で同じ判定をする（画面だけの制限にしない）。 */
+  if(INVITE_MODE && r.floor!==2) return false;
   return true;
 }
 /** その列に、いま選んでいる券種で買える席が1つでもあるか。
@@ -925,6 +938,7 @@ function checkout(){
     // ② 注文（金額はサーバーが券種×席×日時で再計算）。lockTokenで自分のロック席を確定に紐付け
     return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({survey:'ticket_order', orderType:'individual', typeId:curType.id,
+        inviteToken: INVITE_MODE ? INVITE_TOKEN : '',
         seatIds:keys, donation:donation, method:payMethod,
         name:buyerName(), kana:buyerKana(), contact:buyerContact(), phone:buyerPhone(), lockToken:res.lockToken,
         tshirt:tshirtSize, creditOk:creditOk, creditName:creditNameVal(), source:srcAnswer})})
@@ -952,6 +966,8 @@ function checkout(){
                 : o.error==='bad_email' ? 'メールアドレスの形式をご確認ください。'
                 : o.error==='seats_lost' ? '選んでいる間にお席が確保できませんでした。選び直してください。'
                 : o.error==='sales_closed' ? 'チケットの販売は終了しました。'
+                : o.error==='invite_required' ? 'お申し込みのURLをご確認ください。ご招待の追加のお席は、ご案内したリンクからお申し込みいただけます。'
+                : o.error==='invite_seat_range' ? 'ご招待の追加のお席は、2階のお席からお選びください。'
                 : o.error==='sup_closed' ? 'サポーター券の受付は' + SUPEND + 'で終了しました。\n2列中央のお席は一般S席（特典付）としてお選びいただけます。'
                 : o.error==='cash_closed' ? '現金でのお支払いは公演当日の受付でのみ承っております。'
                 : o.error==='bank_closed' ? '銀行振込の受付は終了しました（9/26まで）。クレジットカードをご利用ください。'
@@ -1090,7 +1106,45 @@ var supNote=document.createElement('p'); supNote.id='supDeadline';
 supNote.style.cssText='margin:10px 2px 0;font-size:12.5px;line-height:1.8;color:var(--sup);display:none';
 tc.parentNode.insertBefore(supNote, tc.nextSibling);
 
-render(); updateCart(); loadLayoutThenAvail();
+/* トークンがあれば先に確認する。有効なら追加席モードで描き直す */
+if(INVITE_TOKEN){
+  fetch(BASE+'?page=invite_extra_meta&k='+encodeURIComponent(INVITE_TOKEN))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.ok){
+        INVITE_MODE=true; INVITE_ORG=d.name; INVITE_PRICE=Number(d.price)||2000;
+        applyInviteMode();
+      }
+    })
+    .catch(function(){})
+    .then(function(){ render(); updateCart(); loadLayoutThenAvail(); });
+} else {
+  render(); updateCart(); loadLayoutThenAvail();
+}
+
+/** 追加席モードの見た目を作る */
+function applyInviteMode(){
+  // 券種を「ご招待 追加席」だけにする
+  TYPES.length = 0;
+  TYPES.push({ id:'invextra', name:'ご招待 追加席', adv:INVITE_PRICE, reg:INVITE_PRICE,
+               area:'gen', note:'2階のお席・'+INVITE_ORG+' 様のご招待', big:true });
+  tc.innerHTML='';
+  TYPES.forEach(function(t){
+    var b=document.createElement('button'); b.className='type big'; b.dataset.id=t.id;
+    b.setAttribute('data-type', t.id);
+    b.innerHTML='<div class="tn">'+t.name+'</div><div class="tp">¥'+t.adv.toLocaleString()+'</div><div class="ta">'+t.note+'</div>';
+    b.onclick=function(){ selectType(t); };
+    tc.appendChild(b);
+  });
+  // 見出しを差し替える
+  var h=document.querySelector('h1'); if(h) h.textContent='ご招待の追加のお席';
+  var sub=document.querySelector('.sub'); if(sub) sub.textContent=INVITE_ORG+' 様のご招待でお越しになる方の、4名様以降のお席です。';
+  // 団体・配信タブは出さない
+  document.querySelectorAll('.tab').forEach(function(b,i){ if(i>0) b.style.display='none'; });
+  var note=document.getElementById('supDeadline');
+  if(note){ note.textContent='お申し込みの締切は9月22日です。ご招待枠（3席）とは別に、1席 ¥'+INVITE_PRICE.toLocaleString()+' で承ります。'; note.style.display=''; }
+  selectType(TYPES[0]);
+}
 
 // ---- タブ切替 ----
 function showTab(t,el){
