@@ -63,8 +63,15 @@
      ★ホールの形は会場が公開している情報なので静的側に置いてよい。
        どこを光らせるかだけサーバー（invite_meta の zone）が決める。 */
   .hall{margin:14px 0 0}
+  .hallwrap{max-width:300px;margin:0 auto}
+  .hallwrap.detail{max-width:260px;margin-top:4px}
+  .hallwrap.detail.wide{max-width:100%}
   .hall svg{width:100%;height:auto;display:block}
-  .hall .cap{font-size:11.5px;color:var(--faint);text-align:center;margin:8px 0 0;line-height:1.7}
+  .hall .cap{font-size:11.5px;color:var(--faint);text-align:center;margin:10px 0 0;line-height:1.7}
+  .moreBtn{display:block;margin:14px auto 0;background:transparent;border:1px solid var(--line);
+    color:var(--dim);border-radius:999px;padding:7px 18px;font-size:12.5px;font-family:inherit;
+    cursor:pointer;transition:border-color .15s,color .15s}
+  .moreBtn:hover{border-color:var(--accent);color:var(--accent)}
   .zone{background:rgba(99,182,204,.09);border:1px solid rgba(99,182,204,.3);
     border-radius:12px;padding:16px 16px 12px;margin:6px 0 0}
   .zone .lab{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.1em;margin:0 0 6px}
@@ -181,70 +188,152 @@ function yen(n){ return '¥' + (Number(n)||0).toLocaleString(); }
  *  ★どこを光らせるかは**サーバーが決める**（invite_meta の zone.blocks）。
  *    ここに「招待席はここ」とハードコードしないこと。このリポジトリは公開されている。
  * ============================================================ */
-function hallSvg(zone){
-  var ACT='#63b6cc', CAND='#3d7683', OFF='#22262e', LINE='#2f343d', TXT='#8b919e', INK='#f3f1ea';
+/* ============================================================
+ *  お席の図（2026-08-25）
+ *
+ *  2枚ある。
+ *   ・全体図  … ホールのどこか（STAGE／LB席／1階席／RB席／2階席）
+ *   ・詳細図  … 実際の座席の並び。**上が舞台側・下が後方**
+ *
+ *  ★「LB席2列19番」と番号だけ出しても、初めて来る方には伝わらない。
+ *    かといって詳細だけだとホールのどこか分からない。両方いる。
+ *  ★どこを光らせるかは**サーバーが決める**（invite_meta の zone）。
+ *    このリポジトリは公開なので、静的側に「招待席はここ」と書かない。
+ * ============================================================ */
+var C_ACT='#63b6cc', C_CAND='#3d7683', C_OFF='#22262e', C_LINE='#2f343d', C_TXT='#8b919e';
+
+/** 全体図：ホールのどのエリアか */
+function overviewSvg(zone){
+  var on={}; (zone.blocks||[]).forEach(function(b){ on[b]=1; });
+  function box(x,y,w,h,lit,label,fs){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" '
+      + 'fill="'+(lit?C_ACT:C_OFF)+'" stroke="'+(lit?C_ACT:C_LINE)+'"/>'
+      + '<text x="'+(x+w/2)+'" y="'+(y+h/2+3.5)+'" text-anchor="middle" font-size="'+(fs||9)+'" '
+      + 'fill="'+(lit?'#0a0b0e':C_TXT)+'" font-weight="'+(lit?'800':'500')+'">'+label+'</text>';
+  }
+  var o='<svg viewBox="0 0 260 186" role="img" aria-label="ホール全体の見取り図">';
+  o+='<rect x="70" y="6" width="120" height="17" rx="3" fill="#0d3947" stroke="#1f5b6e"/>'
+   + '<text x="130" y="18.5" text-anchor="middle" font-size="9" fill="#cfeaf2" font-weight="800" letter-spacing="2">STAGE</text>';
+  o+='<text x="130" y="34" text-anchor="middle" font-size="7.5" fill="'+C_TXT+'">▲ 舞台に近いほど前</text>';
+  o+=box(14,42,34,70,on.LB,'LB席');
+  o+=box(56,42,148,70,on.F1,'1階席');
+  o+=box(212,42,34,70,on.RB,'RB席');
+  o+=box(56,122,148,38,on.F2,'2階席');
+  o+='</svg>';
+  return o;
+}
+
+/** 詳細図：実際の座席の並び。上が舞台側。 */
+function detailSvg(zone){
   var mine={}, cand={};
   (zone.seats||[]).forEach(function(x){ mine[x]=1; });
   (zone.candidates||[]).forEach(function(x){ cand[x]=1; });
-  var grid = zone.grid || [];
-  if(!grid.length) return '';
-
+  var grid = zone.grid||[]; if(!grid.length) return '';
+  var byRow={}; grid.forEach(function(g){ byRow[g.row]=g; });
   var isF2 = grid[0].label.indexOf('2階')===0;
-  var out=[], W=280;
+  var o=[];
+
+  function seat(x,y,w,h,id,n,showNum){
+    var lit=mine[id], c=lit?C_ACT:(cand[id]?C_CAND:C_OFF);
+    var r='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+c+'"/>';
+    if(lit&&showNum) r+='<text x="'+(x+w/2)+'" y="'+(y+h/2+2.6)+'" text-anchor="middle" font-size="'+(h*0.62)+'" fill="#0a0b0e" font-weight="800">'+n+'</text>';
+    return r;
+  }
+  function stage(w){
+    return '<rect x="'+(w*0.24)+'" y="5" width="'+(w*0.52)+'" height="13" rx="3" fill="#0d3947" stroke="#1f5b6e"/>'
+      + '<text x="'+(w/2)+'" y="14.6" text-anchor="middle" font-size="7.5" fill="#cfeaf2" font-weight="800" letter-spacing="2">STAGE</text>';
+  }
 
   if(isF2){
-    /* 2階：11列 × 39番。舞台が上。自分の席だけ色を付ける。 */
-    var cw=6.4, ch=6.4, gap=1.2, x0=14, y0=34;
-    out.push('<rect x="70" y="6" width="140" height="15" rx="3" fill="#0d3947" stroke="#1f5b6e"/>'
-      +'<text x="140" y="17" text-anchor="middle" font-size="8" fill="#cfeaf2" font-weight="800" letter-spacing="2">STAGE</text>');
-    grid.forEach(function(g,ri){
-      var y=y0+ri*(ch+gap);
-      out.push('<text x="10" y="'+(y+5)+'" text-anchor="end" font-size="5.4" fill="'+TXT+'">'+g.label.replace('2階','')+'</text>');
-      g.nums.forEach(function(n,ci){
-        var id=g.row+'-'+n;
-        var f = mine[id]?ACT:(cand[id]?CAND:OFF);
-        /* 左1-13／中央14-26／右27-39 の切れ目を空ける */
-        var extra = (n>=27?2*gap*2:(n>=14?gap*2:0));
-        out.push('<rect x="'+(x0+ci*(cw+gap)+extra)+'" y="'+y+'" width="'+cw+'" height="'+ch+'" rx="1" fill="'+f+'"/>');
+    /* 2階：上が1列（舞台側）。左1-13／中央14-26／右27-39 で切れ目を空ける */
+    /* 39席×11列。横に長いので幅いっぱいに使う（.hallwrap.detail.wide） */
+    var cw=7.4, ch=8.6, g=1.3, x0=26, y0=34, blkGap=7;
+    var W=x0 + 39*(cw+g) + 2*blkGap + 6;
+    o.push(stage(W));
+    grid.forEach(function(gr,ri){
+      var y=y0+ri*(ch+g+1.2);
+      o.push('<text x="16" y="'+(y+4.6)+'" text-anchor="end" font-size="5" fill="'+C_TXT+'">'+gr.label.replace('2階','')+'</text>');
+      gr.nums.forEach(function(n,ci){
+        var ex=(n>=27?blkGap*2:(n>=14?blkGap:0));
+        o.push(seat(x0+ci*(cw+g)+ex, y, cw, ch, gr.row+'-'+n, n, false));
       });
     });
-    var H=y0+grid.length*(ch+gap)+6;
-    return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="2階席の座席図">'+out.join('')+'</svg>';
+    // 左／中央／右の見出し（2階は 左1-13・中央14-26・右27-39）
+    var cx=function(n,ex){ return x0+(n-1)*(cw+g)+ex+cw/2; };
+    o.push('<text x="'+cx(7,0)+'" y="'+(y0-7)+'" text-anchor="middle" font-size="6.4" fill="'+C_TXT+'">左ブロック</text>');
+    o.push('<text x="'+cx(20,blkGap)+'" y="'+(y0-7)+'" text-anchor="middle" font-size="6.4" fill="'+C_TXT+'">中央ブロック</text>');
+    o.push('<text x="'+cx(33,blkGap*2)+'" y="'+(y0-7)+'" text-anchor="middle" font-size="6.4" fill="'+C_TXT+'">右ブロック</text>');
+    var H=y0+grid.length*(ch+g+1.2)+18;
+    o.push('<text x="'+(W/2)+'" y="'+(H-5)+'" text-anchor="middle" font-size="6" fill="'+C_TXT+'">▼ 後方</text>');
+    return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="2階席の座席図">'+o.join('')+'</svg>';
   }
 
-  /* バルコニー：1列/2列が横並びで、番号1が舞台側。縦に長いので横倒しで描く。
-     左＝舞台側、右＝後方。上下の2段が 1列 / 2列。 */
-  var cw2=9.4, ch2=13, gap2=1.6, x1=42, y1=26;
-  out.push('<text x="'+x1+'" y="16" font-size="7.5" fill="#cfeaf2" font-weight="800">◀ 舞台側</text>');
-  out.push('<text x="'+(W-8)+'" y="16" text-anchor="end" font-size="7.5" fill="'+TXT+'">後方 ▶</text>');
-  grid.forEach(function(g,ri){
-    var y=y1+ri*(ch2+gap2+3);
-    out.push('<text x="38" y="'+(y+9.5)+'" text-anchor="end" font-size="6.6" fill="'+TXT+'">'+g.label+'</text>');
-    g.nums.forEach(function(n){
-      var id=g.row+'-'+n;
-      var f = mine[id]?ACT:(cand[id]?CAND:OFF);
-      var x = x1 + (n-1)*(cw2+gap2);
-      out.push('<rect x="'+x+'" y="'+y+'" width="'+cw2+'" height="'+ch2+'" rx="1.5" fill="'+f+'"/>');
-      if(mine[id]) out.push('<text x="'+(x+cw2/2)+'" y="'+(y+9.4)+'" text-anchor="middle" font-size="6.4" fill="#0a0b0e" font-weight="800">'+n+'</text>');
-      else if(n%4===0) out.push('<text x="'+(x+cw2/2)+'" y="'+(y+9.2)+'" text-anchor="middle" font-size="5.4" fill="'+TXT+'">'+n+'</text>');
-    });
+  /* バルコニー：上が1番（舞台側）、下が24番（後方）。
+     ★LB席・RB席の4列を必ず全部描く。自分のブロックしか描かないと
+       ホールのどちら側なのか分からず、図が片側に寄って読めない。
+     ★ホールの並びに合わせる：LB＝壁側が2列・中央側が1列、RB＝その逆。 */
+  var sw=15, sh=7.4, sg=2.3, top=48, W2=190;
+  var COLS=[{x:16,row:LB2_ROW,label:'2列'},{x:34,row:LB1_ROW,label:'1列'},
+            {x:141,row:RB1_ROW,label:'1列'},{x:159,row:RB2_ROW,label:'2列'}];
+  var HB = top + 24*(sh+sg);
+
+  o.push(stage(W2));
+  o.push('<text x="'+(W2/2)+'" y="27" text-anchor="middle" font-size="6.5" fill="'+C_TXT+'">▲ 舞台側</text>');
+  // ブロック名
+  o.push('<text x="34" y="37" text-anchor="middle" font-size="7" fill="'+C_TXT+'" font-weight="700">LB席</text>');
+  o.push('<text x="156" y="37" text-anchor="middle" font-size="7" fill="'+C_TXT+'" font-weight="700">RB席</text>');
+  // 中央＝1階席（座席は描かず、位置関係を示すだけ）
+  o.push('<rect x="58" y="'+top+'" width="75" height="'+(HB-top-2)+'" rx="3" fill="'+C_OFF+'" stroke="'+C_LINE+'" stroke-dasharray="3 3"/>');
+  o.push('<text x="95.5" y="'+((top+HB)/2)+'" text-anchor="middle" font-size="7.5" fill="'+C_TXT+'">1階席</text>');
+  // 番号の目盛り
+  for(var n2=4;n2<=24;n2+=4){
+    o.push('<text x="12" y="'+(top+(n2-1)*(sh+sg)+5.6)+'" text-anchor="end" font-size="5.4" fill="'+C_TXT+'" opacity="0.7">'+n2+'</text>');
+  }
+  COLS.forEach(function(c){
+    o.push('<text x="'+(c.x+sw/2)+'" y="'+(top-4)+'" text-anchor="middle" font-size="5.6" fill="'+C_TXT+'">'+c.label+'</text>');
+    var gr=byRow[c.row];
+    for(var n=1;n<=24;n++){
+      var y=top+(n-1)*(sh+sg);
+      if(!gr || gr.nums.indexOf(n)<0){
+        // その列に席が無い（LB/RBの2列は1・2番が無い）／自分のブロックでない
+        o.push('<rect x="'+c.x+'" y="'+y+'" width="'+sw+'" height="'+sh+'" rx="1.5" fill="none" stroke="'+C_LINE+'" stroke-width="0.5"/>');
+        continue;
+      }
+      o.push(seat(c.x, y, sw, sh, c.row+'-'+n, n, true));
+    }
   });
-  var H2=y1+grid.length*(ch2+gap2+3)+6;
-  return '<svg viewBox="0 0 '+(x1+24*(cw2+gap2)+8)+' '+H2+'" role="img" aria-label="バルコニー席の座席図">'+out.join('')+'</svg>';
+  o.push('<text x="'+(W2/2)+'" y="'+(HB+12)+'" text-anchor="middle" font-size="6.5" fill="'+C_TXT+'">▼ 後方</text>');
+  return '<svg viewBox="0 0 '+W2+' '+(HB+20)+'" role="img" aria-label="バルコニー席の座席図">'+o.join('')+'</svg>';
 }
+var LB1_ROW=51, LB2_ROW=52, RB1_ROW=61, RB2_ROW=62;
+
+/** 2階のブロックか（詳細図の横幅を切り替えるため） */
+function isF2Zone(z){ return !!(z && z.grid && z.grid.length && z.grid[0].label.indexOf('2階')===0); }
 
 /** 図と説明文を差し込む */
-function renderHall(zone, svgEl, textEl){
-  if(!zone || !zone.grid || !zone.grid.length){ if(svgEl) svgEl.innerHTML=''; return; }
-  var legend = zone.confirmed
-    ? '<span style="color:#63b6cc;font-weight:800">■</span> お客さまのお席'
-    : ((zone.seats && zone.seats.length)
-        ? '<span style="color:#63b6cc;font-weight:800">■</span> お客さまのためにお取りしているお席'
-        : '<span style="color:#3d7683;font-weight:800">■</span> この中からお席をご用意します');
-  if(svgEl){
-    svgEl.innerHTML = hallSvg(zone) + '<p class="cap">' + legend + '</p>';
-  }
+function renderHall(zone, box, textEl){
+  if(!box) return;
+  if(!zone || !zone.grid || !zone.grid.length){ box.innerHTML=''; return; }
   if(textEl) textEl.textContent = zone.text || '';
+  var legend = zone.confirmed
+    ? '<span style="color:#63b6cc">■</span> お客さまのお席'
+    : ((zone.seats && zone.seats.length)
+        ? '<span style="color:#63b6cc">■</span> お客さまのためにお取りしているお席'
+        : '<span style="color:#3d7683">■</span> この中からお席をご用意します');
+  var uid = 'd' + Math.floor(Math.random()*1e6);
+  box.innerHTML =
+      '<div class="hallwrap">' + overviewSvg(zone) + '</div>'
+    + '<button type="button" class="moreBtn" id="'+uid+'b">詳しい座席図を見る</button>'
+    + '<div class="hide" id="'+uid+'d">'
+    +   '<div class="hallwrap detail' + (isF2Zone(zone)?' wide':'') + '">' + detailSvg(zone) + '</div>'
+    +   '<p class="cap">' + legend + '</p>'
+    + '</div>';
+  var b=document.getElementById(uid+'b'), d=document.getElementById(uid+'d');
+  b.onclick=function(){
+    var open=!d.classList.contains('hide');
+    d.classList.toggle('hide', open);
+    b.textContent = open ? '詳しい座席図を見る' : '座席図を閉じる';
+  };
 }
 
 /* ---- 初期化 ---------------------------------------------------- */
