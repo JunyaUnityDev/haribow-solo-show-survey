@@ -714,7 +714,21 @@ function loadAvail(){
       return;
     }
     render(); if(document.getElementById('gmap')) renderG();
-  }).catch(function(){});
+  }).catch(function(e){
+    /* ★空席状況が取れなかったときに黙って終わらない（2026-08-26）。
+         旧コードは .catch(function(){}) で握り潰していたので、この口が落ちると
+         **座席表が1席も無い画面**のまま何も起きず、お客様には理由が分からなかった。
+         実際、rt→rtok の改名前のJSがキャッシュされている端末で、席が出ない状態が起きた。
+       ★描けている席があるなら何も出さない（一時的な再取得の失敗で画面を壊さない）。 */
+    var m = document.getElementById('map');
+    if(!m || m.querySelector('.seat')) return;
+    m.innerHTML = '<p style="color:#a7adba;text-align:center;padding:36px 12px;line-height:1.9">'
+      + '座席の空き状況を読み込めませんでした。<br>通信環境をご確認のうえ、下のボタンから読み込み直してください。<br>'
+      + '<button type="button" onclick="location.reload(true)" style="margin-top:14px;padding:10px 20px;'
+      + 'border:0;border-radius:8px;background:#63b6cc;color:#0a0b0e;font-weight:800;cursor:pointer;'
+      + 'font-family:inherit;font-size:14px">読み込み直す</button><br>'
+      + '<span style="font-size:12px;color:#6b7280">解決しない場合は info@haribow.com までご連絡ください。</span></p>';
+  });
 }
 
 var showAll=false;
