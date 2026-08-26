@@ -618,6 +618,13 @@ var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
 var GSOLD = {};                           // 団体マップ：takenGroup（団体保留/確定）
 var MINE = {};                            // 自分がいま押さえている席（seat_avail の mine）
+/* 空席状況をまだ受け取っていない間は座席表を描かない（2026-08-26）。
+   ★GASは起動に4〜16秒かかることがあり、その間 SOLD が空のままになる。
+     このとき描くと **売り切れの席が「買える席」として並ぶ**。
+     さらにレイアウトも来ていない段階では STAGE と凡例だけの
+     「席が1つも無い購入画面」になる（JUNYAから『席でない』と報告）。
+   ★どちらも待っている間だけの話なので、読み込み中と分かる表示に置き換える。 */
+var AVAIL_LOADED = false;
 var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を個人（一般料金）に開放
 /* 来場サポーター券の販売期間（決定No.14・9/5まで）。サーバーの supOpen が正。
    ★端末の時計で判定しないこと。9/6以降は
@@ -713,6 +720,7 @@ function loadAvail(){
         +'お問い合わせは info@haribow.com まで。</p></div>';
       return;
     }
+    AVAIL_LOADED = true;
     render(); if(document.getElementById('gmap')) renderG();
   }).catch(function(e){
     /* ★空席状況が取れなかったときに黙って終わらない（2026-08-26）。
@@ -817,6 +825,14 @@ function render(){
   var focus = !!(curType && !showAll);
   map.className = 'map' + (focus?' big':'');
   map.innerHTML='';
+  /* レイアウトか空席状況のどちらかがまだ届いていない間は席を描かない。
+     描くと売り切れの席が買えるように見え、レイアウト前なら1席も出ない画面になる。 */
+  if(!LAYOUT || !ROWS || !ROWS.length || !AVAIL_LOADED){
+    map.innerHTML = '<p style="color:#a7adba;text-align:center;padding:36px 12px;line-height:1.9">'
+      + '座席表を読み込んでいます…<br><span style="font-size:12px;color:#6b7280">'
+      + '10秒ほどかかることがあります。そのままお待ちください。</span></p>';
+    return;
+  }
   var tog=document.getElementById('mapToggle');
   if(tog){ tog.style.display = curType?'':'none'; tog.textContent = showAll?'選んだエリアだけ大きく表示':'客席全体を見る'; }
   renderBlockPicker();
