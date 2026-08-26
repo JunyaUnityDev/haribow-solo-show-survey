@@ -1337,6 +1337,12 @@ if(INVITE_TOKEN){
   gate.textContent = 'ご招待の内容を確認しています…';
   if(pane){ pane.style.display='none'; pane.parentNode.insertBefore(gate, pane); }
   document.querySelectorAll('.tab').forEach(function(b){ b.style.display='none'; });
+  /* ★前売価格のバッジ（「公演前日 9/28 まで」）も**この時点で**隠す（2026-08-27）。
+       これは #tab-personal の外にあるので、pane を隠しても残る。
+       applyInviteMode が隠すのは問い合わせが返ってからで、GASの立ち上がりを含む数秒〜30秒、
+       ご招待の画面に 9/28 という日付だけが出ていた。
+       ご招待の締切は9/22なので、**申し込みの締切が28日だと読める**（実際にそう読まれた）。 */
+  var phaseEl = document.getElementById('phase'); if(phaseEl) phaseEl.style.display='none';
 
   /* ★2つの問い合わせを**並列**で投げて、両方そろってから画面を出す（2026-08-25）。
        直列にしていたときは、招待の確認が返ってゲートが外れた直後に
