@@ -1344,20 +1344,24 @@ if(INVITE_TOKEN){
         + 'onclick="location.reload()">再読み込み</button>';
     });
 } else {
-  render(); updateCart(); loadLayoutThenAvail();
+  render(); updateCart();
+  /* ★バナーはレイアウトを読み終えてから出す。
+       席の呼び方（「2階11列39番」）は ROWS_BY_NUM が入って初めて作れる。
+       先に出すと「41列39番」という実在しない席名がバナーに出る（2026-08-26に本番で実測）。 */
+  loadLayoutThenAvail().then(maybeShowResume);
 }
 
 /* お手続きが途中のまま戻ってきた方に、続きへのボタンを出す（2026-08-26）。
    ★決済から戻ってきた直後（?confirm=）と配信の戻り（?sconfirm=）では出さない。
      あちらは確定処理の画面で、バナーを出すと二重に払わせる誘導になる。
    ★ご招待の追加席モードでも出さない（券種も価格も別経路のため）。 */
-(function(){
+function maybeShowResume(){
   var q = location.search;
   if(q.indexOf('confirm=') >= 0) return;
   if(INVITE_TOKEN) return;
   var p = pendingGet();
   if(p) showResumeBar(p);
-})();
+}
 
 /** 追加席モードの見た目を作る */
 function applyInviteMode(){
