@@ -108,6 +108,17 @@
   .seat.sold{background:var(--sold);opacity:.55}
   .seat.dim{background:var(--dim-seat)}
   .seat.pick{background:var(--pick);box-shadow:0 0 0 2px var(--pick),0 0 0 4px rgba(47,143,107,.3)}
+  /* お手続き中＝自分がさっき押さえた席（2026-08-26）。売切と同じ「押せない」だが、
+     他人に取られたのではないことが一目で分かるように、金色の枠で別扱いにする。 */
+  .seat.mineseat{background:var(--sold);box-shadow:0 0 0 2px var(--sup);opacity:1}
+  .resumebar{margin:0 0 18px;padding:14px 16px;border:1px solid var(--sup);border-radius:12px;
+    background:rgba(201,162,75,.10);display:none}
+  .resumebar h3{margin:0 0 6px;font-size:14.5px;font-weight:800;color:var(--sup)}
+  .resumebar p{margin:0 0 10px;font-size:12.5px;line-height:1.85;color:var(--dim)}
+  .resumebar button{width:100%;padding:13px;border:0;border-radius:10px;background:var(--sup);
+    color:#0a0b0e;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .resumebar .skip{margin:8px 0 0;background:none;color:var(--faint);font-weight:600;font-size:12.5px;
+    border:0;padding:6px;cursor:pointer;text-decoration:underline}
   .side{display:flex;flex-direction:column;gap:2px}
   .sidelab{font-size:9px;color:var(--faint);text-align:center;margin-bottom:2px}
 
@@ -164,6 +175,16 @@
   <h1>座席を選ぶ</h1>
   <p class="sub">めぐろパーシモンホール 大ホール（2026/9/29）</p>
   <div class="pricephase" id="phase">前売価格で表示中（公演前日 9/28 まで）</div>
+
+  <!-- お手続きが途中のまま戻ってきた方への案内（2026-08-26）。
+       通信が切れて「通信エラー」で終わった場合、サーバー側では注文も席の確保も
+       できていることがある。作り直させず、同じ決済リンクへ戻す。 -->
+  <div class="resumebar" id="resumeBar">
+    <h3>お手続きが途中です</h3>
+    <p id="resumeMsg">先ほどお選びいただいたお席はお取り置きしています。お支払いの画面へ進めます。</p>
+    <button type="button" onclick="resumeNow()" id="resumeBtn">お支払いを続ける</button>
+    <button type="button" class="skip" onclick="dismissResume()">あとにする（別のお席も選べます）</button>
+  </div>
 
   <div class="tabs">
     <button type="button" class="tab active" onclick="showTab('personal',this)">個人・指定席</button>
@@ -596,6 +617,7 @@ var GROUP_OPEN = new Date() >= new Date(2026,7,17); // 8/17以降サイドを個
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var SOLD = {};                            // 個人マップ：seat_avail の taken（売却/ロック中）
 var GSOLD = {};                           // 団体マップ：takenGroup（団体保留/確定）
+var MINE = {};                            // 自分がいま押さえている席（seat_avail の mine）
 var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を個人（一般料金）に開放
 /* 来場サポーター券の販売期間（決定No.14・9/5まで）。サーバーの supOpen が正。
    ★端末の時計で判定しないこと。9/6以降は
@@ -653,9 +675,23 @@ function loadLayoutThenAvail(){
   });
 }
 function loadAvail(){
-  fetch(BASE+'?page=seat_avail').then(function(r){return r.json();}).then(function(d){
+  /* rtok＝直前の座席ロックの持ち主ID。付けると「その席を押さえているのはあなた自身です」を
+     サーバーが mine で返す（Seats.js）。無い/期限切れなら従来と同じ戻り値になるだけ。
+     ★`rt` という名前は使えない。Apps Script のフロントが予約していて、
+       値によらず HTTP 400 が返り doGet に届かない（2026-08-26に本番で実測）。
+     ★万一この付加パラメータで取得に失敗しても、席が1つも描けない状態にはしない。
+       素の seat_avail で必ず引き直す（座席表が出ないのが購入画面で最悪の壊れ方）。 */
+  var pv = pendingGet();
+  var q = (pv && pv.lockToken) ? ('&rtok='+encodeURIComponent(pv.lockToken)) : '';
+  fetch(BASE+'?page=seat_avail'+q).then(function(r){
+    if(!r.ok) throw new Error('avail '+r.status);
+    return r.json();
+  }).catch(function(){
+    return fetch(BASE+'?page=seat_avail').then(function(r){return r.json();});
+  }).then(function(d){
     SOLD={}; (d.taken||[]).forEach(function(id){ SOLD[id]=1; });
     GSOLD={}; (d.takenGroup||[]).forEach(function(id){ GSOLD[id]=1; });
+    MINE={}; (d.mine||[]).forEach(function(id){ MINE[id]=1; });
     SIDESOPEN = !!d.sidesOpen;
     SUPOPEN = (d.supOpen !== false);
     if(d.supEnd) SUPEND = d.supEnd;
@@ -856,7 +892,8 @@ function makeSeat(row,n){
   // 全体表示は「見るだけの地図」。席が小さく正確に押せないので選択させず、選ぶ画面へ誘導する
   if(showAll || !curType){
     area=openArea(row,n);
-    if(SOLD[key] || (SIDESOPEN && GSOLD[key])) s.className+=' sold';
+    if(MINE[key]) s.className+=' mineseat';
+    else if(SOLD[key] || (SIDESOPEN && GSOLD[key])) s.className+=' sold';
     else if(!SELLABLE[area]) s.className+=' dead';
     else if(picked[key]) s.className+=' pick';
     else s.className+=' '+area;
@@ -864,6 +901,11 @@ function makeSeat(row,n){
     return s;
   }
   area=openArea(row,n); // 8/17以降：空きサイド席を一般席として個人開放（GROUP_ONLYは除く）
+  /* 自分がお手続き中の席（2026-08-26）。売切と同じで押せないが、他の方に取られたのではなく
+     自分の決済が途中であることを示す。ここを『売切』のままにすると、
+     お客様は自分の席が消えたと思って選び直す（＝新しい注文がもう1つ生まれる）。 */
+  if(MINE[key]){ s.className+=' mineseat'; s.title=fmtSeatLabel(row,n)+'（お手続き中のお席）';
+    s.setAttribute('aria-label',fmtSeatLabel(row,n)+' お手続き中'); return s; }
   if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+' 売切'; s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
   function act(){ toggle(row,n); }
@@ -935,6 +977,97 @@ function updateCart(){
 }
 var lastLockToken='';   // 直前に取得した座席ロックの持ち主証明
 
+/* ============================================================
+ *  お手続きの途中を覚えておく（2026-08-26）
+ *
+ *  決済ボタンを押したあと、サーバー側は「席を押さえる → 決済リンクを発行する →
+ *  注文行を書く」まで成功しているのに、その応答だけがブラウザに届かないことがある。
+ *  お客様には「通信エラー」しか見えないので押し直す。すると全部が新しく作られ、
+ *  自分がさっき押さえた席が自分から見て『売切』になる（2026-08-24 に実例）。
+ *
+ *  だから、押した内容（席・メール・ロックの持ち主ID）を手元に残しておき、
+ *  ・失敗した直後は自動で
+ *  ・ページを開き直したときは上のバナーから
+ *  同じ注文の続き（order_resume）へ行けるようにする。
+ *
+ *  ★保存先は sessionStorage。タブを閉じれば消える一時的なもので、個人情報を
+ *    端末に貯めない。使えない環境（プライベートブラウズ等）では静かに諦める。
+ *  ★有効期限は30分。サーバー側の resume の窓（PAY_RESUME_WINDOW_MIN_）と揃える。
+ *    ここだけ延ばしても、サーバーが「続きは無い」と答えて空振りする。
+ * ============================================================ */
+var PENDING_KEY='hbwPendingOrder', PENDING_MIN=30;
+/* 保存先は localStorage を優先する。
+   ★sessionStorage だとタブを閉じた時点で消える。ところが今回いちばん助けたいのは
+     「エラーが出て、いったんブラウザを閉じて、開き直した人」。実際に決済まわりで
+     何十回もやり直した方が出ている（2026-08-24）。そこで消えては意味がない。
+   ★どちらも使えない環境（プライベートブラウズ等）では静かに諦めて従来動作に戻る。
+   ★中身は30分で自分から消える（pendingGet が期限切れを消す）。 */
+function pendingStore_(){
+  try{ if(window.localStorage){ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return localStorage; } }catch(e){}
+  try{ if(window.sessionStorage){ return sessionStorage; } }catch(e){}
+  return null;
+}
+function pendingSave(o){ try{ var st=pendingStore_(); if(st) st.setItem(PENDING_KEY, JSON.stringify(o)); }catch(e){} }
+function pendingGet(){
+  try{
+    var st=pendingStore_(); if(!st) return null;
+    var raw=st.getItem(PENDING_KEY); if(!raw) return null;
+    var o=JSON.parse(raw);
+    if(!o || !o.seats || !o.seats.length || !o.contact) return null;
+    if(!(Date.now()-Number(o.ts||0) < PENDING_MIN*60*1000)){ pendingClear(); return null; }
+    return o;
+  }catch(e){ return null; }
+}
+function pendingClear(){ try{ var st=pendingStore_(); if(st) st.removeItem(PENDING_KEY); }catch(e){} }
+
+/** 同じ注文の続きをサーバーに聞く。あれば決済へ、支払い済みならチケットを出す。
+ *  戻り値は Promise<bool>（true＝続きがあって画面を進めた）。 */
+function tryResume(p){
+  if(!p) return Promise.resolve(false);
+  return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({survey:'order_resume', contact:p.contact, seatIds:p.seats})})
+  .then(function(r){return r.json();}).then(function(o){
+    if(o && o.ok && o.url){ pendingClear(); window.location.href=o.url; return true; }
+    if(o && o.ok && o.paid){
+      /* 既にお支払いが済んでいた場合。電子チケット（QR）はここには出さない。
+         この経路は鍵を持たないので、画面にQRを出すとメールと席番号を知る第三者にも見えてしまう。
+         チケットは購入完了メールと、決済から戻る ?confirm= の画面から出る。 */
+      pendingClear();
+      doneScreen('お支払いは完了しています。お席は確定しました。'+(o.seatsText?'（'+o.seatsText+'）':'')
+        +'<br><br>電子チケットは購入完了メールからご確認ください。');
+      return true;
+    }
+    return false;
+  }).catch(function(){ return false; });
+}
+
+/** バナーの［お支払いを続ける］。続きが無ければ、その場で選び直してもらう。 */
+function resumeNow(){
+  var p=pendingGet();
+  var btn=document.getElementById('resumeBtn');
+  if(btn){ btn.disabled=true; btn.textContent='確認しています…'; }
+  tryResume(p).then(function(done){
+    if(done) return;
+    pendingClear(); hideResumeBar();
+    alert('先ほどのお手続きは見つかりませんでした。\nお手数ですが、もう一度お席をお選びください。');
+    loadAvail();
+  });
+}
+/** ［あとにする］。覚えは消さない。
+ *  消すと、この席が自分のものだという手がかりが無くなり『売切』にしか見えなくなる。
+ *  押し間違いで続きへ戻れなくなるほうが害が大きいので、隠すだけにしている。
+ *  お席そのものは、お支払いを終えるか、1時間ほどで自動的に戻る。 */
+function dismissResume(){ hideResumeBar(); }
+function hideResumeBar(){ var b=document.getElementById('resumeBar'); if(b) b.style.display='none'; }
+function showResumeBar(p){
+  var b=document.getElementById('resumeBar'); if(!b||!p) return;
+  var m=document.getElementById('resumeMsg');
+  if(m){ m.textContent='先ほどお選びいただいた '+p.seats.map(fmtSeat).join('・')
+    +' はお取り置きしています。お支払いの画面へ進めます。'; }
+  b.style.display='block';
+}
+
+
 /* 購入をやめた/失敗した席をすぐ空に戻す。呼ばないと5分間ふさがったままになる。
    サーバー側は lockToken が一致する席しか解放しないので、他人の席には触れない。 */
 function releaseHeldSeats(keys){
@@ -962,6 +1095,9 @@ function checkout(){
       picked={}; loadAvail(); updateCart(); btn.textContent='決済へ'; return;
     }
     lastLockToken = res.lockToken;   // 失敗時にこの席を即座に返すため覚えておく
+    /* ここから先で応答が返ってこないと、お客様には結果が一切分からなくなる。
+       押した内容を先に手元へ残しておき、あとから「同じ注文の続き」を出せるようにする。 */
+    pendingSave({ lockToken:res.lockToken, seats:keys, contact:buyerContact(), ts:Date.now() });
     // ② 注文（金額はサーバーが券種×席×日時で再計算）。lockTokenで自分のロック席を確定に紐付け
     return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({survey:'ticket_order', orderType:'individual', typeId:curType.id,
@@ -972,6 +1108,7 @@ function checkout(){
     .then(function(r){return r.json();}).then(function(o){
       if(o.method==='square' && o.url){ window.location.href=o.url; }        // ③ Squareへ（戻りでconfirm）
       else if(o.method==='cash'){
+        pendingClear();
         doneScreen('受付でのお支払いをお願いします。下のチケットを受付でご提示ください。',
           '<div style="margin:22px auto 0;max-width:340px;padding:16px;border:2px solid #c9a24b;border-radius:12px">'
           +'<p style="margin:0 0 6px;color:#c9a24b;font-weight:800;font-size:18px">お支払い前です</p>'
@@ -982,7 +1119,7 @@ function checkout(){
           +'受付でこのQRコードをご提示のうえ、現金をお支払いください。<br>'
           +'当日の受付でお支払いください。お席はお取り置きしています。</p>');
       }
-      else if(o.method==='bank'){ doneScreen(
+      else if(o.method==='bank'){ pendingClear(); doneScreen(
         'お席をお取り置きしました。下記のお振込み先へお支払いください。'
         + 'ご入金を確認しましたら、お席の確定を '+buyerContact()+' へメールでご連絡いたします。',
         bankBox(o)); }
@@ -1006,6 +1143,8 @@ function checkout(){
                 : '決済の準備に失敗しました。時間をおいて再度お試しください。\n'
                   + '解決しない場合は info@haribow.com までご連絡ください。';
         // 押さえた席をすぐ返す。5分待たなくても他のお客様が選べるようにする
+        // ★サーバーが「エラー」と答えられている＝注文は作られていない。続きは無いので覚えを消す
+        pendingClear();
         releaseHeldSeats(Object.keys(picked));
         alert(msg); loadAvail(); btn.textContent='決済へ'; btn.disabled=false;
       }
@@ -1029,6 +1168,23 @@ function checkout(){
            （Payments.js の「1時間以上経過」条件）まで待つ＝実際は1〜2時間かかる。
            時刻表示は23:58に失敗すると「00:03を過ぎてから」と過去に見える問題もあった。
            両方の場合を書いて、時刻ではなく長さで伝える形にした。 */
+    /* ★まず「同じ注文の続き」があるか聞く（2026-08-26）。
+         応答が届かなかっただけで、サーバー側では注文も決済リンクも席の確保も
+         できていることがある。その場合はここで決済画面へ進めるので、
+         お客様は押し直さずに済む＝注文行も決済保留席も増えない。
+         続きが無ければ（＝リクエストが届いていなかった）、これまでどおりの案内に落ちる。 */
+    tryResume(pendingGet()).then(function(done){
+      if(done) return;            // 決済画面へ遷移した／確定済み画面を出した
+      pendingClear();
+      onCheckoutDead();
+    });
+    return;
+  });
+}
+
+/** 通信が返らず、続きも無かったときの案内（旧来の経路をそのまま関数へ出しただけ）。 */
+function onCheckoutDead(){
+    var btn=document.getElementById('buyBtn');
     var mine = Object.keys(picked).map(fmtSeat).join('・');
     releaseHeldSeats(Object.keys(picked));
     loadAvail();   // 座席表を引き直す。これが無いと自分の決済保留席を選んで「他の方に確保されました」と出る
@@ -1042,8 +1198,7 @@ function checkout(){
               + '別のお席でよろしければ、そのままお選びいただけます。\n\n'
             : 'お手数ですが、もう一度お席をお選びください。\n\n')
         + '何度も表示される場合は、画面下の「お問い合わせフォーム」からご連絡ください。');
-    btn.textContent='決済へ'; btn.disabled=false;
-  });
+    if(btn){ btn.textContent='決済へ'; btn.disabled=false; }
 }
 function fmtSeat(k){ var a=k.split('-'); return fmtSeatLabel(a[0],a[1]); }
 /* 振込先を完了画面に出す（2026-08-08）。
@@ -1107,6 +1262,7 @@ function doneScreen(msg, extra){
           +'当日はこの画面のQRコードを受付でご提示ください。<br>'
           +'同じ内容をメールでもお送りしています。</p>'
         : '';
+      pendingClear();   // 買い終わった＝続きは無い
       doneScreen('ご購入ありがとうございます。お席が確定しました。'+(o.ticketUrl?'':'詳細をメールでお送りします。'), tk);
     } else if(o && o.error==='not_paid_yet'){
       doneScreen('お支払いの確認中です。確定しましたらメールでお知らせします（反映まで少しお時間をいただく場合があります）。');
@@ -1190,6 +1346,18 @@ if(INVITE_TOKEN){
 } else {
   render(); updateCart(); loadLayoutThenAvail();
 }
+
+/* お手続きが途中のまま戻ってきた方に、続きへのボタンを出す（2026-08-26）。
+   ★決済から戻ってきた直後（?confirm=）と配信の戻り（?sconfirm=）では出さない。
+     あちらは確定処理の画面で、バナーを出すと二重に払わせる誘導になる。
+   ★ご招待の追加席モードでも出さない（券種も価格も別経路のため）。 */
+(function(){
+  var q = location.search;
+  if(q.indexOf('confirm=') >= 0) return;
+  if(INVITE_TOKEN) return;
+  var p = pendingGet();
+  if(p) showResumeBar(p);
+})();
 
 /** 追加席モードの見た目を作る */
 function applyInviteMode(){
