@@ -2,175 +2,71 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<title>HARIBOW単独公演 興味関心アンケート</title>
+<title>チケット｜HARIBOW単独公演「Go Beyond」</title>
+<meta name="description" content="HARIBOW単独公演「Go Beyond」2026年9月29日(火) めぐろパーシモンホール 大ホール。チケットのご購入はこちらから。">
+<!--
+  2026-08-29：このページを差し替えた。
+  ★それまで ticket.haribow.com のルートは7月の「興味関心アンケート」のままだった。
+    チケット販売が始まって以降、ドメインだけ打った人が「行ってみたいと思いますか」に着地していた
+    （全体監査で軽微として2回連続で報告されていたもの）。
+  ★旧アンケートは interest_archive.html に丸ごと残してある。solo_interest.html も別途生きている。
+  ★ここに締切の日付を書かないこと。日付の正典は gas/Deadlines.js で、
+    このリポに日付を書くと gas_tests/check_deadlines.js の検出対象になる。
+    公演日だけは締切ではないので書いている。
+-->
 <style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
-.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
-h1{font-size:20px;font-weight:800;margin:0 0 6px}
-h1 b{color:var(--blue)}
-.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
-label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
-select,input,textarea{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
-select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
-textarea{min-height:60px;resize:vertical}
-.chk-group{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.chk-row{display:flex;align-items:center;gap:8px;font-size:14.5px}
-.chk-row input{width:auto;margin:0}
-.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
-.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
-.muted{color:var(--faint);font-size:12.5px}
-.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
-.done{text-align:center;padding:40px 20px}
-.done .ck{font-size:40px;color:var(--ok);font-weight:800}
-.done h2{font-size:20px;margin:12px 0 6px}
+  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --text:#f3f1ea; --faint:#8b919e;
+         --accent:#2a3f52; --accentline:#39536b; --teal:#7fb8b0; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+    -webkit-text-size-adjust:100%;font-feature-settings:"palt"}
+  .wrap{max-width:520px;margin:0 auto;padding:56px 20px 64px}
+  .logo{display:block;width:132px;margin:0 auto 30px;opacity:.95}
+  h1{font-size:15px;letter-spacing:.16em;text-align:center;font-weight:700;margin:0 0 6px}
+  .sub{font-size:12px;color:var(--faint);text-align:center;letter-spacing:.1em;margin:0 0 30px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 20px 22px;margin-bottom:14px}
+  .when{font-size:17px;font-weight:700;line-height:1.6;letter-spacing:.02em}
+  .where{font-size:13px;color:var(--faint);margin-top:8px;line-height:1.8}
+  .btn{display:block;width:100%;padding:15px;border-radius:10px;border:1px solid var(--accentline);
+    background:var(--accent);color:#fff;font-size:15px;font-weight:700;text-align:center;
+    text-decoration:none;margin-top:18px}
+  .btn.ghost{background:transparent;border-color:var(--line);color:var(--text);font-weight:600;font-size:14px;margin-top:10px}
+  .links{margin-top:26px;text-align:center;font-size:13px;line-height:2.4}
+  .links a{color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(127,184,176,.35);padding-bottom:1px}
+  .note{margin-top:30px;font-size:11.5px;color:var(--faint);line-height:1.9;
+    border-top:1px solid var(--line);padding-top:16px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go Beyond">
-  <h1>単独公演 興味関心アンケート</h1>
-  <p class="lead">2026年9月29日(火) 19:30開演、めぐろパーシモンホールでHARIBOW初の単独公演を行います。最寄駅は東急東横線「都立大学駅」（徒歩7分）です。企画の参考にしたいので、よければ教えてください。HARIBOWについて詳しくは<a href="https://haribow.com/" target="_blank" rel="noopener">公式サイト</a>をご覧ください。</p>
+  <img class="logo" src="assets/go-beyond-logo.png" alt="Go Beyond" onerror="this.style.display='none'">
+  <h1>HARIBOW単独公演「Go Beyond」</h1>
+  <p class="sub">TICKETS</p>
 
-  <div id="form">
-    <div class="card">
-      <label>お名前・ニックネーム</label>
-      <input type="text" id="name" placeholder="例：たろう">
-
-      <label>どこ経由でこのアンケートを受け取りましたか</label>
-      <select id="source">
-        <option value="">選択してください</option>
-        <option>出演者の友人・知人</option>
-        <option>オーディション応募者</option>
-        <option>オンラインレッスン受講者</option>
-        <option>その他</option>
-      </select>
-
-      <label>この公演のことを知っていましたか</label>
-      <select id="aware">
-        <option value="">選択してください</option>
-        <option>知っていた</option>
-        <option>知らなかった</option>
-      </select>
-
-      <label>行ってみたいと思いますか</label>
-      <select id="interest">
-        <option value="">選択してください</option>
-        <option>絶対行く</option>
-        <option>たぶん行く</option>
-        <option>興味はあるけどまだ未定</option>
-        <option>たぶん行かない</option>
-        <option>分からない</option>
-      </select>
-
-      <label>行くとしたら、どのくらいの価格なら払えますか</label>
-      <select id="price">
-        <option value="">選択してください</option>
-        <option>〜2,000円</option>
-        <option>2,000〜4,000円</option>
-        <option>4,000〜6,000円</option>
-        <option>6,000円以上</option>
-      </select>
-
-      <label>学生ですか</label>
-      <select id="student">
-        <option value="">選択してください</option>
-        <option>はい</option>
-        <option>いいえ</option>
-      </select>
-
-      <label>どんな公演を観たいですか（複数選択可）</label>
-      <div class="chk-group" id="wishGroup">
-        <label class="chk-row"><input type="checkbox" value="迫力・大会レベルのリスクのある大技">迫力・大会レベルのリスクのある大技</label>
-        <label class="chk-row"><input type="checkbox" value="HARIBOWやメンバーのこれまでのストーリー、今後何を目指しているのかを知れるもの">HARIBOWやメンバーのこれまでのストーリー、今後何を目指しているのかを知れるもの</label>
-        <label class="chk-row"><input type="checkbox" value="出演者それぞれの個性が見えるもの">出演者それぞれの個性が見えるもの</label>
-        <label class="chk-row"><input type="checkbox" value="観客参加型">観客参加型</label>
-      </div>
-      <textarea id="wishText" placeholder="自由記述（あれば）"></textarea>
-
-      <label style="margin-top:14px">お住まい</label>
-      <select id="location">
-        <option value="">選択してください</option>
-        <option>東京・関東</option>
-        <option>それ以外の国内</option>
-        <option>海外</option>
-      </select>
-
-      <label style="margin-top:14px">配信があったら観たいですか</label>
-      <select id="stream">
-        <option value="">選択してください</option>
-        <option>はい</option>
-        <option>いいえ</option>
-        <option>わからない</option>
-      </select>
-
-      <label style="margin-top:14px">お子さんと一緒に来る予定はありますか</label>
-      <select id="childPlan">
-        <option value="">選択してください</option>
-        <option>はい</option>
-        <option>いいえ</option>
-        <option>子供はいない</option>
-      </select>
-    </div>
-    <div class="card">
-      <button class="btn" id="send">送信する</button>
-      <div class="err" id="err">未入力の項目があります。</div>
-      <p class="muted" style="margin:10px 0 0">回答は集計のみに使い、個別に公開されることはありません。</p>
-    </div>
+  <div class="card">
+    <div class="when">2026年9月29日（火）<br>開場 18:30 ／ 開演 19:30</div>
+    <div class="where">めぐろパーシモンホール 大ホール<br>東京都目黒区八雲1-1-1／東急東横線「都立大学」駅 徒歩7分</div>
+    <a class="btn" href="seats.html">チケットを購入する</a>
+    <a class="btn ghost" href="seats.html?tab=stream">当日ご来場になれない方へ（生配信）</a>
+    <a class="btn ghost" href="seats.html?tab=group">5名以上でお申し込みの方（団体）</a>
   </div>
 
-  <div class="done" id="done" style="display:none">
-    <div class="ck">✓</div>
-    <h2>送信ありがとうございました！</h2>
-    <p class="muted">回答を受け付けました。</p>
+  <div class="links">
+    <a href="https://go-beyond.haribow.com">公式サイト（演目・来場ガイド）</a><br>
+    <a href="ticket.html">ご購入済みの方（電子チケット）</a><br>
+    <a href="contact.html">お問い合わせ</a><br>
+    <a href="tokushoho.html">特定商取引法に基づく表記</a>
   </div>
+
+  <p class="note">
+    ご不明な点は <a href="mailto:info@haribow.com" style="color:var(--teal)">info@haribow.com</a> までお気軽にお問い合わせください。<br>
+    車椅子でのご来場をご希望の方は、購入画面からはお申し込みいただけません。上記メールアドレスまでご連絡ください。
+  </p>
 </div>
-
-<script>
-var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-
-document.getElementById('send').addEventListener('click',function(){
-  var name=document.getElementById('name').value.trim();
-  var source=document.getElementById('source').value;
-  var aware=document.getElementById('aware').value;
-  var interest=document.getElementById('interest').value;
-  var price=document.getElementById('price').value;
-  var student=document.getElementById('student').value;
-  var location=document.getElementById('location').value;
-  var stream=document.getElementById('stream').value;
-  var startTime='19:30'; // 開演時間確定済み(2026-07-11)のため設問は廃止、固定値を送信してSS列構成を維持
-  var childPlan=document.getElementById('childPlan').value;
-  var wishChecks=Array.prototype.slice.call(document.querySelectorAll('#wishGroup input:checked')).map(function(c){return c.value;});
-  var wishText=document.getElementById('wishText').value.trim();
-  var wish=wishChecks.join('、')+(wishText?(wishChecks.length?'／':'')+wishText:'');
-
-  if(!source||!aware||!interest||!price||!student||!location||!stream||!childPlan){
-    document.getElementById('err').style.display='block';
-    window.scrollTo(0,document.body.scrollHeight);
-    return;
-  }
-  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
-  fetch(ENDPOINT,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'jp',name:name,source:source,aware:aware,interest:interest,price:price,student:student,wish:wish,location:location,stream:stream,startTime:startTime,childPlan:childPlan})
-  }).then(function(){
-    document.getElementById('form').style.display='none';
-    document.getElementById('done').style.display='block';
-    window.scrollTo(0,0);
-  }).catch(function(e){
-    btn.disabled=false; btn.textContent='送信する';
-    document.getElementById('err').textContent='送信に失敗しました：'+e+' もう一度お試しください。';
-    document.getElementById('err').style.display='block';
-  });
-});
-</script>
 </body>
 </html>
