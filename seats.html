@@ -215,7 +215,7 @@
       <span><span class="sw" style="background:var(--sup)"></span>サポーター席</span>
       <span><span class="sw" style="background:var(--pick)"></span>選択中</span>
       <span><span class="sw" style="background:var(--sold)"></span>売切</span>
-      <span><span class="sw" style="background:var(--dead)"></span>販売なし（車椅子/機材/カメラ/関係者席）</span>
+      <span><span class="sw" style="background:var(--dead)"></span>販売なし（車椅子/機材/カメラ）</span>
     </div>
   </div>
 
@@ -611,6 +611,19 @@ function areaAt(row,n){
   if(a.indexOf('x:') === 0) return null;    // 存在するが売り物ではない
   return a;
 }
+/** 運営が押さえている席か（演者・クルー・AIRFOOTWORKS・招待の枠）。
+ *  レイアウトAPIが "x:cast" のように "x:" を前置きして返してくる席がそれ。
+ *  ★2026-08-29 JUNYA指示：**消さずに、売切と同じ黒で出す。**
+ *    以前は 非売(.dead グレー斜線) / 団体タブでは .dim（背景とほぼ同色）で、
+ *    お客様からは「席が無い」ようにも見えていた。実際は席はあって取れないだけなので、
+ *    売切と同じ見た目にして「埋まっている席」として読ませる。
+ *  ★見た目だけの話ではない。買えないことはサーバー側で二重に担保してある
+ *    （区分＝関係者なので lockSeats の「区分＝個人/団体」で弾かれ、状態＝非売なので
+ *     「空」判定でも弾かれる。Seats.js lockSeats）。 */
+function isHeld(row,n){
+  var a = AREA_OF[row+'-'+n];
+  return typeof a === 'string' && a.indexOf('x:') === 0;
+}
 /** その列に物理的に存在する席番号 */
 function gridOf(row){ var r=ROWS_BY_NUM[row]; return r ? r.grid : []; }
 var GROUP_OPEN = new Date() >= new Date(2026,7,17); // 8/17以降サイドを個人開放（実挙動はサーバーのsidesOpen=SIDESOPENが正）
@@ -863,14 +876,23 @@ function render(){
       // 対象エリアのうち、選択中のブロック（左サイド/中央/右サイド）だけを描く。
       // 左右サイドを1列に連結すると20席になり画面に収まらず、実際の座席配置とも食い違うため分けている。
       var fnums=gridOf(row), fblk=document.createElement('div'); fblk.className='blk';
-      var drawn=0;
+      var drawn=0, cells=[];
+      /* ★2026-08-29 JUNYA指示：**運営が押さえている席を消さずに、売切と同じ黒で描く。**
+           以前はここで券種のエリアに一致する席だけを描いていたので、演者席・クルー席・
+           招待枠が座席表から**丸ごと消えて**いた。買えないのは同じでも、席が無いように
+           見えると「この列は9番まで」と誤解する（実際は10番以降が埋まっているだけ）。
+         ★drawn には数えない。押さえた席しか無い列は今までどおり行ごと出さない
+           （空の行が増えるだけなので）。 */
       fnums.forEach(function(n){
         var a=openArea(row,n);
-        if(a!==curType.area) return;
+        var held=isHeld(row,n);
+        if(a!==curType.area && !held) return;
         if(curBlock && blockOf(row,n)!==curBlock) return;
-        fblk.appendChild(makeSeat(row,n)); drawn++;
+        cells.push(n);
+        if(!held) drawn++;
       });
-      if(!drawn){ continue; }        // このブロックに席が無い列は行ごと出さない
+      if(!drawn){ continue; }        // 買える席が1つも無い列は行ごと出さない
+      cells.forEach(function(n){ fblk.appendChild(makeSeat(row,n)); });
       rs.appendChild(fblk);
     } else {
       var nums=gridOf(row), curBlk='', blkEl=null;
@@ -924,6 +946,7 @@ function makeSeat(row,n){
     area=openArea(row,n);
     if(MINE[key]) s.className+=' mineseat';
     else if(SOLD[key] || (SIDESOPEN && GSOLD[key])) s.className+=' sold';
+    else if(isHeld(row,n)) s.className+=' sold';          // 運営が押さえている席も売切と同じ黒
     else if(!SELLABLE[area]) s.className+=' dead';
     else if(picked[key]) s.className+=' pick';
     else s.className+=' '+area;
@@ -937,6 +960,9 @@ function makeSeat(row,n){
   if(MINE[key]){ s.className+=' mineseat'; s.title=fmtSeatLabel(row,n)+'（お手続き中のお席）';
     s.setAttribute('aria-label',fmtSeatLabel(row,n)+' お手続き中'); return s; }
   if(SOLD[key] || (SIDESOPEN && GSOLD[key])){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+' 売切'; s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 売切'); return s; }
+  /* 運営が押さえている席（演者・クルー・AIRFOOTWORKS・招待）。
+     売切と同じ見た目・同じ表示にする。枠の内訳は外に出さない。 */
+  if(isHeld(row,n)){ s.className+=' sold'; s.title=fmtSeatLabel(row,n)+' 売切'; s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 売切'); return s; }
   if(!SELLABLE[area]){ s.className+=' dead'; return s; } // 非売
   function act(){ toggle(row,n); }
   function keyact(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); act(); } }
@@ -1582,7 +1608,9 @@ function makeGSeat(row,n){
     if(gpicked[key]){ s.className+=' pick'; s.title=fmtSeatLabel(row,n)+'（選択中・押すと解除）'; s.setAttribute('aria-pressed','true'); }
     else { s.className+=' group buyable'; s.title=fmtSeatLabel(row,n); s.setAttribute('aria-pressed','false'); }
     s.tabIndex=0; s.setAttribute('role','button'); s.setAttribute('aria-label',fmtSeatLabel(row,n)+' 団体サイド席'); s.onclick=gact; s.onkeydown=gkey;
-  } else { s.className+=' dim'; }  // 中央帯・非売は選べない
+  } else if(isHeld(row,n)){                 // 運営が押さえている席は売切と同じ黒（2026-08-29）
+    s.className+=' sold'; s.title=fmtSeatLabel(row,n)+' 売切';
+  } else { s.className+=' dim'; }  // 中央帯（個人席）は団体タブでは選べない
   return s;
 }
 function gToggle(row,n){ var key=row+'-'+n; if(gpicked[key])delete gpicked[key]; else gpicked[key]=true; renderG(); gCalc(); }
