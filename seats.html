@@ -881,17 +881,18 @@ function render(){
            以前はここで券種のエリアに一致する席だけを描いていたので、演者席・クルー席・
            招待枠が座席表から**丸ごと消えて**いた。買えないのは同じでも、席が無いように
            見えると「この列は9番まで」と誤解する（実際は10番以降が埋まっているだけ）。
-         ★drawn には数えない。押さえた席しか無い列は今までどおり行ごと出さない
-           （空の行が増えるだけなので）。 */
+         ★押さえた席しか無いブロック（2階2列・3列の右サイド＝演者席、2階10列中央＝クルー席）も
+           行ごと描く。ここを消すと座席表から列が2つ抜けて「2階1列の次が4列」になり、
+           結局「席が無い」ように見える。黒い列が並ぶほうが実態に合っている。 */
       fnums.forEach(function(n){
         var a=openArea(row,n);
         var held=isHeld(row,n);
         if(a!==curType.area && !held) return;
         if(curBlock && blockOf(row,n)!==curBlock) return;
         cells.push(n);
-        if(!held) drawn++;
+        drawn++;
       });
-      if(!drawn){ continue; }        // 買える席が1つも無い列は行ごと出さない
+      if(!drawn){ continue; }        // このブロックに席が1つも無い列は行ごと出さない
       cells.forEach(function(n){ fblk.appendChild(makeSeat(row,n)); });
       rs.appendChild(fblk);
     } else {
