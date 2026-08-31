@@ -168,13 +168,16 @@ select{cursor:pointer}
 table.mg{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap}
 table.mg th,table.mg td{padding:2px 3px}
 table.mg th.v{writing-mode:vertical-rl;text-orientation:mixed;font-weight:600;color:var(--dim);
-  height:112px;vertical-align:bottom;padding-bottom:6px;font-size:9.5px;overflow:hidden}
-table.mg th.v.a2{color:var(--violet)}
-table.mg td.n{position:sticky;left:0;background:var(--panel);color:var(--ink);
-  padding-right:11px;font-size:11.5px;z-index:2}
-table.mg td.c{text-align:center;width:20px}
+  height:66px;vertical-align:bottom;padding-bottom:6px;font-size:10px}
+table.mg th.v.zeroh{color:var(--amber)}
+table.mg th.corner,table.mg td.n{position:sticky;left:0;background:var(--panel);z-index:2;
+  text-align:left;padding-right:12px;font-size:11.5px;color:var(--ink);white-space:nowrap}
+table.mg td.n .bt{color:var(--faint);font-variant-numeric:tabular-nums;font-size:10px;margin-right:6px}
+table.mg td.n .kd{color:var(--faint)}
+table.mg td.c{text-align:center;width:19px}
 table.mg tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
 table.mg tbody tr:nth-child(even) td.n{background:#171920}
+table.mg tfoot td{border-top:1px solid var(--line);padding-top:4px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.09)}
 .dot.on{background:var(--teal)}
 .dot.on.all{background:rgba(99,182,204,.3)}
@@ -245,6 +248,7 @@ td.tot{color:var(--faint);text-align:center;font-variant-numeric:tabular-nums;fo
         <span><i style="background:var(--red)"></i>直前か直後にも出る</span>
         <span><i style="background:rgba(99,182,204,.3)"></i>全員出演（出番に数えない）</span>
         <span><i style="background:var(--amber)"></i>橙の名前＝OP/ED以外の出番ゼロ</span>
+        <span>行＝ブロック／列＝メンバー</span>
       </div>
     </div>
   </div>
@@ -418,12 +422,16 @@ function renderBar(r){
   document.getElementById('bar').innerHTML = S.blocks.map(function(b){
     var w = blank(b.dur) ? avg : num(b.dur) + b._trans;
     var pct = Math.max(w / unit * 100, 1.2);
+    /* 名前は入りきる時だけ出す。切り詰めると単語の途中で切れて読めない
+       （「HOMECOMING」→「HOMEC…」）。入らないなら出さず、hoverで全文を見せる。 */
+    var room = pct / 100 * 1150;                       // だいたいの帯の幅(px)
+    var fits = room >= b.name.length * 9.6 + 12;
     return '<div class="seg' + (blank(b.dur) ? ' unknown' : '') + '" '
       + 'style="flex:0 0 ' + pct + '%;' + (blank(b.dur) ? '' : 'background:' + KIND_COLOR[b.kind] + ';') + '" '
       + 'onclick="jump(' + b.uid + ')" title="' + esc(b.name) + ' ／ '
       + (b._start != null && b._end != null ? fmtHHMM(b._start) + '–' + fmtHHMM(b._end) + ' ／ ' : '')
       + (blank(b.dur) ? '尺未入力' : round1(num(b.dur)) + '分') + '">'
-      + '<span>' + esc(blank(b.dur) ? '?' : (num(b.dur) >= 4 ? b.name : '')) + '</span></div>';
+      + '<span>' + esc(blank(b.dur) ? '?' : (fits ? b.name : '')) + '</span></div>';
   }).join('');
 }
 
@@ -718,31 +726,40 @@ function renderWarns(r){
   document.getElementById('warns').innerHTML = h;
 }
 
-/* ---------- 稼働グリッド ---------- */
+/* ---------- 稼働グリッド ----------
+   行＝ブロック／列＝メンバー。逆（行＝メンバー）だと演目名が縦書きの見出しになり、
+   「DOUBLE DUTCH CONTEST JAPAN 2023」のような長い名前が必ず切れる。
+   演目名は長く、メンバー名は短い。長いほうを横書きの行見出しに置く。 */
 function renderGrid(r){
-  var engi = S.blocks.filter(function(b){ return b.kind === '演目'; });
-  var rows = S.members.slice().sort(function(a, b){
+  var members = S.members.slice().sort(function(a, b){
     return (r.own[b.name] || 0) - (r.own[a.name] || 0) || a.name.localeCompare(b.name, 'ja'); });
 
-  var h = '<table class="mg"><thead><tr><th></th>'
-    + engi.map(function(b){
-        /* 縦書きは text-overflow が効かないので、文字数で切って全文は title に持たせる */
-        var short = b.name.length > 13 ? b.name.slice(0, 12) + '…' : b.name;
-        return '<th class="v' + (b._act === 2 ? ' a2' : '') + '" title="' + esc(b.name) + '">'
-          + esc(short) + '</th>'; }).join('')
-    + '<th class="v">出番</th></tr></thead><tbody>';
-  rows.forEach(function(m){
-    var c = r.own[m.name] || 0;
-    h += '<tr' + (c ? '' : ' class="zero"') + '><td class="n">' + esc(m.name) + '</td>';
-    engi.forEach(function(b){
-      var on = (S.cast[b.name] || []).indexOf(m.name) >= 0;
+  var h = '<table class="mg"><thead><tr><th class="corner"></th>'
+    + members.map(function(m){
+        return '<th class="v' + ((r.own[m.name] || 0) ? '' : ' zeroh') + '">'
+          + esc(m.name) + '</th>'; }).join('')
+    + '</tr></thead><tbody>';
+
+  S.blocks.forEach(function(b){
+    var cast = (b.kind === '演目') ? (S.cast[b.name] || []) : [];
+    h += '<tr><td class="n"><span class="bt">'
+      + (b._start != null ? fmtHHMM(b._start) : '--:--') + '</span>'
+      + esc(b.name)
+      + (b.kind === '演目' ? '' : ' <span class="kd">（' + esc(b.kind) + '）</span>') + '</td>';
+    members.forEach(function(m){
+      var on = cast.indexOf(m.name) >= 0;
       var cls = !on ? 'dot' : (b._all ? 'dot on all'
               : (r.hot[m.name + ' ' + b.uid] ? 'dot on run' : 'dot on'));
       h += '<td class="c"><span class="' + cls + '"></span></td>';
     });
-    h += '<td class="tot">' + c + '</td></tr>';
+    h += '</tr>';
   });
-  document.getElementById('mgrid').innerHTML = h + '</tbody></table>';
+
+  h += '</tbody><tfoot><tr><td class="n">出番（OP・EDを除く）</td>'
+    + members.map(function(m){
+        return '<td class="tot">' + (r.own[m.name] || 0) + '</td>'; }).join('')
+    + '</tr></tfoot></table>';
+  document.getElementById('mgrid').innerHTML = h;
 }
 
 /* ---------- 設定 ---------- */
