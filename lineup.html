@@ -41,7 +41,7 @@ h1{font-size:21px;font-weight:800;margin:0;letter-spacing:.02em}
 .stat .v{font-size:17px;font-weight:800;letter-spacing:.01em;line-height:1.3}
 .stat .v small{font-size:10.5px;font-weight:700;color:var(--faint);margin-left:3px}
 .stat.ok .v{color:var(--green)} .stat.over .v{color:var(--red)}
-.stat.warn .v{color:var(--amber)} .stat.mute .v{color:#3f4552}
+.stat.att .v{color:var(--amber)} .stat.mute .v{color:#3f4552}
 
 /* ---------- 帯グラフ ---------- */
 .bar{display:flex;height:26px;border-radius:7px;overflow:hidden;margin-top:10px;
@@ -202,7 +202,7 @@ td.tot{color:var(--faint);text-align:center;font-variant-numeric:tabular-nums;fo
 <div class="top">
   <p class="eyebrow">GO BEYOND / 2026.09.29</p>
   <h1>構成台本エディタ</h1>
-  <p class="sub">決めるのは<b>順番と尺だけ</b>。幕は入力しない（休憩の位置から出る）。出演メンバーも編集しない（『演目順・稼働』タブが正典）。<b>尺が空のブロックから先の時刻は出さない</b> ── 0分として積むと全部が19:30始まりに見えてしまうため。</p>
+  <p class="sub">決めるのは<b>順番と尺</b>だけ。幕は休憩の位置から自動で出る。出演メンバーは『演目順・稼働』タブが正典なのでここでは編集しない。<b>尺が空のブロックから先の時刻は出さない</b>（0分として積むと全部19:30始まりに見えるため）。</p>
 </div>
 
 <div class="sticky">
@@ -379,9 +379,11 @@ function renderStats(r){
   function actStat(k, label){
     var a = r.act[k];
     if(!a.n) return '';
-    return '<div class="stat' + (a.undef ? ' warn' : '') + '"><span class="k">' + label + '</span>'
-      + '<span class="v tnum">' + Math.round(a.len) + '<small>分</small>'
-      + (a.undef ? '<small>+未定' + a.undef + '</small>' : '') + '</span></div>';
+    /* 尺が未入力のブロックがあると、この合計は「確定している分だけ」になる。
+       ただの「9分」と出すと幕全体が9分に見えるので、〜 を付けて下限であることを示す。 */
+    return '<div class="stat' + (a.undef ? ' att' : '') + '"><span class="k">' + label + '</span>'
+      + '<span class="v tnum">' + Math.round(a.len) + '<small>分' + (a.undef ? '〜' : '') + '</small>'
+      + (a.undef ? '<small>未定' + a.undef + '件</small>' : '') + '</span></div>';
   }
   document.getElementById('stats').innerHTML =
       '<div class="stat"><span class="k">開演</span><span class="v tnum">' + fmtHHMM(r.open) + '</span></div>'
@@ -389,9 +391,9 @@ function renderStats(r){
     + (r.endKnown ? fmtHHMM(r.end) : '--:--')
     + (endSub ? '<small>' + endSub + '</small>' : '') + '</span></div>'
     + actStat(1, '1幕') + actStat(0, '幕間') + actStat(2, '2幕')
-    + '<div class="stat ' + (r.runs.length ? 'warn' : 'ok') + '"><span class="k">連続</span>'
+    + '<div class="stat ' + (r.runs.length ? 'att' : 'ok') + '"><span class="k">連続</span>'
     + '<span class="v tnum">' + r.runs.length + '<small>件</small></span></div>'
-    + '<div class="stat ' + (r.undef ? 'warn' : 'ok') + '"><span class="k">尺未入力</span>'
+    + '<div class="stat ' + (r.undef ? 'att' : 'ok') + '"><span class="k">尺未入力</span>'
     + '<span class="v tnum">' + r.undef + '<small>件</small></span></div>';
 }
 
@@ -637,15 +639,9 @@ function renderWarns(r){
   } else if(!r.pending.length){
     h += '<div class="warn good"><div class="h">連続なし</div>'
       + '<div class="sm">同じ人が' + thr + '分未満で続けて出る箇所は無い</div></div>';
-  }
-
-  if(r.pending.length){
-    var names = {};
-    r.pending.forEach(function(x){ names[x.from.name + ' → ' + x.to.name] = 1; });
-    h += '<div class="warn info"><div class="h"><span class="n tnum">'
-      + Object.keys(names).length + '</span><span>箇所は連続を判定できない</span></div>'
-      + '<div class="sm">間の演目の尺が空欄。休息が何分になるか出せない</div>'
-      + '<div class="who">' + Object.keys(names).map(esc).join('／') + '</div></div>';
+  } else {
+    h += '<div class="warn info"><div class="h">連続はまだ判定できない</div>'
+      + '<div class="sm">尺が入っていない区間があるため。下の未入力を埋めると出る</div></div>';
   }
 
   var lim = parseHHMM(setting('終演上限', ''));
@@ -657,9 +653,13 @@ function renderWarns(r){
 
   var und = S.blocks.filter(function(b){ return blank(b.dur); });
   if(und.length){
+    /* 判定不能な繋ぎを1つずつ並べても、原因は全部これ1つ。件数だけ添える。 */
+    var pn = {};
+    r.pending.forEach(function(x){ pn[x.from.uid + '>' + x.to.uid] = 1; });
     h += '<div class="warn"><div class="h"><span class="n tnum">' + und.length
       + '</span><span>件の尺が未入力</span></div>'
-      + '<div class="sm">終演時刻も、そこから先の連続も出せない</div>'
+      + '<div class="sm">終演時刻が出せない'
+      + (r.pending.length ? '／連続を判定できない繋ぎが' + Object.keys(pn).length + '箇所' : '') + '</div>'
       + '<div class="who">' + und.map(function(b){
           return '<a onclick="jump(' + b.uid + ')">' + esc(b.name) + '</a>'; }).join('／') + '</div></div>';
   }
