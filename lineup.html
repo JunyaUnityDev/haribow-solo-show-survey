@@ -16,7 +16,7 @@
   --shadow:0 18px 50px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:96px}   /* 上の固定バーの下に着地させる */
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
   font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.55}
@@ -168,7 +168,10 @@ select{cursor:pointer}
 table.mg{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap}
 table.mg th,table.mg td{padding:2px 3px}
 table.mg th.v{writing-mode:vertical-rl;text-orientation:mixed;font-weight:600;color:var(--dim);
-  height:66px;vertical-align:bottom;padding-bottom:6px;font-size:10px}
+  height:78px;vertical-align:bottom;padding-bottom:6px;font-size:10px}
+table.mg td.v{writing-mode:vertical-rl;text-orientation:mixed;font-weight:600;color:var(--dim);
+  height:78px;vertical-align:top;padding-top:6px;font-size:10px}
+table.mg td.v.zeroh{color:var(--amber)}
 table.mg th.v.zeroh{color:var(--amber)}
 table.mg th.corner,table.mg td.n{position:sticky;left:0;background:var(--panel);z-index:2;
   text-align:left;padding-right:12px;font-size:11.5px;color:var(--ink);white-space:nowrap}
@@ -754,9 +757,14 @@ function renderGrid(r){
     h += '</tr>';
   });
 
+  /* 横に長い表なので、名前を下にも出す。上の見出しが固定バーの下に入っても列を追える */
   h += '</tbody><tfoot><tr><td class="n">出番（OP・EDを除く）</td>'
     + members.map(function(m){
         return '<td class="tot">' + (r.own[m.name] || 0) + '</td>'; }).join('')
+    + '</tr><tr><td class="n"></td>'
+    + members.map(function(m){
+        return '<td class="v' + ((r.own[m.name] || 0) ? '' : ' zeroh') + '">'
+          + esc(m.name) + '</td>'; }).join('')
     + '</tr></tfoot></table>';
   document.getElementById('mgrid').innerHTML = h;
 }
