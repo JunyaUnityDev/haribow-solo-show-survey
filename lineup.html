@@ -47,9 +47,10 @@ h1{font-size:21px;font-weight:800;margin:0;letter-spacing:.02em}
 .bar{display:flex;height:26px;border-radius:7px;overflow:hidden;margin-top:10px;
   border:1px solid var(--line);background:var(--panel)}
 .seg{position:relative;min-width:3px;cursor:pointer;border-right:1px solid rgba(10,11,14,.7);
-  display:flex;align-items:center;justify-content:center;overflow:hidden}
+  display:flex;align-items:center;justify-content:flex-start;overflow:hidden}
 .seg:last-child{border-right:0}
-.seg span{font-size:9px;font-weight:700;color:rgba(10,11,14,.75);white-space:nowrap;padding:0 4px}
+.seg span{font-size:9px;font-weight:700;color:rgba(10,11,14,.78);white-space:nowrap;padding:0 5px;
+  overflow:hidden;text-overflow:ellipsis;min-width:0}
 .seg.unknown{background:repeating-linear-gradient(45deg,#2a2f3a,#2a2f3a 4px,#20242e 4px,#20242e 8px)}
 .seg.unknown span{color:var(--faint)}
 .seg:hover{filter:brightness(1.2)}
@@ -623,18 +624,27 @@ function renderWarns(r){
     var pairs = {}, keys = [];
     r.runs.forEach(function(x){
       var k = x.from.uid + '>' + x.to.uid;
-      if(!pairs[k]){ pairs[k] = { from:x.from, to:x.to, rest:x.rest, who:[] }; keys.push(k); }
+      if(!pairs[k]){
+        pairs[k] = { from:x.from, to:x.to, rest:x.rest, who:[],
+                     /* 全員出演のOP・EDは、定義上その前後が必ず連続になる。
+                        構造的に避けられないので、実際に詰まっている繋ぎより後ろに置く。 */
+                     allish: !!(x.from._all || x.to._all) };
+        keys.push(k);
+      }
       pairs[k].who.push(x.who);
     });
     keys.map(function(k){ return pairs[k]; })
-        .sort(function(a, b){ return a.rest - b.rest || b.who.length - a.who.length; })
+        .sort(function(a, b){
+          return (a.allish - b.allish) || (a.rest - b.rest) || (b.who.length - a.who.length); })
         .forEach(function(p){
-      h += '<div class="warn' + (p.rest <= 0 ? ' bad' : '') + '">'
+      h += '<div class="warn' + (p.rest <= 0 ? ' bad' : (p.allish ? ' info' : '')) + '">'
         + '<div class="h"><span class="n tnum">' + round1(p.rest) + '分</span>'
         + '<span>しか空かない ／ ' + p.who.length + '名</span></div>'
         + '<div class="who"><a onclick="jump(' + p.from.uid + ')">' + esc(p.from.name) + '</a> → '
         + '<a onclick="jump(' + p.to.uid + ')">' + esc(p.to.name) + '</a></div>'
-        + '<div class="sm">' + p.who.map(esc).join('／') + '</div></div>';
+        + '<div class="sm">' + p.who.map(esc).join('／') + '</div>'
+        + (p.allish ? '<div class="sm">全員出演のブロックとの繋ぎ（構造上かならず連続する）</div>' : '')
+        + '</div>';
     });
   } else if(!r.pending.length){
     h += '<div class="warn good"><div class="h">連続なし</div>'
@@ -690,7 +700,10 @@ function renderGrid(r){
 
   var h = '<table class="mg"><thead><tr><th></th>'
     + engi.map(function(b){
-        return '<th class="v' + (b._act === 2 ? ' a2' : '') + '">' + esc(b.name) + '</th>'; }).join('')
+        /* 縦書きは text-overflow が効かないので、文字数で切って全文は title に持たせる */
+        var short = b.name.length > 13 ? b.name.slice(0, 12) + '…' : b.name;
+        return '<th class="v' + (b._act === 2 ? ' a2' : '') + '" title="' + esc(b.name) + '">'
+          + esc(short) + '</th>'; }).join('')
     + '<th class="v">出番</th></tr></thead><tbody>';
   rows.forEach(function(m){
     var c = r.own[m.name] || 0;
