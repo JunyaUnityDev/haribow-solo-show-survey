@@ -8,119 +8,192 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <style>
 :root{
-  --bg:#0a0b0e; --panel:#14161c; --panel2:#1a1d25; --line:rgba(255,255,255,.09);
+  --bg:#0a0b0e; --panel:#14161c; --panel2:#1a1d25; --panel3:#20242e;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
   --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280;
   --teal:#63b6cc; --cream:#f0ece0;
-  --red:#c8433a; --amber:#c08f4a; --green:#6ba583; --violet:#8f7fb0;
+  --red:#c8433a; --amber:#c08f4a; --green:#6ba583; --violet:#8f7fb0; --sand:#b09a7a;
   --shadow:0 18px 50px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
-  font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:1180px;margin:0 auto;padding:0 16px 120px}
-a{color:var(--teal)}
+  font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px 110px}
+.tnum{font-variant-numeric:tabular-nums}
 
 /* ---------- ヘッダー ---------- */
-.top{padding:18px 0 0}
-.eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 3px}
-h1{font-size:20px;font-weight:800;margin:0 0 2px;letter-spacing:.02em}
-.sub{color:var(--dim);font-size:12px;margin:0}
+.top{padding:20px 0 0}
+.eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 4px}
+h1{font-size:21px;font-weight:800;margin:0;letter-spacing:.02em}
+.sub{color:var(--faint);font-size:11.5px;margin:6px 0 0;max-width:660px;line-height:1.65}
+.sub b{color:var(--dim);font-weight:700}
 
-.sticky{position:sticky;top:0;z-index:40;background:rgba(10,11,14,.88);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--line);margin:14px -16px 0;padding:9px 16px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px}
-.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;
-  padding:4px 11px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.chip b{color:var(--cream);font-size:14px;font-weight:800}
-.chip.ok b{color:var(--green)} .chip.over b{color:var(--red)} .chip.warn b{color:var(--amber)}
-.spacer{margin-left:auto}
-button{font-family:inherit;font-size:12px;font-weight:700;border-radius:9px;cursor:pointer;
-  border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:7px 13px}
-button:hover{border-color:rgba(255,255,255,.24)}
-button.primary{background:var(--teal);border-color:var(--teal);color:#0a1418}
-button.primary:disabled{opacity:.45;cursor:default}
-button.ghost{background:transparent;color:var(--dim)}
-button.mini{padding:3px 8px;font-size:11px;font-weight:600}
+/* ---------- サマリー ---------- */
+.sticky{position:sticky;top:0;z-index:40;background:rgba(10,11,14,.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);margin:16px -18px 0;padding:10px 18px}
+.stats{display:flex;align-items:stretch;flex-wrap:wrap}
+.stat{padding:2px 16px 2px 0;margin-right:16px;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;justify-content:center;min-width:60px}
+.stat:last-child{border-right:0;margin-right:0}
+.stat .k{font-size:9.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;font-weight:700}
+.stat .v{font-size:17px;font-weight:800;letter-spacing:.01em;line-height:1.3}
+.stat .v small{font-size:10.5px;font-weight:700;color:var(--faint);margin-left:3px}
+.stat.ok .v{color:var(--green)} .stat.over .v{color:var(--red)}
+.stat.warn .v{color:var(--amber)} .stat.mute .v{color:#3f4552}
 
-h2{font-size:12px;font-weight:800;margin:28px 0 11px;letter-spacing:.05em;
+/* ---------- 帯グラフ ---------- */
+.bar{display:flex;height:26px;border-radius:7px;overflow:hidden;margin-top:10px;
+  border:1px solid var(--line);background:var(--panel)}
+.seg{position:relative;min-width:3px;cursor:pointer;border-right:1px solid rgba(10,11,14,.7);
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.seg:last-child{border-right:0}
+.seg span{font-size:9px;font-weight:700;color:rgba(10,11,14,.75);white-space:nowrap;padding:0 4px}
+.seg.unknown{background:repeating-linear-gradient(45deg,#2a2f3a,#2a2f3a 4px,#20242e 4px,#20242e 8px)}
+.seg.unknown span{color:var(--faint)}
+.seg:hover{filter:brightness(1.2)}
+
+/* ---------- 見出し ---------- */
+h2{font-size:11.5px;font-weight:800;margin:30px 0 12px;letter-spacing:.06em;
   display:flex;align-items:center;gap:9px;color:var(--cream)}
 h2::before{content:"";width:16px;height:2px;background:var(--teal);flex-shrink:0}
-h2 .note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:auto}
+h2 .note{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:auto;text-align:right}
 
-.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px;margin-bottom:11px}
-.muted{color:var(--faint);font-size:12px}
-.grid2{display:grid;grid-template-columns:1fr;gap:0}
-@media(min-width:940px){ .grid2{grid-template-columns:1.25fr .95fr;gap:22px;align-items:start} }
+.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px}
+.muted{color:var(--faint);font-size:11.5px}
+.cols{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:1020px){ .cols{grid-template-columns:minmax(0,1.28fr) minmax(0,.9fr);gap:26px;align-items:start} }
+
+/* ---------- コントロール ---------- */
+button{font-family:inherit;font-size:12px;font-weight:700;border-radius:9px;cursor:pointer;
+  border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:7px 13px;
+  transition:border-color .12s,background .12s}
+button:hover{border-color:var(--line2);background:var(--panel3)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--teal);border-color:var(--teal);color:#08131a}
+button.primary:hover{background:#78c4d8;border-color:#78c4d8}
+button.ghost{background:transparent;color:var(--dim)}
+button.mini{padding:4px 9px;font-size:11px;font-weight:600}
+input,select{font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
+  border:1px solid var(--line);border-radius:8px;padding:6px 9px;outline:none;max-width:100%}
+input:focus,select:focus{border-color:var(--teal)}
+input::placeholder{color:#464d59}
+input[type=number]{font-variant-numeric:tabular-nums;text-align:right}
+select{cursor:pointer}
+.w56{width:58px} .w84{width:90px}
 
 /* ---------- 設定 ---------- */
-.settings{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
-.f{display:flex;flex-direction:column;gap:3px}
-.f label{font-size:10.5px;color:var(--faint);letter-spacing:.04em}
-input,select,textarea{font-family:inherit;font-size:13px;background:var(--panel2);color:var(--ink);
-  border:1px solid var(--line);border-radius:8px;padding:6px 9px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--teal)}
-input[type=number]{font-variant-numeric:tabular-nums}
-.w60{width:64px} .w80{width:86px} .w110{width:112px}
+.settings{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:10px;color:var(--faint);letter-spacing:.05em;font-weight:600}
+.f .hint{font-size:10px;color:#464d59}
 
-/* ---------- ブロックカード ---------- */
-#list{display:flex;flex-direction:column;gap:8px}
-.blk{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
-  display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;transition:border-color .12s}
-.blk.dragging{opacity:.35;border-color:var(--teal)}
-.blk.k-kyukei{background:linear-gradient(90deg,rgba(143,127,176,.14),transparent)}
-.blk.k-sub{background:linear-gradient(90deg,rgba(99,182,204,.08),transparent)}
-.blk.unplaced{border-color:var(--amber)}
-.handle{display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:2px;cursor:grab;user-select:none}
+/* ---------- 幕の見出し ---------- */
+.actbar{display:flex;align-items:baseline;gap:10px;margin:18px 0 8px;padding:0 2px;flex-wrap:wrap}
+.actbar.first{margin-top:0}
+.actbar .t{font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--cream)}
+.actbar .d{font-size:11px;color:var(--faint)}
+.actbar .rule{flex:1;height:1px;background:var(--line);min-width:16px}
+
+/* ---------- ブロック ---------- */
+#list{display:flex;flex-direction:column;gap:7px}
+.blk{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  padding:9px 12px 9px 0;display:grid;grid-template-columns:auto auto 1fr;gap:11px;
+  align-items:start;border-left:3px solid var(--line2)}
+.blk.k-engi{border-left-color:var(--teal)}
+.blk.k-mc{border-left-color:var(--sand)}
+.blk.k-aud{border-left-color:var(--violet)}
+.blk.k-rest{border-left-color:var(--violet);background:linear-gradient(90deg,rgba(143,127,176,.11),transparent 62%)}
+.blk.k-vid{border-left-color:var(--cream)}
+.blk.dragging{opacity:.26}
+.blk.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{border-color:var(--teal);background:rgba(99,182,204,.13)}100%{}}
+
+.handle{display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0 0 9px;
+  cursor:grab;user-select:none}
 .handle:active{cursor:grabbing}
-.grip{width:16px;height:16px;opacity:.55}
-.ord{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums;font-weight:700}
-.arrows{display:flex;flex-direction:column;gap:2px}
-.arrows button{padding:0;width:18px;height:15px;line-height:1;font-size:9px;border-radius:4px;color:var(--faint)}
-.row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tstart{font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:800;color:var(--teal);
-  min-width:44px;letter-spacing:.02em}
-.nm{flex:1;min-width:150px;font-weight:700;font-size:13.5px}
-.row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px}
-.act{font-size:10px;letter-spacing:.08em;color:var(--faint);border:1px solid var(--line);
-  border-radius:5px;padding:1px 6px;white-space:nowrap}
-.note{flex:1;min-width:180px}
-.cast{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
+.grip{width:15px;height:15px;opacity:.4}
+.handle:hover .grip{opacity:.9}
+.ord{font-size:9.5px;color:var(--faint);font-weight:700}
+.arrows{display:flex;flex-direction:column;gap:2px;margin-top:1px}
+.arrows button{padding:0;width:17px;height:13px;line-height:1;font-size:7px;border-radius:3px;
+  color:var(--faint);background:transparent;border-color:transparent}
+.arrows button:hover{background:var(--panel3);color:var(--ink)}
+
+.tcol{padding-top:3px;text-align:right;min-width:44px}
+.tcol .t{font-size:13px;font-weight:800;color:var(--teal);display:block}
+.tcol .t.unknown{color:#3a404c}
+.tcol .len{font-size:9.5px;color:var(--faint);display:block;margin-top:1px}
+
+.body{min-width:0}
+.r1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.name{flex:1;min-width:190px;font-weight:700;font-size:13.5px}
+.r2{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.unit{font-size:10.5px;color:var(--faint);margin-right:-3px}
+.memo{flex:1;min-width:170px;font-size:12px}
+.del{color:var(--faint);border-color:transparent;background:transparent;padding:4px 8px;font-size:14px}
+.del:hover{color:var(--red);background:rgba(200,67,58,.1);border-color:transparent}
+
+.cast{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .mchip{font-size:10.5px;background:var(--panel2);border:1px solid var(--line);
-  border-radius:999px;padding:1px 8px;color:var(--dim)}
-.mchip.hot{border-color:var(--red);color:#e8a29b}
-.castnote{font-size:10.5px;color:var(--faint);margin-top:6px}
+  border-radius:999px;padding:1px 8px;color:var(--dim);white-space:nowrap}
+.mchip.hot{border-color:rgba(200,67,58,.55);color:#e8a29b;background:rgba(200,67,58,.09)}
+.more{font-size:10.5px;color:var(--faint);background:none;border:0;padding:1px 5px;cursor:pointer;font-weight:600}
+.more:hover{color:var(--teal);background:none;border-color:transparent}
+.castnote{font-size:10.5px;color:var(--faint);margin-top:7px}
+.tag{font-size:9.5px;letter-spacing:.05em;border:1px solid var(--line);border-radius:5px;
+  padding:1px 6px;color:var(--faint);white-space:nowrap}
+.tag.und{border-color:rgba(192,143,74,.5);color:var(--amber)}
 
 /* ---------- 検出 ---------- */
-.warn{border-left:3px solid var(--amber);padding:9px 12px;background:var(--panel2);
-  border-radius:0 9px 9px 0;margin-bottom:8px;font-size:12.5px}
+.warn{padding:9px 12px;background:var(--panel);border:1px solid var(--line);
+  border-left:3px solid var(--amber);border-radius:0 10px 10px 0;margin-bottom:7px;font-size:12.5px}
 .warn.bad{border-left-color:var(--red)}
 .warn.info{border-left-color:var(--teal)}
-.warn b{color:var(--cream)}
-.warn .who{color:var(--dim);font-size:11.5px}
+.warn.good{border-left-color:var(--green)}
+.warn .h{font-weight:800;color:var(--cream);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.warn .h .n{color:var(--amber);font-size:15px}
+.warn.bad .h .n{color:var(--red)}
+.warn.info .h .n{color:var(--teal)}
+.warn .who{color:var(--dim);font-size:11.5px;margin-top:3px}
+.warn .sm{color:var(--faint);font-size:11px;margin-top:2px}
+.warn a{color:var(--teal);text-decoration:none;cursor:pointer;border-bottom:1px dotted rgba(99,182,204,.45)}
 
-/* ---------- メンバー稼働グリッド ---------- */
+/* ---------- 稼働グリッド ---------- */
 .gridwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table.mg{border-collapse:collapse;font-size:11px;white-space:nowrap}
-table.mg th,table.mg td{padding:2px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
+table.mg{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap}
+table.mg th,table.mg td{padding:2px 3px}
 table.mg th.v{writing-mode:vertical-rl;text-orientation:mixed;font-weight:600;color:var(--dim);
-  height:104px;vertical-align:bottom;padding-bottom:5px;font-size:10px}
-table.mg td.n{position:sticky;left:0;background:var(--panel);color:var(--ink);padding-right:10px;font-size:11.5px}
-table.mg td.c{text-align:center;width:22px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.10)}
+  height:112px;vertical-align:bottom;padding-bottom:6px;font-size:9.5px;overflow:hidden}
+table.mg th.v.a2{color:var(--violet)}
+table.mg td.n{position:sticky;left:0;background:var(--panel);color:var(--ink);
+  padding-right:11px;font-size:11.5px;z-index:2}
+table.mg td.c{text-align:center;width:20px}
+table.mg tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+table.mg tbody tr:nth-child(even) td.n{background:#171920}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.09)}
 .dot.on{background:var(--teal)}
-.dot.on.run{background:var(--red)}
-tr.zero td.n{color:var(--amber)}
+.dot.on.all{background:rgba(99,182,204,.3)}
+.dot.on.run{background:var(--red);box-shadow:0 0 0 2px rgba(200,67,58,.2)}
+tr.zero td.n{color:var(--amber);font-weight:700}
+td.tot{color:var(--faint);text-align:center;font-variant-numeric:tabular-nums;font-size:10.5px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:10.5px;color:var(--faint)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
 
-.toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--panel2);
-  border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-size:12.5px;z-index:80;
-  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
-.toast.show{opacity:1}
-.savebar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(10,11,14,.92);
-  backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px 16px;
-  display:flex;gap:12px;align-items:center;justify-content:center}
+/* ---------- 下部バー ---------- */
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(10,11,14,.94);
+  backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:10px 18px;
+  display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
 .savebar .st{font-size:11.5px;color:var(--faint)}
+.savebar .st.dirty{color:var(--amber)}
+.savebar .st.err{color:var(--red)}
+.toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:var(--panel3);
+  border:1px solid var(--line2);border-radius:10px;padding:10px 17px;font-size:12.5px;z-index:80;
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;
+  max-width:88vw;text-align:center;line-height:1.5}
+.toast.show{opacity:1}
+.skel{color:var(--faint);font-size:12px;padding:22px 4px}
 </style>
 </head>
 <body>
@@ -129,48 +202,55 @@ tr.zero td.n{color:var(--amber)}
 <div class="top">
   <p class="eyebrow">GO BEYOND / 2026.09.29</p>
   <h1>構成台本エディタ</h1>
-  <p class="sub">演目の並び・尺・幕を決める。順番はドラッグで動く。<span class="muted">出演メンバーは『演目順・稼働』タブが正典（ここでは読むだけ）</span></p>
+  <p class="sub">決めるのは<b>順番と尺だけ</b>。幕は入力しない（休憩の位置から出る）。出演メンバーも編集しない（『演目順・稼働』タブが正典）。<b>尺が空のブロックから先の時刻は出さない</b> ── 0分として積むと全部が19:30始まりに見えてしまうため。</p>
 </div>
 
 <div class="sticky">
-  <span class="chip">開演 <b id="cOpen">--:--</b></span>
-  <span class="chip" id="cEndWrap">終演 <b id="cEnd">--:--</b></span>
-  <span class="chip">1幕 <b id="cAct1">-</b>分</span>
-  <span class="chip">2幕 <b id="cAct2">-</b>分</span>
-  <span class="chip" id="cWarnWrap">連続 <b id="cWarn">-</b>件</span>
-  <span class="spacer"></span>
-  <button class="ghost" onclick="load()">再読込</button>
-  <button class="ghost" onclick="copyScript()">テキストで写す</button>
+  <div class="stats" id="stats"></div>
+  <div class="bar" id="bar"></div>
 </div>
 
-<h2>設定 <span class="note">すべて仮置き可。ここを変えると下の時刻が全部動く</span></h2>
+<h2>設定 <span class="note">ここを変えると下の時刻が全部動く</span></h2>
 <div class="card settings" id="settings"></div>
 
-<div class="grid2">
+<div class="cols">
   <div>
-    <h2>構成 <span class="note">左のハンドルを掴んで上下に動かす</span></h2>
-    <div id="list"></div>
-    <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap">
-      <button class="mini" onclick="addBlock('MC')">＋ MC・喋り</button>
-      <button class="mini" onclick="addBlock('客席参加')">＋ 客席参加</button>
-      <button class="mini" onclick="addBlock('映像')">＋ 映像</button>
-      <button class="mini" onclick="addBlock('休憩')">＋ 休憩</button>
-      <button class="mini" onclick="addBlock('その他')">＋ その他</button>
+    <h2>構成 <span class="note">左のハンドルを掴んで動かす ／ ⌘Z で取り消し ／ ⌘S で保存</span></h2>
+    <div id="list"><div class="skel">読み込み中…</div></div>
+    <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span class="muted" style="margin-right:3px">ブロックを足す</span>
+      <button class="mini" onclick="addBlock('MC')">MC・喋り</button>
+      <button class="mini" onclick="addBlock('客席参加')">客席参加</button>
+      <button class="mini" onclick="addBlock('映像')">映像</button>
+      <button class="mini" onclick="addBlock('休憩')">休憩</button>
+      <button class="mini" onclick="addBlock('その他')">その他</button>
+      <span style="flex:1"></span>
+      <button class="mini ghost" onclick="load()">再読込</button>
+      <button class="mini ghost" onclick="copyScript()">テキストで写す</button>
     </div>
   </div>
 
   <div>
-    <h2>検出 <span class="note">並べ替えるたびに再計算</span></h2>
+    <h2>検出 <span class="note">動かすたびに再計算</span></h2>
     <div id="warns"></div>
 
-    <h2>誰がどこに出るか <span class="note">赤＝連続</span></h2>
-    <div class="card gridwrap" id="mgrid"></div>
+    <h2>誰がどこに出るか</h2>
+    <div class="card">
+      <div class="gridwrap" id="mgrid"></div>
+      <div class="legend">
+        <span><i style="background:var(--teal)"></i>出演</span>
+        <span><i style="background:var(--red)"></i>直前か直後にも出る</span>
+        <span><i style="background:rgba(99,182,204,.3)"></i>全員出演（出番に数えない）</span>
+        <span><i style="background:var(--amber)"></i>橙の名前＝OP/ED以外の出番ゼロ</span>
+      </div>
+    </div>
   </div>
 </div>
 
 </div>
 
 <div class="savebar">
+  <button class="ghost mini" id="undoBtn" onclick="undo()" disabled>取り消し</button>
   <span class="st" id="savest">読み込み中</span>
   <button class="primary" id="saveBtn" onclick="save()" disabled>スプレッドシートに保存</button>
 </div>
@@ -181,241 +261,344 @@ tr.zero td.n{color:var(--amber)}
    構成台本エディタ
 
    読み : GAS ?page=lineup        『演目順・稼働』（誰が出るか）＋『構成台本』（順番・尺）
-   書き : GAS survey=lineup_save  『構成台本』タブだけ。稼働マトリクスには絶対に書かない
-   幕   : 入力させない。休憩ブロックより前＝1幕／後＝2幕として計算で出す
-          （手入力にすると、休憩を動かした瞬間に幕の表記だけが嘘になる）
-   連続 : 同じ人の「出番の終わり→次の出番の頭」を分で出し、しきい値未満を警告する
+   書き : GAS survey=lineup_save  『構成台本』タブだけ
 
-   鍵は dashboard.html と同じ DASH_SECRET。席・金・お客様のメールには届かない。
+   ── 食い違いを起こさないための決めごと ──
+   1. 幕は入力させない。休憩ブロックの位置から計算する
+   2. 尺が空のブロックより後ろの開始時刻は出さない（--:--）。
+      0分として積むと全部が19:30始まりになり、しかもそれが正しい表示に見えてしまう
+   3. 演目の名前は『演目順・稼働』の列から選ぶ。自由入力にしない
+      （名前がずれると出演者を引けなくなるが、選択式なら構造的に起きない）
+   4. 転換が空欄なら『既定の転換』を使う。GAS側もまったく同じ規則で開始時刻を書く
+   5. 読み込んだ時の刻印(rev)を保存時に送る。別の画面が先に保存していたら上書きしない
    ============================================================ */
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var DASH_SECRET = 'hbw-2026-board-w3x8fq5r';
 
-var S = { blocks:[], cast:{}, members:[], engiNames:[], settings:{}, orphan:[], dirty:false };
+var S = { blocks:[], cast:{}, members:[], engiNames:[], settings:{}, rev:'', dirty:false, loaded:false };
+var expanded = {};
+var undoStack = [];
 var uid = 0;
 
-/* ---------- 時刻 ---------- */
+var KIND_CLASS = { '演目':'k-engi', 'MC':'k-mc', '客席参加':'k-aud', '休憩':'k-rest', '映像':'k-vid', 'その他':'' };
+var KIND_COLOR = { '演目':'#63b6cc', 'MC':'#b09a7a', '客席参加':'#8f7fb0', '休憩':'#6a5f80', '映像':'#d8d2c2', 'その他':'#4b525e' };
+
+/* ---------- 小物 ---------- */
 function parseHHMM(s){ var m = String(s == null ? '' : s).match(/^(\d{1,2}):(\d{2})$/);
   return m ? (+m[1]) * 60 + (+m[2]) : null; }
 function fmtHHMM(t){ t = Math.round(t); var h = Math.floor(t / 60) % 24, m = ((t % 60) + 60) % 60;
   return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
-function n(x){ var v = Number(x); return isFinite(v) ? v : 0; }
-function setting(k, d){ var v = S.settings[k]; return (v === '' || v == null) ? d : v; }
+function num(x){ var v = Number(x); return isFinite(v) ? v : 0; }
+function blank(x){ return x === '' || x == null; }
+function setting(k, d){ var v = S.settings[k]; return blank(v) ? d : v; }
 function round1(x){ return Math.round(x * 10) / 10; }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+  return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
 
-/* ---------- 計算 ----------
-   時刻・幕・連続を1本の関数で出す。別々に数えると必ず食い違う。 */
+/* ============================================================
+   計算 — 時刻・幕・連続をこの1本で出す。分けると必ず食い違う
+   ============================================================ */
 function compute(){
   var open = parseHHMM(setting('開演時刻', '19:30'));
   if(open == null) open = 19 * 60 + 30;
+  var defTrans = num(setting('既定の転換', 0));
 
-  var t = open, act = 1;
+  var t = open, act = 1, known = true;
   S.blocks.forEach(function(b, i){
     b._i = i;
-    b._start = t;
-    b._act = (b.kind === '休憩') ? 0 : act;   // 0 ＝ 幕間
-    b._end = t + n(b.dur);                    // 転換は出番の外
-    t += n(b.dur) + n(b.trans);
+    b._trans = blank(b.trans) ? defTrans : num(b.trans);
+    b._known = known && !blank(b.dur);
+    b._start = known ? t : null;
+    b._end   = b._known ? t + num(b.dur) : null;
+    b._act   = (b.kind === '休憩') ? 0 : act;
+    if(blank(b.dur)) known = false;
+    t += num(b.dur) + b._trans;
     if(b.kind === '休憩') act = 2;
   });
 
-  var res = { open:open, end:t, act1:0, act2:0, runs:[], pending:[], zero:[], counts:{}, own:{}, hot:{} };
+  var r = { open:open, end:known ? t : null, endKnown:known, undef:0,
+            act:{ 1:{len:0, n:0, undef:0}, 0:{len:0, n:0, undef:0}, 2:{len:0, n:0, undef:0} },
+            runs:[], pending:[], zero:[], own:{}, hot:{} };
 
-  /* 尺が入っていない区間は休息を計算できない。
-     0分として扱うと「休息0分」の警告が全ブロックに並び、本当に詰まっている箇所が埋もれる。
-     blankCum[i] ＝ 先頭からi個目までに、尺が未入力のブロックがいくつあるか。 */
-  var blankCum = [0];
-  S.blocks.forEach(function(b, i){
-    blankCum[i + 1] = blankCum[i] + ((b.dur === '' || b.dur == null) ? 1 : 0);
-  });
   S.blocks.forEach(function(b){
-    var len = n(b.dur) + n(b.trans);
-    if(b._act === 1) res.act1 += len; else if(b._act === 2) res.act2 += len;
+    var a = r.act[b._act];
+    a.n++; a.len += num(b.dur) + b._trans;
+    if(blank(b.dur)){ a.undef++; r.undef++; }
   });
 
-  var thr = n(setting('連続警告のしきい値', 5));
-  var lastOf = {};
+  /* 尺が未入力の区間を跨ぐ休息は計算できない。0分として警告すると、
+     本当に詰まっている箇所が「まだ入力していないだけ」の行に埋もれる。 */
+  var blankCum = [0];
+  S.blocks.forEach(function(b, i){ blankCum[i + 1] = blankCum[i] + (blank(b.dur) ? 1 : 0); });
+
+  var thr = num(setting('連続警告のしきい値', 5));
+  var last = {};
   S.blocks.forEach(function(b){
     if(b.kind !== '演目') return;
     var cast = S.cast[b.name] || [];
-    /* OP＋AGT と ED は全員出演。これを出番に数えると「出番ゼロ」が誰も出なくなり、
-       決定No.27で出演演目がゼロになったメンバーを見つけられない（検出の意味が消える）。
-       名前で決め打ちせず「全員が入っている演目」として自動で判定する。 */
-    b._allCast = S.members.length > 0 && cast.length >= S.members.length;
+    /* OP＋AGT と ED は全員出演。出番に数えると「出番ゼロ」が誰も出なくなり、
+       決定No.27で出演演目を失ったメンバーを拾えない。名前で決め打ちせず全員一致で判定する。 */
+    b._all = S.members.length > 0 && cast.length >= S.members.length;
     cast.forEach(function(m){
-      res.counts[m] = (res.counts[m] || 0) + 1;
-      if(!b._allCast) res.own[m] = (res.own[m] || 0) + 1;
-      var prev = lastOf[m];
-      if(prev){
-        // 前の出番の頭から次の出番の頭までに未入力の尺が挟まっていたら、休息は出せない
-        if(blankCum[b._i] - blankCum[prev._i] > 0){
-          res.pending.push({ who:m, from:prev, to:b });
+      if(!b._all) r.own[m] = (r.own[m] || 0) + 1;
+      var p = last[m];
+      if(p){
+        if(blankCum[b._i] - blankCum[p._i] > 0){
+          r.pending.push({ from:p, to:b });
         } else {
-          var rest = b._start - prev._end;
+          var rest = b._start - p._end;
           if(rest < thr){
-            res.runs.push({ who:m, from:prev, to:b, rest:rest });
-            res.hot[m + ' ' + prev.uid] = 1;
-            res.hot[m + ' ' + b.uid] = 1;
+            r.runs.push({ who:m, from:p, to:b, rest:rest });
+            r.hot[m + ' ' + p.uid] = 1;
+            r.hot[m + ' ' + b.uid] = 1;
           }
         }
       }
-      lastOf[m] = b;
+      last[m] = b;
     });
   });
-  S.members.forEach(function(m){ if(!res.own[m.name]) res.zero.push(m.name); });
-  return res;
+  S.members.forEach(function(m){ if(!r.own[m.name]) r.zero.push(m.name); });
+  return r;
 }
 
-/* ---------- 描画 ---------- */
+/* ============================================================
+   描画
+   ============================================================ */
 function render(){
+  if(!S.loaded) return;
   var r = compute();
+  renderStats(r); renderBar(r); renderList(r); renderWarns(r); renderGrid(r);
+}
 
-  document.getElementById('cOpen').textContent = fmtHHMM(r.open);
-  document.getElementById('cEnd').textContent  = fmtHHMM(r.end);
-  document.getElementById('cAct1').textContent = Math.round(r.act1);
-  document.getElementById('cAct2').textContent = Math.round(r.act2);
-  document.getElementById('cWarn').textContent = r.runs.length;
+function renderStats(r){
+  var lim = parseHHMM(setting('終演上限', ''));
+  var endCls = !r.endKnown ? 'mute' : (lim != null && r.end > lim ? 'over' : 'ok');
+  var endSub = !r.endKnown ? '尺' + r.undef + '件待ち'
+             : (lim == null ? '' : (r.end > lim ? '+' + Math.round(r.end - lim) + '分'
+                                                : '余' + Math.round(lim - r.end) + '分'));
+  function actStat(k, label){
+    var a = r.act[k];
+    if(!a.n) return '';
+    return '<div class="stat' + (a.undef ? ' warn' : '') + '"><span class="k">' + label + '</span>'
+      + '<span class="v tnum">' + Math.round(a.len) + '<small>分</small>'
+      + (a.undef ? '<small>+未定' + a.undef + '</small>' : '') + '</span></div>';
+  }
+  document.getElementById('stats').innerHTML =
+      '<div class="stat"><span class="k">開演</span><span class="v tnum">' + fmtHHMM(r.open) + '</span></div>'
+    + '<div class="stat ' + endCls + '"><span class="k">終演</span><span class="v tnum">'
+    + (r.endKnown ? fmtHHMM(r.end) : '--:--')
+    + (endSub ? '<small>' + endSub + '</small>' : '') + '</span></div>'
+    + actStat(1, '1幕') + actStat(0, '幕間') + actStat(2, '2幕')
+    + '<div class="stat ' + (r.runs.length ? 'warn' : 'ok') + '"><span class="k">連続</span>'
+    + '<span class="v tnum">' + r.runs.length + '<small>件</small></span></div>'
+    + '<div class="stat ' + (r.undef ? 'warn' : 'ok') + '"><span class="k">尺未入力</span>'
+    + '<span class="v tnum">' + r.undef + '<small>件</small></span></div>';
+}
 
-  var lim = parseHHMM(setting('終演上限', '21:30'));
-  var ew = document.getElementById('cEndWrap');
-  ew.className = 'chip' + (lim == null ? '' : (r.end > lim ? ' over' : ' ok'));
-  ew.title = lim == null ? '' :
-    (r.end > lim ? Math.round(r.end - lim) + '分オーバー' : '上限まで' + Math.round(lim - r.end) + '分');
-  document.getElementById('cWarnWrap').className = 'chip' + (r.runs.length ? ' warn' : ' ok');
+function renderBar(r){
+  var total = 0;
+  S.blocks.forEach(function(b){ total += num(b.dur) + b._trans; });
+  var n = Math.max(S.blocks.length, 1);
+  var unit = total > 0 ? total : n * 5;
+  document.getElementById('bar').innerHTML = S.blocks.map(function(b){
+    var w = blank(b.dur) ? unit / n : num(b.dur) + b._trans;
+    var pct = Math.max(w / unit * 100, 1.2);
+    return '<div class="seg' + (blank(b.dur) ? ' unknown' : '') + '" '
+      + 'style="flex:0 0 ' + pct + '%;' + (blank(b.dur) ? '' : 'background:' + KIND_COLOR[b.kind] + ';') + '" '
+      + 'onclick="jump(' + b.uid + ')" title="' + esc(b.name) + ' ／ '
+      + (blank(b.dur) ? '尺未入力' : round1(num(b.dur)) + '分') + '">'
+      + '<span>' + esc(blank(b.dur) ? '?' : (num(b.dur) >= 4 ? b.name : '')) + '</span></div>';
+  }).join('');
+}
 
+function jump(u){
+  var el = document.querySelector('[data-uid="' + u + '"]');
+  if(!el) return;
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+
+function renderList(r){
   var list = document.getElementById('list');
   list.innerHTML = '';
+  var shown = null, first = true;
   S.blocks.forEach(function(b, i){
+    if(b._act !== shown){
+      list.appendChild(actHeader(b._act, r, first));
+      shown = b._act; first = false;
+    }
     list.appendChild(buildCard(b, i, r));
   });
+}
 
-  renderWarns(r);
-  renderMemberGrid(r);
+function actHeader(key, r, first){
+  var a = r.act[key];
+  var el = document.createElement('div');
+  el.className = 'actbar' + (first ? ' first' : '');
+  el.innerHTML = '<span class="t">' + (key === 0 ? '幕間' : key + '幕') + '</span>'
+    + '<span class="d">' + a.n + 'ブロック ／ ' + Math.round(a.len) + '分'
+    + (a.undef ? ' ＋ 尺未入力' + a.undef + '件' : '') + '</span><span class="rule"></span>';
+  return el;
 }
 
 function buildCard(b, i, r){
   var el = document.createElement('div');
-  var kindClass = b.kind === '休憩' ? ' k-kyukei' : (b.kind === '演目' ? '' : ' k-sub');
-  el.className = 'blk' + kindClass + (b.unplaced ? ' unplaced' : '');
+  el.className = 'blk ' + (KIND_CLASS[b.kind] || '');
   el.setAttribute('data-uid', b.uid);
 
-  var actLabel = b._act === 0 ? '幕間' : (b._act + '幕');
+  /* 時刻：出せない時は --:--。0分として積んだ嘘の時刻は出さない */
+  var tHtml = b._known
+    ? '<span class="t tnum">' + fmtHHMM(b._start) + '</span>'
+    : '<span class="t tnum unknown" title="前に尺が未入力のブロックがあるので、この開始時刻は出せない">--:--</span>';
+  var lenHtml = blank(b.dur)
+    ? '<span class="len">尺未定</span>'
+    : '<span class="len tnum">' + round1(num(b.dur)) + (b._trans ? '+' + round1(b._trans) : '') + '分</span>';
+
+  /* 名前：稼働タブに列がある限り選択式にする（自由入力にすると紐付けが切れる） */
+  var isCol = S.engiNames.indexOf(b.name) >= 0;
+  var nameHtml;
+  if(b.kind === '演目' || isCol){
+    var used = {};
+    S.blocks.forEach(function(o){ if(o !== b) used[o.name] = 1; });
+    var opts = S.engiNames.filter(function(nm){ return nm === b.name || !used[nm]; });
+    if(!isCol) opts.unshift(b.name);
+    nameHtml = '<select class="name" data-f="name">' + opts.map(function(nm){
+      return '<option value="' + esc(nm) + '"' + (nm === b.name ? ' selected' : '') + '>'
+        + esc(nm) + (nm === b.name && !isCol ? '（稼働タブに列が無い）' : '') + '</option>';
+    }).join('') + '</select>';
+  } else {
+    nameHtml = '<input class="name" data-f="name" value="' + esc(b.name) + '" placeholder="ブロック名">';
+  }
+
+  /* 出演者：連続している人だけ常に見せ、残りは畳む */
   var castHtml = '';
   if(b.kind === '演目'){
     var cast = S.cast[b.name];
-    var hasCol = S.engiNames.indexOf(b.name) >= 0;
     if(cast && cast.length){
-      castHtml = '<div class="cast">' + cast.map(function(m){
-        return '<span class="mchip' + (r.hot[m + ' ' + b.uid] ? ' hot' : '') + '">' + esc(m) + '</span>';
-      }).join('') + '</div><div class="castnote">' + cast.length + '名'
-        + (b._allCast ? '（全員出演。出番の数には入れていない）' : '') + '</div>';
-    } else if(hasCol){
-      /* 列はあるが誰にも印が付いていない。ゲスト枠なら正しく、演目なら未割当。
-         どちらか分からないので断定しない。 */
-      castHtml = '<div class="castnote">出演メンバーの印が『演目順・稼働』に1つも無い'
-        + '（ゲスト枠ならこれで正しい）</div>';
+      var open = !!expanded[b.uid];
+      var hot = cast.filter(function(m){ return r.hot[m + ' ' + b.uid]; });
+      var show = open ? cast : hot;
+      var rest = cast.length - show.length;
+      castHtml = '<div class="cast"><span class="tag">' + cast.length + '名'
+        + (b._all ? '・全員出演' : '') + '</span>'
+        + show.map(function(m){
+            return '<span class="mchip' + (r.hot[m + ' ' + b.uid] ? ' hot' : '') + '">' + esc(m) + '</span>';
+          }).join('')
+        + (rest > 0 ? '<button class="more" data-exp="1">＋他' + rest + '名</button>'
+                    : (open ? '<button class="more" data-exp="1">畳む</button>' : ''))
+        + '</div>';
+    } else if(isCol){
+      castHtml = '<div class="castnote">『演目順・稼働』に出演の印が1つも無い（ゲスト枠ならこれで正しい）</div>';
     } else {
       castHtml = '<div class="castnote" style="color:var(--amber)">'
-        + '『演目順・稼働』にこの名前の列が無い（出演者を数えられていない）</div>';
+        + '『演目順・稼働』にこの名前の列が無い。出演者を数えられていない</div>';
     }
   }
 
+  var transPh = round1(num(setting('既定の転換', 0)));
+
   el.innerHTML =
-    '<div class="handle" draggable="true">'
+    '<div class="handle" draggable="true" title="掴んで上下に動かす">'
     + '<svg class="grip" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">'
     + '<circle cx="5" cy="3" r="1.4"/><circle cx="11" cy="3" r="1.4"/>'
     + '<circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>'
     + '<circle cx="5" cy="13" r="1.4"/><circle cx="11" cy="13" r="1.4"/></svg>'
-    + '<span class="ord">' + (i + 1) + '</span>'
-    + '<span class="arrows">'
-    + '<button class="mini" data-mv="-1" title="上へ">&#9650;</button>'
-    + '<button class="mini" data-mv="1" title="下へ">&#9660;</button></span></div>'
-    + '<div>'
-    +   '<div class="row1">'
-    +     '<span class="tstart">' + fmtHHMM(b._start) + '</span>'
-    +     '<input class="nm" data-f="name" value="' + esc(b.name) + '" placeholder="ブロック名">'
-    +     '<span class="act">' + actLabel + '</span>'
-    +   '</div>'
-    +   '<div class="row2">'
-    +     kindSelect(b.kind)
-    +     '<span class="muted">尺</span>'
-    +     '<input class="w60" type="number" step="0.5" min="0" data-f="dur" value="' + val(b.dur) + '" placeholder="分">'
-    +     '<span class="muted">転換</span>'
-    +     '<input class="w60" type="number" step="0.5" min="0" data-f="trans" value="' + val(b.trans) + '" placeholder="分">'
-    +     '<input class="note" data-f="note" value="' + esc(b.note || '') + '" placeholder="備考（担当・転換で動かすもの・まだ決まっていないこと）">'
-    +     '<button class="mini ghost" data-del="1" title="削除">&times;</button>'
+    + '<span class="ord tnum">' + (i + 1) + '</span>'
+    + '<span class="arrows"><button data-mv="-1" title="上へ">&#9650;</button>'
+    + '<button data-mv="1" title="下へ">&#9660;</button></span></div>'
+    + '<div class="tcol">' + tHtml + lenHtml + '</div>'
+    + '<div class="body">'
+    +   '<div class="r1">' + nameHtml + (blank(b.dur) ? '<span class="tag und">尺未定</span>' : '') + '</div>'
+    +   '<div class="r2">'
+    +     '<select class="w84" data-f="kind">'
+    +       ['演目','MC','客席参加','休憩','映像','その他'].map(function(k){
+              return '<option' + (k === b.kind ? ' selected' : '') + '>' + k + '</option>'; }).join('')
+    +     '</select>'
+    +     '<span class="unit">尺</span>'
+    +     '<input class="w56" type="number" step="0.5" min="0" data-f="dur" value="'
+    +       (blank(b.dur) ? '' : b.dur) + '" placeholder="分">'
+    +     '<span class="unit">転換</span>'
+    +     '<input class="w56" type="number" step="0.5" min="0" data-f="trans" value="'
+    +       (blank(b.trans) ? '' : b.trans) + '" placeholder="' + transPh + '" '
+    +       'title="空欄なら『既定の転換』' + transPh + '分を使う">'
+    +     '<input class="memo" data-f="note" value="' + esc(b.note || '') + '" '
+    +       'placeholder="備考（担当・転換で動かすもの・まだ決まっていないこと）">'
+    +     '<button class="del" data-del="1" title="このブロックを外す">&times;</button>'
     +   '</div>'
     +   castHtml
     + '</div>';
 
+  wireCard(el, b, i);
+  return el;
+}
+
+function wireCard(el, b, i){
   el.querySelectorAll('[data-f]').forEach(function(inp){
-    inp.addEventListener('input', function(){
-      var f = inp.getAttribute('data-f');
+    var f = inp.getAttribute('data-f');
+    inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', function(){
       if(f === 'dur' || f === 'trans'){
+        snapshot();
         b[f] = inp.value === '' ? '' : Number(inp.value);
         markDirty(); renderSoon();
+      } else if(f === 'note'){
+        b.note = inp.value; markDirty();       // 時刻に影響しないので描き直さない
       } else {
-        b[f] = inp.value;
-        if(f === 'name') b.unplaced = false;
-        markDirty();
+        snapshot(); b[f] = inp.value; markDirty(); render();
       }
     });
-    // 名前を確定したタイミングで出演者を引き直す
-    inp.addEventListener('change', function(){
-      if(inp.getAttribute('data-f') === 'name') render();
-    });
-  });
-
-  el.querySelector('select').addEventListener('change', function(ev){
-    b.kind = ev.target.value; markDirty(); render();
   });
 
   el.querySelectorAll('[data-mv]').forEach(function(btn){
     btn.addEventListener('click', function(){
       var j = i + Number(btn.getAttribute('data-mv'));
       if(j < 0 || j >= S.blocks.length) return;
+      snapshot();
       var tmp = S.blocks[i]; S.blocks[i] = S.blocks[j]; S.blocks[j] = tmp;
-      markDirty(); render();
+      markDirty(); render(); jump(b.uid);
     });
   });
 
+  var exp = el.querySelector('[data-exp]');
+  if(exp) exp.addEventListener('click', function(){ expanded[b.uid] = !expanded[b.uid]; render(); });
+
   el.querySelector('[data-del]').addEventListener('click', function(){
-    if(b.kind === '演目' &&
-       !confirm('「' + b.name + '」は演目です。台本から外すと「本番で上演しない」という意味になります。外しますか？')) return;
-    S.blocks.splice(i, 1); markDirty(); render();
+    if(b.kind === '演目' && (S.cast[b.name] || []).length &&
+       !confirm('「' + b.name + '」を台本から外します。本番で上演しないという意味になります。よろしいですか？')) return;
+    snapshot(); S.blocks.splice(i, 1); markDirty(); render();
   });
 
   var h = el.querySelector('.handle');
   h.addEventListener('dragstart', function(ev){
+    dragSnapped = false;
     el.classList.add('dragging');
     ev.dataTransfer.effectAllowed = 'move';
     try{ ev.dataTransfer.setData('text/plain', String(b.uid)); }catch(e){}
-    if(ev.dataTransfer.setDragImage) ev.dataTransfer.setDragImage(el, 24, 18);
+    if(ev.dataTransfer.setDragImage) ev.dataTransfer.setDragImage(el, 26, 18);
   });
   h.addEventListener('dragend', function(){
     el.classList.remove('dragging');
-    /* DOMの並びを正として配列に取り込む。
-       ドラッグ中に再描画すると掴んでいる要素が作り直されて操作が切れるため、
-       動かしている間はDOMだけを触り、離した時に一度だけ配列へ反映する。 */
-    var order = [].slice.call(document.getElementById('list').children)
+    /* 掴んでいる間はDOMだけを動かし、離した時に一度だけ配列へ反映する。
+       ドラッグ中に再描画すると掴んでいる要素が作り直されて操作が切れる。 */
+    var order = [].slice.call(document.getElementById('list').querySelectorAll('.blk'))
                   .map(function(c){ return c.getAttribute('data-uid'); });
+    var before = S.blocks.map(function(x){ return x.uid; }).join(',');
     S.blocks.sort(function(a, c){
-      return order.indexOf(String(a.uid)) - order.indexOf(String(c.uid));
-    });
-    markDirty(); render();
+      return order.indexOf(String(a.uid)) - order.indexOf(String(c.uid)); });
+    if(S.blocks.map(function(x){ return x.uid; }).join(',') !== before) markDirty();
+    render(); jump(b.uid);
   });
-
-  return el;
 }
 
-/* ドラッグ中はDOMだけを動かす */
+/* ドラッグ中はDOMだけ動かす。幕の見出しは並べ替えの対象にしない */
+var dragSnapped = false;
 document.addEventListener('dragover', function(ev){
   var list = document.getElementById('list');
   var dragging = list && list.querySelector('.dragging');
   if(!dragging) return;
   ev.preventDefault();
+  if(!dragSnapped){ snapshot(); dragSnapped = true; }
   var after = null, min = Infinity;
-  [].slice.call(list.children).forEach(function(c){
+  [].slice.call(list.querySelectorAll('.blk')).forEach(function(c){
     if(c === dragging) return;
     var box = c.getBoundingClientRect();
     var off = ev.clientY - box.top - box.height / 2;
@@ -425,233 +608,261 @@ document.addEventListener('dragover', function(ev){
 });
 
 var soonT = null;
-function renderSoon(){ clearTimeout(soonT); soonT = setTimeout(render, 300); }
+function renderSoon(){ clearTimeout(soonT); soonT = setTimeout(render, 280); }
 
-function kindSelect(cur){
-  return '<select class="w110">' + ['演目','MC','客席参加','休憩','映像','その他'].map(function(k){
-    return '<option' + (k === cur ? ' selected' : '') + '>' + k + '</option>';
-  }).join('') + '</select>';
-}
-function val(x){ return (x === '' || x == null) ? '' : String(x); }
-function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
-  return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
-
-/* ---------- 検出パネル ---------- */
+/* ---------- 検出 ---------- */
 function renderWarns(r){
   var h = '';
-  var thr = n(setting('連続警告のしきい値', 5));
+  var thr = num(setting('連続警告のしきい値', 5));
 
   if(r.runs.length){
-    /* 人ごとに1行ずつ出すと、OP（全員出演）の直後だけで何行も並んで読めなくなる。
-       「どの繋ぎで／何人が／何分しか空かないか」が判断の単位なので、繋ぎでまとめる。 */
-    var pairs = {}, order = [];
+    /* 人ごとに1行出すと、全員出演の直後だけで何行も並ぶ。
+       判断の単位は「どの繋ぎで・何人が・何分しか空かないか」なので繋ぎでまとめる。 */
+    var pairs = {}, keys = [];
     r.runs.forEach(function(x){
       var k = x.from.uid + '>' + x.to.uid;
-      if(!pairs[k]){ pairs[k] = { from:x.from, to:x.to, rest:x.rest, who:[] }; order.push(k); }
+      if(!pairs[k]){ pairs[k] = { from:x.from, to:x.to, rest:x.rest, who:[] }; keys.push(k); }
       pairs[k].who.push(x.who);
     });
-    order.map(function(k){ return pairs[k]; })
-         .sort(function(a, b){ return a.rest - b.rest || b.who.length - a.who.length; })
-         .forEach(function(p){
+    keys.map(function(k){ return pairs[k]; })
+        .sort(function(a, b){ return a.rest - b.rest || b.who.length - a.who.length; })
+        .forEach(function(p){
       h += '<div class="warn' + (p.rest <= 0 ? ' bad' : '') + '">'
-        + '休息 <b>' + round1(p.rest) + '分</b> ／ <b>' + p.who.length + '名</b>'
-        + '<div class="who">' + esc(p.from.name) + ' → ' + esc(p.to.name) + '</div>'
-        + '<div class="who">' + p.who.map(esc).join('／') + '</div></div>';
+        + '<div class="h"><span class="n tnum">' + round1(p.rest) + '分</span>'
+        + '<span>しか空かない ／ ' + p.who.length + '名</span></div>'
+        + '<div class="who"><a onclick="jump(' + p.from.uid + ')">' + esc(p.from.name) + '</a> → '
+        + '<a onclick="jump(' + p.to.uid + ')">' + esc(p.to.name) + '</a></div>'
+        + '<div class="sm">' + p.who.map(esc).join('／') + '</div></div>';
     });
   } else if(!r.pending.length){
-    h += '<div class="warn info">同じ人が' + thr + '分未満で続けて出る箇所は無い</div>';
+    h += '<div class="warn good"><div class="h">連続なし</div>'
+      + '<div class="sm">同じ人が' + thr + '分未満で続けて出る箇所は無い</div></div>';
   }
 
   if(r.pending.length){
-    var pnames = {};
-    r.pending.forEach(function(x){ pnames[x.from.name + ' → ' + x.to.name] = 1; });
-    h += '<div class="warn info"><b>連続を判定できない繋ぎ ' + Object.keys(pnames).length + '箇所</b>'
-      + '<div class="who">間にある演目の尺が未入力。休息が何分になるか出せない</div>'
-      + '<div class="who">' + Object.keys(pnames).map(esc).join('／') + '</div></div>';
+    var names = {};
+    r.pending.forEach(function(x){ names[x.from.name + ' → ' + x.to.name] = 1; });
+    h += '<div class="warn info"><div class="h"><span class="n tnum">'
+      + Object.keys(names).length + '</span><span>箇所は連続を判定できない</span></div>'
+      + '<div class="sm">間の演目の尺が空欄。休息が何分になるか出せない</div>'
+      + '<div class="who">' + Object.keys(names).map(esc).join('／') + '</div></div>';
   }
 
-  var lim = parseHHMM(setting('終演上限', '21:30'));
-  if(lim != null && r.end > lim){
-    h += '<div class="warn bad"><b>終演が上限を' + Math.round(r.end - lim) + '分オーバー</b>'
-      + '<div class="who">' + fmtHHMM(r.end) + '／上限 ' + fmtHHMM(lim) + '</div></div>';
+  var lim = parseHHMM(setting('終演上限', ''));
+  if(lim != null && r.endKnown && r.end > lim){
+    h += '<div class="warn bad"><div class="h"><span class="n tnum">'
+      + Math.round(r.end - lim) + '分</span><span>終演が上限を超える</span></div>'
+      + '<div class="sm">' + fmtHHMM(r.end) + '／上限 ' + fmtHHMM(lim) + '</div></div>';
   }
 
-  var blank = S.blocks.filter(function(b){ return b.dur === '' || b.dur == null; });
-  if(blank.length){
-    h += '<div class="warn"><b>尺が未入力 ' + blank.length + '件</b>'
-      + '<div class="who">' + blank.map(function(b){ return esc(b.name); }).join('／') + '</div>'
-      + '<div class="who">この分だけ終演時刻は実際より早く出ている</div></div>';
+  var und = S.blocks.filter(function(b){ return blank(b.dur); });
+  if(und.length){
+    h += '<div class="warn"><div class="h"><span class="n tnum">' + und.length
+      + '</span><span>件の尺が未入力</span></div>'
+      + '<div class="sm">終演時刻も、そこから先の連続も出せない</div>'
+      + '<div class="who">' + und.map(function(b){
+          return '<a onclick="jump(' + b.uid + ')">' + esc(b.name) + '</a>'; }).join('／') + '</div></div>';
   }
 
   if(r.zero.length){
-    h += '<div class="warn"><b>出番ゼロ ' + r.zero.length + '名</b>'
+    h += '<div class="warn"><div class="h"><span class="n tnum">' + r.zero.length
+      + '</span><span>名が出番ゼロ</span></div>'
       + '<div class="who">' + r.zero.map(esc).join('／') + '</div>'
-      + '<div class="who">全員出演の演目（OP・ED）は数えていない</div></div>';
+      + '<div class="sm">全員出演の演目（OP・ED）は数えていない</div></div>';
   }
 
-  if(S.orphan && S.orphan.length){
-    h += '<div class="warn bad"><b>『演目順・稼働』に列が無いブロック</b>'
-      + '<div class="who">' + S.orphan.map(esc).join('／') + '</div>'
-      + '<div class="who">名前が一致していないので、出演者を数えられていない</div></div>';
-  }
-
-  var un = S.blocks.filter(function(b){ return b.unplaced; });
-  if(un.length){
-    h += '<div class="warn"><b>台本に無かった演目を末尾に置いた ' + un.length + '件</b>'
-      + '<div class="who">' + un.map(function(b){ return esc(b.name); }).join('／') + '</div></div>';
+  var orphan = S.blocks.filter(function(b){
+    return b.kind === '演目' && S.engiNames.indexOf(b.name) < 0; });
+  if(orphan.length){
+    h += '<div class="warn bad"><div class="h">『演目順・稼働』に列が無い演目</div>'
+      + '<div class="who">' + orphan.map(function(b){ return esc(b.name); }).join('／') + '</div>'
+      + '<div class="sm">出演者を引けない。稼働タブ側の列名と合わせること</div></div>';
   }
 
   document.getElementById('warns').innerHTML = h;
 }
 
-/* ---------- 誰がどこに出るか ---------- */
-function renderMemberGrid(r){
+/* ---------- 稼働グリッド ---------- */
+function renderGrid(r){
   var engi = S.blocks.filter(function(b){ return b.kind === '演目'; });
   var rows = S.members.slice().sort(function(a, b){
-    return (r.counts[b.name] || 0) - (r.counts[a.name] || 0) || a.name.localeCompare(b.name, 'ja');
-  });
+    return (r.own[b.name] || 0) - (r.own[a.name] || 0) || a.name.localeCompare(b.name, 'ja'); });
 
   var h = '<table class="mg"><thead><tr><th></th>'
-    + engi.map(function(b){ return '<th class="v">' + esc(b.name) + '</th>'; }).join('')
-    + '<th class="v">計</th></tr></thead><tbody>';
+    + engi.map(function(b){
+        return '<th class="v' + (b._act === 2 ? ' a2' : '') + '">' + esc(b.name) + '</th>'; }).join('')
+    + '<th class="v">出番</th></tr></thead><tbody>';
   rows.forEach(function(m){
-    var c = r.counts[m.name] || 0;
+    var c = r.own[m.name] || 0;
     h += '<tr' + (c ? '' : ' class="zero"') + '><td class="n">' + esc(m.name) + '</td>';
     engi.forEach(function(b){
       var on = (S.cast[b.name] || []).indexOf(m.name) >= 0;
-      h += '<td class="c"><span class="dot' + (on ? ' on' : '')
-        + (on && r.hot[m.name + ' ' + b.uid] ? ' run' : '') + '"></span></td>';
+      var cls = !on ? 'dot' : (b._all ? 'dot on all'
+              : (r.hot[m.name + ' ' + b.uid] ? 'dot on run' : 'dot on'));
+      h += '<td class="c"><span class="' + cls + '"></span></td>';
     });
-    h += '<td class="c" style="color:var(--faint);font-variant-numeric:tabular-nums">' + c + '</td></tr>';
+    h += '<td class="tot">' + c + '</td></tr>';
   });
-  h += '</tbody></table>';
-  document.getElementById('mgrid').innerHTML = h;
+  document.getElementById('mgrid').innerHTML = h + '</tbody></table>';
 }
 
 /* ---------- 設定 ---------- */
+var SETTING_HINT = {
+  '終演上限': '越えたら警告',
+  '既定の転換': '転換が空欄の時に使う',
+  '連続警告のしきい値': 'これ未満の休息を警告'
+};
 function renderSettings(){
   var el = document.getElementById('settings');
   el.innerHTML = Object.keys(S.settings).map(function(k){
     var isTime = /時刻|上限/.test(k);
+    var hint = SETTING_HINT[k] || '';
     return '<div class="f"><label>' + esc(k) + '</label>'
-      + '<input class="' + (isTime ? 'w80' : 'w60') + '" data-k="' + esc(k) + '" '
+      + '<input class="' + (isTime ? 'w84' : 'w56') + '" data-k="' + esc(k) + '" '
       + (isTime ? 'placeholder="19:30"' : 'type="number" step="0.5" min="0"')
-      + ' value="' + esc(S.settings[k]) + '"></div>';
+      + ' value="' + esc(S.settings[k]) + '">'
+      + (hint ? '<span class="hint">' + esc(hint) + '</span>' : '') + '</div>';
   }).join('');
   el.querySelectorAll('[data-k]').forEach(function(inp){
     inp.addEventListener('input', function(){
-      S.settings[inp.getAttribute('data-k')] = inp.value;
-      markDirty(); renderSoon();
+      S.settings[inp.getAttribute('data-k')] = inp.value; markDirty(); renderSoon();
     });
   });
 }
 
-/* ---------- ブロック追加 ---------- */
+/* ---------- 追加 ---------- */
 function addBlock(kind){
-  var d = ({ 'MC':        { name:'喋る時間',     dur:5  },
-             '客席参加':  { name:'客席プレイ',   dur:13 },
-             '休憩':      { name:'休憩',         dur:20 },
-             '映像':      { name:'つなぎ映像',   dur:1  },
-             'その他':    { name:'',             dur:'' } })[kind] || { name:'', dur:'' };
-  S.blocks.push({ uid:++uid, name:d.name, kind:kind, dur:d.dur, trans:'', note:'' });
-  markDirty(); render();
-  var list = document.getElementById('list');
-  if(list.lastChild) list.lastChild.scrollIntoView({ behavior:'smooth', block:'center' });
+  var d = ({ 'MC':{ name:'喋る時間' }, '客席参加':{ name:'客席プレイ' },
+             '休憩':{ name:'休憩', dur:20 }, '映像':{ name:'つなぎ映像' },
+             'その他':{ name:'' } })[kind] || { name:'' };
+  snapshot();
+  var b = { uid:++uid, name:d.name || '', kind:kind, dur:(d.dur == null ? '' : d.dur), trans:'', note:'' };
+  S.blocks.push(b);
+  markDirty(); render(); jump(b.uid);
 }
 
-/* ---------- 読み書き ---------- */
-function load(){
-  setStatus('読み込み中');
-  fetch(BASE + '?page=lineup&k=' + encodeURIComponent(DASH_SECRET))
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(!d || !d.ok){ setStatus('読み込み失敗：' + ((d && d.error) || '不明')); return; }
-      S.cast = d.cast || {};
-      S.members = d.members || [];
-      S.settings = d.settings || {};
-      S.orphan = d.orphan || [];
-      S.engiNames = d.engiNames || [];
-      S.blocks = (d.blocks || []).map(function(b){ b.uid = ++uid; return b; });
-      S.dirty = false;
-      renderSettings();
-      render();
-      setStatus('読み込み ' + (d.updatedAt || ''));
-      document.getElementById('saveBtn').disabled = true;
-      if(d.aliasMissing && d.aliasMissing.length){
-        toast('『名簿マッピング』に無い呼び名 ' + d.aliasMissing.length + '件（そのまま表示している）');
-      }
-    })
-    .catch(function(e){ setStatus('通信エラー：' + e); });
+/* ---------- 取り消し ---------- */
+function snapshot(){
+  undoStack.push(JSON.stringify({ blocks:S.blocks, settings:S.settings }));
+  if(undoStack.length > 60) undoStack.shift();
+  document.getElementById('undoBtn').disabled = false;
 }
-
-function save(){
-  var btn = document.getElementById('saveBtn');
-  btn.disabled = true;
-  setStatus('保存中');
-  fetch(BASE, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-    body: JSON.stringify({
-      survey:'lineup_save', secret:DASH_SECRET, settings:S.settings,
-      blocks: S.blocks.map(function(b){
-        return { name:b.name, kind:b.kind, act:b._act, dur:b.dur, trans:b.trans, note:b.note };
-      })
-    })
-  })
-    .then(function(r){ return r.json(); })
-    .then(function(res){
-      if(res && res.ok){
-        S.dirty = false;
-        setStatus('保存済み ' + (res.updatedAt || '') + '／終演 ' + (res.endsAt || ''));
-        toast('『構成台本』タブに ' + res.saved + 'ブロック保存した');
-      } else {
-        btn.disabled = false;
-        var m = (res && res.error) || '不明';
-        setStatus('保存失敗：' + m); toast('保存失敗：' + m);
-      }
-    })
-    .catch(function(e){ btn.disabled = false; setStatus('通信エラー：' + e); });
+function undo(){
+  if(!undoStack.length) return;
+  var s = JSON.parse(undoStack.pop());
+  S.blocks = s.blocks; S.settings = s.settings;
+  document.getElementById('undoBtn').disabled = !undoStack.length;
+  markDirty(); renderSettings(); render(); toast('取り消した');
 }
+document.addEventListener('keydown', function(e){
+  var t = e.target.tagName;
+  if((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'z' && !e.shiftKey){
+    if(t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;   // 入力欄の取り消しは邪魔しない
+    e.preventDefault(); undo();
+  }
+  if((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 's'){ e.preventDefault(); save(); }
+});
 
 /* ---------- テキストで写す ---------- */
 function copyScript(){
   var r = compute();
-  var lines = ['HARIBOW単独公演 構成台本（' + fmtHHMM(r.open) + '開演 → ' + fmtHHMM(r.end) + '終演）', ''];
-  var lastAct = null;
+  var lines = ['HARIBOW単独公演 構成台本（' + fmtHHMM(r.open) + '開演'
+    + (r.endKnown ? ' → ' + fmtHHMM(r.end) + '終演' : ' ／ 終演は尺が揃うまで未定') + '）', ''];
+  var shown = null;
   S.blocks.forEach(function(b){
-    var a = b._act === 0 ? '幕間' : (b._act + '幕');
-    if(a !== lastAct){ lines.push('── ' + a + ' ──'); lastAct = a; }
-    lines.push(fmtHHMM(b._start) + '  ' + b.name
-      + (b.dur === '' || b.dur == null ? '  [尺未定]' : '  ' + b.dur + '分')
-      + (n(b.trans) ? '  ＋転換' + b.trans + '分' : '')
+    var a = b._act === 0 ? '幕間' : b._act + '幕';
+    if(a !== shown){ lines.push('── ' + a + ' ──'); shown = a; }
+    lines.push((b._known ? fmtHHMM(b._start) : '--:--') + '  ' + b.name
+      + (blank(b.dur) ? '  [尺未定]' : '  ' + round1(num(b.dur)) + '分')
+      + (b._trans ? '  ＋転換' + round1(b._trans) + '分' : '')
       + (b.note ? '  ／' + b.note : ''));
   });
   if(r.runs.length){
     lines.push('', '【連続】');
     r.runs.forEach(function(x){
-      lines.push(x.who + '：' + x.from.name + ' → ' + x.to.name + '（休息 ' + round1(x.rest) + '分）');
-    });
+      lines.push(x.who + '：' + x.from.name + ' → ' + x.to.name + '（休息 ' + round1(x.rest) + '分）'); });
   }
+  if(r.zero.length) lines.push('', '【出番ゼロ】' + r.zero.join('／'));
   var txt = lines.join('\n');
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(function(){ toast('コピーした'); },
       function(){ window.prompt('コピーしてください', txt); });
-  } else {
-    window.prompt('コピーしてください', txt);
-  }
+  } else window.prompt('コピーしてください', txt);
 }
 
-/* ---------- 小物 ---------- */
+/* ---------- 読み書き ---------- */
+function load(){
+  if(S.dirty && !confirm('未保存の変更があります。読み直すと失われます。よろしいですか？')) return;
+  setStatus('読み込み中', '');
+  fetch(BASE + '?page=lineup&k=' + encodeURIComponent(DASH_SECRET))
+    .then(function(res){ return res.json(); })
+    .then(function(d){
+      if(!d || !d.ok){ setStatus('読み込み失敗：' + ((d && d.error) || '不明'), 'err'); return; }
+      S.cast = d.cast || {}; S.members = d.members || [];
+      S.engiNames = d.engiNames || []; S.settings = d.settings || {};
+      S.rev = d.rev || '';
+      S.blocks = (d.blocks || []).map(function(b){ b.uid = ++uid; return b; });
+      S.dirty = false; S.loaded = true;
+      undoStack = []; expanded = {};
+      document.getElementById('undoBtn').disabled = true;
+      document.getElementById('saveBtn').disabled = true;
+      renderSettings(); render();
+      setStatus('読み込み ' + (d.updatedAt || ''), '');
+      if(d.aliasMissing && d.aliasMissing.length){
+        toast('『名簿マッピング』に無い呼び名 ' + d.aliasMissing.length + '件（そのまま表示している）');
+      }
+    })
+    .catch(function(e){ setStatus('通信エラー：' + e, 'err'); });
+}
+
+function save(){
+  if(!S.loaded || !S.dirty) return;
+  var btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  setStatus('保存中', '');
+  fetch(BASE, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      survey:'lineup_save', secret:DASH_SECRET, settings:S.settings, rev:S.rev,
+      blocks: S.blocks.map(function(b){
+        return { name:b.name, kind:b.kind, act:b._act, dur:b.dur, trans:b.trans, note:b.note }; })
+    })
+  })
+    .then(function(res){ return res.json(); })
+    .then(function(res){
+      if(res && res.ok){
+        S.dirty = false; S.rev = res.rev || S.rev;
+        setStatus('保存済み ' + (res.updatedAt || ''), '');
+        toast('『構成台本』タブに ' + res.saved + 'ブロック保存した'
+          + (res.endsAt ? '（終演 ' + res.endsAt + '）' : '（終演は尺が揃うまで出せない）'));
+      } else if(res && res.conflict){
+        btn.disabled = false;
+        setStatus('保存しなかった（別の画面が先に保存済み）', 'err');
+        toast(res.error);
+      } else {
+        btn.disabled = false;
+        var m = (res && res.error) || '不明';
+        setStatus('保存失敗：' + m, 'err'); toast('保存失敗：' + m);
+      }
+    })
+    .catch(function(e){ btn.disabled = false; setStatus('通信エラー：' + e, 'err'); });
+}
+
+/* ---------- 状態表示 ---------- */
 function markDirty(){
   S.dirty = true;
   document.getElementById('saveBtn').disabled = false;
-  setStatus('未保存の変更あり');
+  setStatus('未保存の変更あり', 'dirty');
 }
-function setStatus(s){ document.getElementById('savest').textContent = s; }
+function setStatus(s, cls){
+  var el = document.getElementById('savest');
+  el.textContent = s; el.className = 'st ' + (cls || '');
+}
 var toastT = null;
 function toast(s){
   var el = document.getElementById('toast');
   el.textContent = s; el.classList.add('show');
   clearTimeout(toastT);
-  toastT = setTimeout(function(){ el.classList.remove('show'); }, 3400);
+  toastT = setTimeout(function(){ el.classList.remove('show'); }, 4200);
 }
 window.addEventListener('beforeunload', function(e){
   if(S.dirty){ e.preventDefault(); e.returnValue = ''; }
