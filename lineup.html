@@ -403,12 +403,20 @@ function renderStats(r){
 }
 
 function renderBar(r){
-  var total = 0;
-  S.blocks.forEach(function(b){ total += num(b.dur) + b._trans; });
-  var n = Math.max(S.blocks.length, 1);
-  var unit = total > 0 ? total : n * 5;
+  /* 尺が未入力のブロックの幅は、決まっているブロックの平均で仮置きする。
+     以前は「全体÷本数」を当てていたので、決まっている演目だけが極端に太く見え、
+     帯が実際の構成とかけ離れた比率になっていた。 */
+  var known = 0, knownN = 0;
+  S.blocks.forEach(function(b){
+    if(!blank(b.dur)){ known += num(b.dur) + b._trans; knownN++; }
+  });
+  var avg = knownN ? known / knownN : 5;
+  var unit = 0;
+  S.blocks.forEach(function(b){ unit += blank(b.dur) ? avg : num(b.dur) + b._trans; });
+  if(unit <= 0) unit = Math.max(S.blocks.length, 1) * 5;
+
   document.getElementById('bar').innerHTML = S.blocks.map(function(b){
-    var w = blank(b.dur) ? unit / n : num(b.dur) + b._trans;
+    var w = blank(b.dur) ? avg : num(b.dur) + b._trans;
     var pct = Math.max(w / unit * 100, 1.2);
     return '<div class="seg' + (blank(b.dur) ? ' unknown' : '') + '" '
       + 'style="flex:0 0 ' + pct + '%;' + (blank(b.dur) ? '' : 'background:' + KIND_COLOR[b.kind] + ';') + '" '
