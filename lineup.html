@@ -210,7 +210,8 @@ function compute(){
   if(open == null) open = 19 * 60 + 30;
 
   var t = open, act = 1;
-  S.blocks.forEach(function(b){
+  S.blocks.forEach(function(b, i){
+    b._i = i;
     b._start = t;
     b._act = (b.kind === '休憩') ? 0 : act;   // 0 ＝ 幕間
     b._end = t + n(b.dur);                    // 転換は出番の外
@@ -218,7 +219,15 @@ function compute(){
     if(b.kind === '休憩') act = 2;
   });
 
-  var res = { open:open, end:t, act1:0, act2:0, runs:[], zero:[], counts:{}, own:{}, hot:{} };
+  var res = { open:open, end:t, act1:0, act2:0, runs:[], pending:[], zero:[], counts:{}, own:{}, hot:{} };
+
+  /* 尺が入っていない区間は休息を計算できない。
+     0分として扱うと「休息0分」の警告が全ブロックに並び、本当に詰まっている箇所が埋もれる。
+     blankCum[i] ＝ 先頭からi個目までに、尺が未入力のブロックがいくつあるか。 */
+  var blankCum = [0];
+  S.blocks.forEach(function(b, i){
+    blankCum[i + 1] = blankCum[i] + ((b.dur === '' || b.dur == null) ? 1 : 0);
+  });
   S.blocks.forEach(function(b){
     var len = n(b.dur) + n(b.trans);
     if(b._act === 1) res.act1 += len; else if(b._act === 2) res.act2 += len;
@@ -238,11 +247,16 @@ function compute(){
       if(!b._allCast) res.own[m] = (res.own[m] || 0) + 1;
       var prev = lastOf[m];
       if(prev){
-        var rest = b._start - prev._end;
-        if(rest < thr){
-          res.runs.push({ who:m, from:prev, to:b, rest:rest });
-          res.hot[m + ' ' + prev.uid] = 1;
-          res.hot[m + ' ' + b.uid] = 1;
+        // 前の出番の頭から次の出番の頭までに未入力の尺が挟まっていたら、休息は出せない
+        if(blankCum[b._i] - blankCum[prev._i] > 0){
+          res.pending.push({ who:m, from:prev, to:b });
+        } else {
+          var rest = b._start - prev._end;
+          if(rest < thr){
+            res.runs.push({ who:m, from:prev, to:b, rest:rest });
+            res.hot[m + ' ' + prev.uid] = 1;
+            res.hot[m + ' ' + b.uid] = 1;
+          }
         }
       }
       lastOf[m] = b;
@@ -444,8 +458,16 @@ function renderWarns(r){
         + '<div class="who">' + esc(p.from.name) + ' → ' + esc(p.to.name) + '</div>'
         + '<div class="who">' + p.who.map(esc).join('／') + '</div></div>';
     });
-  } else {
+  } else if(!r.pending.length){
     h += '<div class="warn info">同じ人が' + thr + '分未満で続けて出る箇所は無い</div>';
+  }
+
+  if(r.pending.length){
+    var pnames = {};
+    r.pending.forEach(function(x){ pnames[x.from.name + ' → ' + x.to.name] = 1; });
+    h += '<div class="warn info"><b>連続を判定できない繋ぎ ' + Object.keys(pnames).length + '箇所</b>'
+      + '<div class="who">間にある演目の尺が未入力。休息が何分になるか出せない</div>'
+      + '<div class="who">' + Object.keys(pnames).map(esc).join('／') + '</div></div>';
   }
 
   var lim = parseHHMM(setting('終演上限', '21:30'));
