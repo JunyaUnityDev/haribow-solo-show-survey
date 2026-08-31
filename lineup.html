@@ -922,7 +922,10 @@ function copyScript(){
 function load(){
   if(S.dirty && !confirm('未保存の変更があります。読み直すと失われます。よろしいですか？')) return;
   setStatus('読み込み中', '');
-  fetch(BASE + '?page=lineup&k=' + encodeURIComponent(DASH_SECRET))
+  /* ★キャッシュを必ず外す。同じURLのGETなのでブラウザが前の応答を使い回し、
+     出演を書き換えた直後に再読込しても古い内容が返っていた（書き込みは通っているのに）。 */
+  fetch(BASE + '?page=lineup&k=' + encodeURIComponent(DASH_SECRET) + '&_=' + Date.now(),
+        { cache:'no-store' })
     .then(function(res){ return res.json(); })
     .then(function(d){
       if(!d || !d.ok){ setStatus('読み込み失敗：' + ((d && d.error) || '不明'), 'err'); return; }
