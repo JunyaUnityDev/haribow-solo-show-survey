@@ -186,6 +186,11 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
 /* 非売席・補欠席。場所は空けるが何も描かない（薄く描くと空席に見えて実際より空いて見える） */
 .seat.void{background:transparent;box-shadow:none}
 .seatrow .aisle{flex:0 0 7px}
+/* 1階と2階の境目。公開ページ(seats.html)の .floordiv と同じ役割で、
+   スクロール順が客席の前→後ろになるように2階は必ず1階の下に置く */
+.floordiv{align-self:center;width:62%;margin:13px 0 7px;text-align:center;
+  font-size:10px;font-weight:800;letter-spacing:.24em;
+  color:var(--faint);border-top:1px solid var(--line);padding-top:11px}
 .seatmap-cap{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0;line-height:1.5}
 
 .scale{margin:20px 0 0}
@@ -283,6 +288,10 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
 .dec[open]>summary::after{content:"とじる"}
 .dec[open]>summary{margin-bottom:9px;border-bottom:1px solid var(--line);padding-bottom:9px}
 .dec-skip{font-size:11.5px;color:var(--faint);margin:9px 0 0;line-height:1.6}
+/* 控えの列。出しているのは先頭だけなので、次に何が来るかは必ず見せる */
+.dec-queue{font-size:11.5px;color:var(--dim);line-height:1.75;margin:11px 0 0;
+  background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.dec-queue b{color:var(--cream)}
 .dec-meta .over{color:var(--red)}
 .dec-h{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:6px}
 .dec-title{font-size:15px;font-weight:800;letter-spacing:.01em;flex:1 1 auto;min-width:60%}
@@ -824,10 +833,16 @@ function toast(msg){
 /* ---------- 決めなくてはならないこと ----------
    WBSの「決定区分」列から未決の意思決定を出す。区分ごとに決め方が違うので、
    画面上でできることも変える：
-     確認待ち … 聞けば答えが出る。ボタンは出さず、聞く先だけ見せる
+     確認待ち … 聞けば答えが出る。合意ではないので承認は出さず、［答えが出た］で閉じる
      判断待ち … 責任者1人で決めてよい。承認／保留／別案が押せる
-     要会議   … 取り消すと誰かに迷惑がかかる。承認は押させず、保留と別案だけ
-   ★押した記録は残るが本人認証ではない（鍵は共有）。金額が動く決定はここだけで確定させない。 */
+     要会議   … 取り消すと誰かに迷惑がかかる。承認は押させず、［会議で決めた］／保留／別案
+   ★押した記録は残るが本人認証ではない（鍵は共有）。金額が動く決定はここだけで確定させない。
+   ★2026-09-01：確認待ちと要会議に「閉じる口」を足した。
+     それまで確認待ちにはボタンが1つも無く（「返事が来たら行を完了にしてください」と書いてあるだけ）、
+     要会議は承認を伏せていたので、決着してもボードから消えなかった。
+     行14（レーザーLEDの見積・期限8/15）が9/1になっても居座っていたのがそれ。
+     決着済みが残る欄は件数が信用できなくなり、欄ごと読み飛ばされる。
+     ★代わりに「何が決まったか」を必ず書かせる（ひとこと必須）。ワンクリックでは閉じない。 */
 var DEC_CLS = { '確認待ち':'kakunin', '判断待ち':'handan', '要会議':'kaigi' };
 
 function renderDecisionBoard(b){
@@ -843,6 +858,10 @@ function renderDecisionBoard(b){
   var c = b.counts || {};
   note.textContent = '確認待ち' + (c['確認待ち']||0) + '／判断待ち' + (c['判断待ち']||0) + '／要会議' + (c['要会議']||0);
 
+  /* 出しているのは期限が近い順の先頭だけ。1件決まると次が繰り上がる。
+     控えを黙って隠すと「決め待ちゼロ」に見えるので、件数と中身は必ず出す。 */
+  var queued = b.queued || [];
+
   var ownerOpts = (b.owners || []).map(function(o){ return '<option>' + esc(o) + '</option>'; }).join('');
 
   var html =
@@ -857,20 +876,27 @@ function renderDecisionBoard(b){
     var isKaigi = it.kind === '要会議';
     var isKakunin = it.kind === '確認待ち';
 
-    var act;
-    if(isKakunin){
-      act = '<p class="dec-note">' + esc(it.owner || '担当未定') + ' に聞けば答えが出ます。返事が来たら、この行を完了にしてください。</p>';
-    }else{
-      act =
-        '<div class="dec-act">' +
-          '<select class="dec-by"><option value="">名前を選ぶ</option>' + ownerOpts + '</select>' +
-          '<input class="dec-cm" placeholder="ひとこと（別案のときは必須）">' +
-          (isKaigi ? '' : '<button class="ok" data-act="承認">承認</button>') +
-          '<button class="hold" data-act="保留">保留</button>' +
-          '<button data-act="別案">別案</button>' +
-        '</div>' +
-        (isKaigi ? '<p class="dec-note">これは会議で決めるものなので、承認ボタンは出していません。保留か別案で意見を残してください。</p>' : '');
-    }
+    /* 閉じ方は区分ごとに違うが、「どの区分にも閉じる口がある」ことは共通にする。
+       確認待ち＝答えが返ってきた／要会議＝会議で決まった／判断待ち＝責任者が承認した。 */
+    var closeBtn =
+      isKakunin ? '<button class="ok" data-act="決定">答えが出た</button>'
+      : isKaigi ? '<button class="ok" data-act="決定">会議で決めた</button>'
+                : '<button class="ok" data-act="承認">承認</button>';
+    var ph =
+      isKakunin ? 'ひとこと（答えの中身。必須）'
+      : isKaigi ? 'ひとこと（会議で決まったこと。必須）'
+                : 'ひとこと（別案のときは必須）';
+
+    var act =
+      '<div class="dec-act">' +
+        '<select class="dec-by"><option value="">名前を選ぶ</option>' + ownerOpts + '</select>' +
+        '<input class="dec-cm" placeholder="' + ph + '">' +
+        closeBtn +
+        '<button class="hold" data-act="保留">保留</button>' +
+        '<button data-act="別案">別案</button>' +
+      '</div>' +
+      (isKakunin ? '<p class="dec-note">' + esc(it.owner || '担当未定') + ' に聞けば答えが出ます。返事が来たら、答えの中身を書いて［答えが出た］を押してください。</p>' : '') +
+      (isKaigi ? '<p class="dec-note">これは会議で決めるものなので、ワンクリックの承認は出していません。決まったら中身を書いて［会議で決めた］を押してください。</p>' : '');
 
     /* 全部畳む。一度「期限を過ぎたものだけ開く」にしたが、この公演は期限超過が常態で
        3件中2件が開いてしまい、畳んだ意味がなくなった（2026-08-12 実測）。
@@ -897,6 +923,14 @@ function renderDecisionBoard(b){
       '</details>';
   });
 
+  if(queued.length){
+    html += '<p class="dec-queue"><b>この次に決めること（' + queued.length + '件）</b>：' +
+      queued.map(function(q){
+        return esc(q.title) + (q.due ? '（' + esc(q.due) + '）' : '');
+      }).join('　／　') +
+      '<br>上が1件片付くと、ここから順に上がってきます。</p>';
+  }
+
   /* 決定区分が3区分のどれでもなくて外した行を注記で出す。黙って消すと、
      区分の書き間違いで決定が画面から消えたことに誰も気づけない。 */
   var skipped = b.skipped || [];
@@ -917,7 +951,10 @@ function renderDecisionBoard(b){
         var act = btn.getAttribute('data-act');
         if(!by){ toast('名前を選んでください'); return; }
         if(act === '別案' && !cm){ toast('別案の中身を書いてください'); return; }
-        if(act === '承認' && !confirm('「' + card.querySelector('.dec-title').textContent + '」を承認として記録します。よろしいですか。')) return;
+        /* 決定＝この行を閉じる操作。何が決まったのかが残らないと、あとで理由を辿れない */
+        if(act === '決定' && !cm){ toast('決まった中身を書いてください'); return; }
+        if((act === '承認' || act === '決定') &&
+           !confirm('「' + card.querySelector('.dec-title').textContent + '」を決着として記録し、この欄から消します。よろしいですか。')) return;
         btn.disabled = true;
         postUpdate({survey:'decision_act', secret:DASH_SECRET, row:Number(card.getAttribute('data-row')),
                     act:act, by:by, comment:cm})
@@ -1133,19 +1170,25 @@ function renderHero(b){
      公開サイト(seats.html)は最初から正しく描けていたので、**運営だけが違う絵を見ていた**。
    ★色は2状態だけ：光る＝売れた／薄い＝空席。非売席・補欠席は「何も置かない」。
      非売席を薄く描くと空席に見えてしまい、実際より空いて見える。
-   ★2階席（31〜41列・エリアf2・全429席が非売）は別ブロックなので描かない。
-     販売可能席がある列の範囲（＝1階の販売エリア）だけを対象にする。 */
-function buildSeatMap(rows){
-  /* ★描く列を明示する（2026-08-24修正）。
-       もとは「販売可能席がある列の最小〜最大」で範囲を出していたが、
-       1階以外に1席でも売り物ができると lastRow がそこまで伸びて、
-       間の2階(31〜41列)が空白行として描かれ、幅も1〜32→1〜39に広がる。
-       実際に LB2列の6席で lastRow が 22→52 になり客席図が崩れた。
-       範囲の推測をやめ、1階(1〜22列)だけを対象にする。
-       2階を開けるときは 31〜41 を別ブロックとして明示的に足すこと。 */
+   ★2026-09-01まで、2階席（シート上の31〜41列）を描いていなかった。
+     8/24に2階を全開放した（Seats.js の F2_OPEN_STAGE_=3）ことで販売可能席は566→937に増え、
+     上の「客席 536/937席」とこの客席図が食い違ったまま1週間動いていた。
+     絵から371席が抜けている＝運営には「ほぼ満席」に見えるが、実際は2階がまるごと空いている。
+   ★階ごとに席の並びが違う。1階＝1〜32番／通路は11番と23番の手前、
+     2階＝1〜39番／通路は14番と27番の手前（公式客席図・左1〜13／中央14〜26／右27〜39）。
+     1階の通路位置を2階に当てるとブロックの切れ目がズレるので、階ごとに分けて描く。
+   ★列の範囲は推測しない（2026-08-24の教訓）。「販売可能席がある列の最小〜最大」で出していた頃、
+     LB2列の6席で範囲が 22→52 に伸び、間の2階が空白行として描かれて客席図が崩れた。
+     階を足すときは、下の FLOOR_DEFS_ に1行足す。 */
+var FLOOR_DEFS_ = [
+  { name:'1階', from:1,  to:22, aisles:{11:1, 23:1} },
+  { name:'2階', from:31, to:41, aisles:{14:1, 27:1}, rowLabel:function(n){ return '2階' + (n - 30) + '列'; } }
+];
+
+function buildFloorRows(rows, def){
   var target = (rows||[]).filter(function(r){
     var n = Number(r.row);
-    return n >= 1 && n <= 22 && (r.gridNums||[]).length;
+    return n >= def.from && n <= def.to && (r.gridNums||[]).length;
   });
   if(!target.length) return '';
   var lo = null, hi = null;
@@ -1160,14 +1203,27 @@ function buildSeatMap(rows){
     (r.gridNums||[]).forEach(function(n){ grid[n] = 1; });
     (r.nums||[]).forEach(function(n){ sale[n] = 1; });
     (r.takenNums||[]).forEach(function(n){ taken[n] = 1; });
+    var label = def.rowLabel ? def.rowLabel(Number(r.row)) : (r.row + '列');
     var cells = '';
     for(var n = lo; n <= hi; n++){
-      if(n === 11 || n === 23) cells += '<div class="aisle"></div>';   // 通路
+      if(def.aisles[n]) cells += '<div class="aisle"></div>';   // 通路
       var cls = (!grid[n] || !sale[n]) ? 'seat void' : (taken[n] ? 'seat taken' : 'seat');
-      cells += '<div class="' + cls + '" title="' + r.row + '列' + n + '番"></div>';
+      cells += '<div class="' + cls + '" title="' + label + n + '番"></div>';
     }
-    return '<div class="seatrow" title="' + r.row + '列：' + r.taken + '/' + r.sellable + '席">' + cells + '</div>';
+    return '<div class="seatrow" title="' + label + '：' + r.taken + '/' + r.sellable + '席">' + cells + '</div>';
   }).join('');
+}
+
+function buildSeatMap(rows){
+  var out = '', drawn = 0;
+  FLOOR_DEFS_.forEach(function(def){
+    var html = buildFloorRows(rows, def);
+    if(!html) return;                       // 開いていない階は見出しごと出さない
+    if(drawn) out += '<div class="floordiv">' + def.name + '席</div>';
+    out += html;
+    drawn++;
+  });
+  return out;
 }
 
   /* --- 客席図：金額より「空席」の方が出演者の手は動く --- */

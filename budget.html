@@ -17,6 +17,14 @@
   .who{font-size:12px;color:var(--faint)}
   .lead{font-size:12px;color:var(--faint);line-height:1.7;margin:8px 0 14px}
 
+  /* 全員共有URL用の名前バー。誰が入れたかをJ列に残すためだけの欄なので、目立たせすぎない */
+  .whobar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:10px}
+  .whobar label{font-size:11.5px;color:var(--faint);flex:0 0 auto}
+  .whobar select,.whobar input{flex:1 1 130px;min-width:0;background:#0f1116;color:var(--text);
+    border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13.5px;font-family:inherit}
+  .whobar.need{border-color:#c9a24b}
+
   .stats{display:flex;gap:6px;margin-bottom:8px}
   .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}
   .stat b{display:block;font-size:16px;line-height:1.35;font-variant-numeric:tabular-nums}
@@ -76,6 +84,13 @@
   <p class="lead" id="lead">読み込んでいます。最初の1回だけ20秒ほどかかります…</p>
 
   <div id="body" style="display:none">
+    <!-- 全員共有URLで開いたときだけ出す。個人URLはトークンが人を指すので出さない。
+         ここが空のままだと保存できない＝更新者の欄が空の行を作らせない -->
+    <div id="whoBar" class="whobar" style="display:none">
+      <label for="byPick">入力する人</label>
+      <select id="byPick" onchange="pickBy(this.value)"></select>
+      <input id="byFree" placeholder="名簿に無い人はここに入力" oninput="pickByFree(this.value)" style="display:none">
+    </div>
     <div class="stats">
       <div class="stat"><b id="sTotal">¥0</b><span>総支出</span></div>
       <div class="stat fixed"><b id="sFixed">¥0</b><span>確定した額</span></div>
@@ -149,8 +164,58 @@ function load(isReload){
     });
 }
 
+/* 全員共有URL（2026-09-01）。個人URLはトークンが人を指すが、共有URLは指さない。
+   ★だから「入力する人」を選ばせ、その名前を更新者（J列）へ書く。選ぶまで保存はさせない。
+     ここを空許容にすると、金額の根拠を誰に聞けばいいのか分からない行ができる。
+   ★端末に覚えさせるので、毎回選び直す必要はない（同じ人が同じ端末で開く前提）。
+   ★書き込み先も計算も個人URLと同一の Budget.js。入り口が増えるだけで数字は分岐しない。 */
+var BY = '';
+try{ BY = localStorage.getItem('budget_by') || ''; }catch(e){}
+
+function pickBy(v){
+  var isOther = (v === '__other');
+  document.getElementById('byFree').style.display = isOther ? '' : 'none';
+  /* 「その他」は選択肢そのものが名前ではない。自由入力の中身を名前として扱う */
+  BY = isOther ? document.getElementById('byFree').value.trim() : String(v||'').trim();
+  try{ localStorage.setItem('budget_by', BY); }catch(e){}
+  document.getElementById('whoBar').classList.toggle('need', !BY);
+  document.getElementById('who').textContent = BY ? (BY + ' さん') : '名前を選んでください';
+}
+
+/** 保存の直前に呼ぶ。名前が無ければ書かせない（共有URLのときだけ効く） */
+/* 自由入力側。ここで pickBy を呼ぶと「その他」判定から外れて入力欄が消えるので分ける */
+function pickByFree(v){
+  BY = String(v||'').trim();
+  try{ localStorage.setItem('budget_by', BY); }catch(e){}
+  document.getElementById('whoBar').classList.toggle('need', !BY);
+  document.getElementById('who').textContent = BY ? (BY + ' さん') : '名前を選んでください';
+}
+
+function needBy(){
+  if(!data || !data.shared || BY) return false;
+  document.getElementById('whoBar').classList.add('need');
+  document.getElementById('byPick').focus();
+  toast('先に「入力する人」を選んでください');
+  return true;
+}
+
+function renderWhoBar(){
+  var bar = document.getElementById('whoBar');
+  if(!data.shared){ bar.style.display='none'; return; }
+  bar.style.display='';
+  var sel = document.getElementById('byPick');
+  var names = data.names || [];
+  if(BY && names.indexOf(BY) < 0) names = names.concat([BY]);
+  sel.innerHTML = '<option value="">選ぶ</option>'
+    + names.map(function(n){ return '<option'+(n===BY?' selected':'')+'>'+esc(n)+'</option>'; }).join('')
+    + '<option value="__other">その他（自分で書く）</option>';
+  bar.classList.toggle('need', !BY);
+}
+
 function render(){
-  document.getElementById('who').textContent=data.opName+' さん';
+  renderWhoBar();
+  document.getElementById('who').textContent =
+    data.shared ? (BY ? (BY+' さん') : '名前を選んでください') : (data.opName+' さん');
   document.getElementById('lead').textContent=
     'まだ動く額が'+data.roughCount+'件あります。正式見積が出たものから確定にしてください。（'+data.updatedAt+' 時点）';
   document.getElementById('body').style.display='';
@@ -221,6 +286,7 @@ function calc(idx){
      失敗したら元に戻して知らせる。 */
 function pick(idx, k){
   var it=data.items[idx]; if(!it) return;
+  if(needBy()) return;
   var prev=it.kubun;
   it.kubun=k; opened[idx]=true; recalc(); render();
   post({survey:'budget_update',op:OP,name:it.name,kubun:k}).then(function(res){
@@ -249,6 +315,7 @@ function recalc(){
 
 function save(idx){
   var it=data.items[idx]; if(!it) return;
+  if(needBy()) return;
   var u=document.getElementById('u-'+idx).value;
   var q=document.getElementById('q-'+idx).value;
   var m=document.getElementById('m-'+idx).value;
@@ -266,6 +333,8 @@ function save(idx){
 }
 
 function post(body){
+  /* 共有URLのときだけ更新者を添える。個人URLは Budget.js 側がトークンから名前を引く */
+  if(data && data.shared && BY) body.by = BY;
   return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(body)}).then(function(r){ return r.json(); });
 }
