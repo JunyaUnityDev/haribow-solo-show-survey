@@ -122,10 +122,12 @@ select{cursor:pointer}
   color:var(--faint);background:transparent;border-color:transparent}
 .arrows button:hover{background:var(--panel3);color:var(--ink)}
 
-.tcol{padding-top:3px;text-align:right;min-width:44px}
-.tcol .t{font-size:13px;font-weight:800;color:var(--teal);display:block}
-.tcol .t.unknown{color:#3a404c}
-.tcol .len{font-size:9.5px;color:var(--faint);display:block;margin-top:1px}
+.tcol{padding-top:2px;text-align:right;min-width:60px}
+.tcol .t{font-size:13px;font-weight:800;color:var(--teal);display:block;line-height:1.25}
+.tcol .t2{font-size:12px;font-weight:700;color:#7fa3ae;display:block;line-height:1.25}
+.tcol .t.unknown,.tcol .t2.unknown{color:#3a404c}
+.tcol .len{font-size:9.5px;color:var(--faint);display:block;margin-top:2px}
+.tcol .len b{color:var(--dim);font-weight:700}
 
 .body{min-width:0}
 .r1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -308,9 +310,11 @@ function compute(){
   S.blocks.forEach(function(b, i){
     b._i = i;
     b._trans = blank(b.trans) ? defTrans : num(b.trans);
+    /* 開始は「ここまでの尺が全部埋まっているか」、終了は「さらに自分の尺も埋まっているか」。
+       この2つを分けないと、最初の未入力ブロックの開始時刻（実際には分かる）まで隠れる。 */
     b._known = known && !blank(b.dur);
     b._start = known ? t : null;
-    b._end   = b._known ? t + num(b.dur) : null;
+    b._end   = (known && !blank(b.dur)) ? t + num(b.dur) : null;
     b._act   = (b.kind === '休憩') ? 0 : act;
     if(blank(b.dur)) known = false;
     t += num(b.dur) + b._trans;
@@ -409,6 +413,7 @@ function renderBar(r){
     return '<div class="seg' + (blank(b.dur) ? ' unknown' : '') + '" '
       + 'style="flex:0 0 ' + pct + '%;' + (blank(b.dur) ? '' : 'background:' + KIND_COLOR[b.kind] + ';') + '" '
       + 'onclick="jump(' + b.uid + ')" title="' + esc(b.name) + ' ／ '
+      + (b._start != null && b._end != null ? fmtHHMM(b._start) + '–' + fmtHHMM(b._end) + ' ／ ' : '')
       + (blank(b.dur) ? '尺未入力' : round1(num(b.dur)) + '分') + '">'
       + '<span>' + esc(blank(b.dur) ? '?' : (num(b.dur) >= 4 ? b.name : '')) + '</span></div>';
   }).join('');
@@ -438,9 +443,14 @@ function actHeader(key, r, first){
   var a = r.act[key];
   var el = document.createElement('div');
   el.className = 'actbar' + (first ? ' first' : '');
+  /* 幕の頭と尻の時刻。尻は最後のブロックの終了で、後ろの転換は含めない */
+  var inAct = S.blocks.filter(function(b){ return b._act === key; });
+  var s0 = inAct.length ? inAct[0]._start : null;
+  var e0 = inAct.length ? inAct[inAct.length - 1]._end : null;
+  var span = (s0 != null && e0 != null) ? fmtHHMM(s0) + '–' + fmtHHMM(e0) + ' ／ ' : '';
   el.innerHTML = '<span class="t">' + (key === 0 ? '幕間' : key + '幕') + '</span>'
-    + '<span class="d">' + a.n + 'ブロック ／ ' + Math.round(a.len) + '分'
-    + (a.undef ? ' ＋ 尺未入力' + a.undef + '件' : '') + '</span><span class="rule"></span>';
+    + '<span class="d">' + span + a.n + 'ブロック ／ ' + Math.round(a.len) + '分'
+    + (a.undef ? '〜（尺未入力' + a.undef + '件）' : '') + '</span><span class="rule"></span>';
   return el;
 }
 
@@ -450,12 +460,20 @@ function buildCard(b, i, r){
   el.setAttribute('data-uid', b.uid);
 
   /* 時刻：出せない時は --:--。0分として積んだ嘘の時刻は出さない */
-  var tHtml = b._known
-    ? '<span class="t tnum">' + fmtHHMM(b._start) + '</span>'
-    : '<span class="t tnum unknown" title="前に尺が未入力のブロックがあるので、この開始時刻は出せない">--:--</span>';
+  var noTime = '前に尺が未入力のブロックがあるので、この時刻は出せない';
+  var tHtml =
+      (b._start != null
+        ? '<span class="t tnum">' + fmtHHMM(b._start) + '</span>'
+        : '<span class="t tnum unknown" title="' + noTime + '">--:--</span>')
+    + (b._end != null
+        ? '<span class="t2 tnum">– ' + fmtHHMM(b._end) + '</span>'
+        : '<span class="t2 tnum unknown" title="'
+          + (blank(b.dur) ? 'このブロックの尺が未入力' : noTime) + '">– --:--</span>');
   var lenHtml = blank(b.dur)
-    ? '<span class="len">尺未定</span>'
-    : '<span class="len tnum">' + round1(num(b.dur)) + (b._trans ? '+' + round1(b._trans) : '') + '分</span>';
+    ? '<span class="len">尺未定'
+      + (b._trans ? '<b> ＋転' + round1(b._trans) + '</b>' : '') + '</span>'
+    : '<span class="len tnum"><b>' + round1(num(b.dur)) + '分</b>'
+      + (b._trans ? ' ＋転' + round1(b._trans) : '') + '</span>';
 
   /* 名前：稼働タブに列がある限り選択式にする（自由入力にすると紐付けが切れる） */
   var isCol = S.engiNames.indexOf(b.name) >= 0;
@@ -785,7 +803,8 @@ function copyScript(){
   S.blocks.forEach(function(b){
     var a = b._act === 0 ? '幕間' : b._act + '幕';
     if(a !== shown){ lines.push('── ' + a + ' ──'); shown = a; }
-    lines.push((b._known ? fmtHHMM(b._start) : '--:--') + '  ' + b.name
+    lines.push((b._start != null ? fmtHHMM(b._start) : '--:--')
+      + '–' + (b._end != null ? fmtHHMM(b._end) : '--:--') + '  ' + b.name
       + (blank(b.dur) ? '  [尺未定]' : '  ' + round1(num(b.dur)) + '分')
       + (b._trans ? '  ＋転換' + round1(b._trans) + '分' : '')
       + (b.note ? '  ／' + b.note : ''));
