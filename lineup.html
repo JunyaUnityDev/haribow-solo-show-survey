@@ -178,6 +178,10 @@ table.mg th.corner,table.mg td.n{position:sticky;left:0;background:var(--panel);
 table.mg td.n .bt{color:var(--faint);font-variant-numeric:tabular-nums;font-size:10px;margin-right:6px}
 table.mg td.n .kd{color:var(--faint)}
 table.mg td.c{text-align:center;width:19px}
+table.mg td.c.hit{cursor:pointer;border-radius:4px}
+table.mg td.c.hit:hover{background:rgba(99,182,204,.16)}
+table.mg td.c.hit:hover .dot{background:var(--teal);opacity:.75}
+table.mg td.c.busy{opacity:.35;cursor:progress}
 table.mg tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
 table.mg tbody tr:nth-child(even) td.n{background:#171920}
 table.mg tfoot td{border-top:1px solid var(--line);padding-top:4px}
@@ -245,7 +249,7 @@ td.tot{color:var(--faint);text-align:center;font-variant-numeric:tabular-nums;fo
   </div>
 </div>
 
-<h2>香盤 <span class="note">行＝ブロック（本番の順）／列＝メンバー</span></h2>
+<h2>香盤 <span class="note">行＝ブロック（本番の順）／列＝メンバー ／ <b style="color:var(--teal)">丸を押すと出演を切り替え</b>（『演目順・稼働』に即書き込み）</span></h2>
 <div class="card">
   <div class="gridwrap" id="mgrid"></div>
   <div class="legend">
@@ -748,11 +752,15 @@ function renderGrid(r){
       + (b._start != null ? fmtHHMM(b._start) : '--:--') + '</span>'
       + esc(b.name)
       + (b.kind === '演目' ? '' : ' <span class="kd">（' + esc(b.kind) + '）</span>') + '</td>';
+    var editable = (b.kind === '演目');
     members.forEach(function(m){
       var on = cast.indexOf(m.name) >= 0;
       var cls = !on ? 'dot' : (b._all ? 'dot on all'
               : (r.hot[m.name + ' ' + b.uid] ? 'dot on run' : 'dot on'));
-      h += '<td class="c"><span class="' + cls + '"></span></td>';
+      h += '<td class="c' + (editable ? ' hit' : '') + '"'
+        + (editable ? ' data-u="' + b.uid + '" data-m="' + esc(m.name) + '"'
+                    + ' title="' + esc(m.name) + ' を' + (on ? '外す' : '入れる') + '"' : '')
+        + '><span class="' + cls + '"></span></td>';
     });
     h += '</tr>';
   });
@@ -766,7 +774,57 @@ function renderGrid(r){
         return '<td class="v' + ((r.own[m.name] || 0) ? '' : ' zeroh') + '">'
           + esc(m.name) + '</td>'; }).join('')
     + '</tr></tfoot></table>';
-  document.getElementById('mgrid').innerHTML = h;
+  var wrap = document.getElementById('mgrid');
+  wrap.innerHTML = h;
+  wrap.querySelectorAll('td.c.hit').forEach(function(td){
+    td.addEventListener('click', function(){
+      toggleCast(Number(td.getAttribute('data-u')), td.getAttribute('data-m'), td);
+    });
+  });
+}
+
+/* 香盤の丸を押して出演を切り替える。
+   ★書き先は『演目順・稼働』タブ。構成台本タブには出演者を持たせない。
+   ★構成台本の保存とは別経路で、押した瞬間に書く（未保存の状態を2種類作らないため）。 */
+function toggleCast(blockUid, member, td){
+  var b = null;
+  S.blocks.forEach(function(x){ if(x.uid === blockUid) b = x; });
+  if(!b || b.kind !== '演目') return;
+
+  var cast = S.cast[b.name] || (S.cast[b.name] = []);
+  var idx = cast.indexOf(member);
+  var on = idx < 0;
+
+  // 先に画面を動かし、失敗したら戻す
+  if(on) cast.push(member); else cast.splice(idx, 1);
+  td.classList.add('busy');
+  render();
+
+  fetch(BASE, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ survey:'cast_set', secret:DASH_SECRET,
+      changes: [{ engi:b.name, member:member, on:on }] }) })
+    .then(function(res){ return res.json(); })
+    .then(function(res){
+      if(res && res.ok && !(res.failed || []).length){
+        (res.createdColumns || []).forEach(function(nm){
+          if(S.engiNames.indexOf(nm) < 0) S.engiNames.push(nm);   // 列ができたので「列が無い」を解除
+        });
+        toast((on ? '入れた' : '外した') + '：' + member + ' ／ ' + b.name
+          + ((res.createdColumns || []).length ? '（稼働タブに列を作った）' : ''));
+        render();
+      } else {
+        var c2 = S.cast[b.name];
+        if(on) c2.splice(c2.indexOf(member), 1); else c2.push(member);   // 戻す
+        render();
+        toast('書き込めなかった：' + ((res && (res.failed || []).join('／')) || (res && res.error) || '不明'));
+      }
+    })
+    .catch(function(e){
+      var c3 = S.cast[b.name];
+      if(on) c3.splice(c3.indexOf(member), 1); else c3.push(member);
+      render();
+      toast('通信エラー：' + e);
+    });
 }
 
 /* ---------- 設定 ---------- */
