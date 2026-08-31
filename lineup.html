@@ -349,8 +349,10 @@ function compute(){
   var thr = num(setting('連続警告のしきい値', 5));
   var last = {};
   S.blocks.forEach(function(b){
-    if(b.kind !== '演目') return;
+    /* 種別で絞らない。作法コーナー（MC）や客席プレイにも演者がいる。
+       舞台に立っているかどうかは種別ではなく『演目順・稼働』の◯で決まる。 */
     var cast = S.cast[b.name] || [];
+    if(!cast.length) return;
     /* OP＋AGT と ED は全員出演。出番に数えると「出番ゼロ」が誰も出なくなり、
        決定No.27で出演演目を失ったメンバーを拾えない。名前で決め打ちせず全員一致で判定する。 */
     b._all = S.members.length > 0 && cast.length >= S.members.length;
@@ -515,7 +517,7 @@ function buildCard(b, i, r){
 
   /* 出演者：連続している人だけ常に見せ、残りは畳む */
   var castHtml = '';
-  if(b.kind === '演目'){
+  if(b.kind === '演目' || isCol){
     var cast = S.cast[b.name];
     if(cast && cast.length){
       var open = !!expanded[b.uid];
@@ -722,7 +724,7 @@ function renderWarns(r){
   }
 
   var orphan = S.blocks.filter(function(b){
-    return b.kind === '演目' && S.engiNames.indexOf(b.name) < 0; });
+    return b.kind === '演目' && S.engiNames.indexOf(b.name) < 0; });   // 演目なのに列が無い＝出演者を追えない
   if(orphan.length){
     h += '<div class="warn bad"><div class="h">『演目順・稼働』に列が無い演目</div>'
       + '<div class="who">' + orphan.map(function(b){ return esc(b.name); }).join('／') + '</div>'
@@ -747,12 +749,15 @@ function renderGrid(r){
     + '</tr></thead><tbody>';
 
   S.blocks.forEach(function(b){
-    var cast = (b.kind === '演目') ? (S.cast[b.name] || []) : [];
+    var hasCol = S.engiNames.indexOf(b.name) >= 0;
+    var cast = (b.kind === '演目' || hasCol) ? (S.cast[b.name] || []) : [];
     h += '<tr><td class="n"><span class="bt">'
       + (b._start != null ? fmtHHMM(b._start) : '--:--') + '</span>'
       + esc(b.name)
       + (b.kind === '演目' ? '' : ' <span class="kd">（' + esc(b.kind) + '）</span>') + '</td>';
-    var editable = (b.kind === '演目');
+    /* 稼働タブに列があれば種別を問わず編集できる。
+       演目なら列が無くても押せる（押した時に列を作る）。 */
+    var editable = (b.kind === '演目' || hasCol);
     members.forEach(function(m){
       var on = cast.indexOf(m.name) >= 0;
       var cls = !on ? 'dot' : (b._all ? 'dot on all'
@@ -789,7 +794,8 @@ function renderGrid(r){
 function toggleCast(blockUid, member, td){
   var b = null;
   S.blocks.forEach(function(x){ if(x.uid === blockUid) b = x; });
-  if(!b || b.kind !== '演目') return;
+  if(!b) return;
+  if(b.kind !== '演目' && S.engiNames.indexOf(b.name) < 0) return;
 
   var cast = S.cast[b.name] || (S.cast[b.name] = []);
   var idx = cast.indexOf(member);
