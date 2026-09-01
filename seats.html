@@ -189,7 +189,9 @@
   <div class="tabs">
     <button type="button" class="tab active" onclick="showTab('personal',this)">個人・指定席</button>
     <button type="button" class="tab" onclick="showTab('group',this)">団体（5名〜）</button>
-    <button type="button" class="tab" onclick="showTab('stream',this)">配信で見る</button>
+    <!-- 2026-09-01 配信を全面中止（決定No.37・ADR-015）。タブボタンを外した。
+         #tab-stream の div は残してある（showTab が無条件に参照するため。消すと
+         個人・団体の切替ごと落ちる）。中身は中止のお知らせに差し替え済み。 -->
   </div>
 
   <div id="tab-personal">
@@ -368,52 +370,24 @@
   </div>
 
   <div id="tab-stream" style="display:none">
-    <p class="step"><b>STEP 1</b>　配信チケットを選ぶ</p>
-    <div class="types" id="streamTypes"></div>
-    <!-- 2026-08-06 販売開始（決定No.25／ADR-003「配信チケットの体系」）。カード決済のみ。 -->
-    <p class="buyer-note" style="margin:6px 0 14px">
-      固定カメラ1台のシンプルな中継です（会場の迫力そのままとはいきません）。<br>
-      生配信のあとも <b>アーカイブを10/13まで</b> ご覧いただけます。見逃しても大丈夫です。<br>
-      ご家族・チームのみなさんと、同じ画面を囲んでの鑑賞も歓迎です。
-    </p>
-    <!-- 配信サポーターを選んだときだけ開く特典欄 -->
-    <div class="buyerbox" id="sSupBox" style="display:none">
-      <p style="margin:0 0 8px;font-weight:700">配信サポーター特典について</p>
-      <p class="buyer-note" style="margin:0 0 12px">
-        サイン入り扇子とオリジナルTシャツを、公演後1週間以内にお送りします（送料はかかりません）。<br>
-        ※ 特典の郵送は<b>日本国内の住所のみ</b>です。サンクス動画は後日メールでお届けします。
-      </p>
-      <label>Tシャツのサイズ</label>
-      <div class="paymethods" id="sSizeRow">
-        <button type="button" class="pm" onclick="setSSize('S',this)">S</button>
-        <button type="button" class="pm" onclick="setSSize('M',this)">M</button>
-        <button type="button" class="pm" onclick="setSSize('L',this)">L</button>
-        <button type="button" class="pm" onclick="setSSize('XL',this)">XL</button>
-      </div>
-      <label style="margin-top:12px">お届け先（郵便番号と住所）</label>
-      <input id="sAddress" placeholder="例）153-0063 東京都目黒区八雲1-1-1 ○○マンション101">
-      <label>デジタルパンフレット・横断幕へのお名前掲載</label>
-      <div class="paymethods" id="sCreditRow">
-        <button type="button" class="pm" onclick="setSCredit('掲載する',this)">掲載する</button>
-        <button type="button" class="pm" onclick="setSCredit('掲載しない',this)">掲載しない</button>
-      </div>
-      <div id="sCreditNameWrap" style="display:none">
-        <label>掲載するお名前（空欄ならお申込みのお名前）</label>
-        <input id="sCreditName" placeholder="例）山田太郎／ニックネームでも可">
-      </div>
-    </div>
+    <!-- 2026-09-01 配信を全面中止（決定No.37・ADR-015）。
+         この div を消してはいけない：showTab() が無条件に参照しており、
+         消すと個人・団体のタブ切替ごと落ちて購入導線が全滅する。
+         ?tab=stream は公式サイト・LINEに配布済みなので、黙って座席表に落とさず
+         ここに着地させて説明を出す。 -->
     <div class="buyerbox">
-      <label>お名前</label>
-      <input id="sName" placeholder="例）山田太郎" oninput="sUpdate()">
-      <label>メールアドレス（視聴URLをお送りします）</label>
-      <input id="sContact" type="email" placeholder="例）example@gmail.com" oninput="sUpdate()">
-      <label>電話番号（メールが届かない場合のご連絡用）</label>
-      <input id="sPhone" type="tel" placeholder="例）09012345678" oninput="sUpdate()">
-      <p style="margin:6px 0 12px;font-size:20px;font-weight:700">合計 <span id="sResult">¥0</span></p>
-      <button class="buy" id="sBuy" disabled onclick="sCheckout()">カードで支払う（Square決済へ）</button>
+      <p style="margin:0 0 10px;font-size:19px;font-weight:700">配信は中止になりました</p>
+      <p class="buyer-note" style="margin:0 0 12px">
+        生配信・アーカイブ配信は、実施しないことになりました。<br>
+        配信チケットをご購入いただいた方には、<b>代金を全額ご返金いたします</b>。
+        こちらから個別にご連絡しますので、お手続きは必要ありません。
+      </p>
+      <p class="buyer-note" style="margin:0 0 16px">
+        <b>公演は9月29日に予定どおり開催します。</b>ご来場のチケットは販売中です。
+      </p>
+      <button class="buy" type="button" onclick="showTab('personal',document.querySelectorAll('.tab')[0])">ご来場のチケットを見る</button>
       <p class="buyer-note" style="margin:12px 0 0">
-        お支払い後、視聴ページのURLをメールでお送りします。視聴URLは公演前日（9/28）までに
-        視聴ページに表示され、メールでもご案内します。
+        ご不明な点は <a href="mailto:info@haribow.com">info@haribow.com</a> までお問い合わせください。
       </p>
     </div>
   </div>
@@ -422,7 +396,7 @@
     <h2 class="ass-h2">安心してご購入いただくために</h2>
     <div class="ass-grid">
       <div class="ass-item"><div class="ass-t">決済の安全</div><div class="ass-b">お支払いは Square の暗号化決済、または銀行振込。カード情報を当団体で保持することはありません。</div></div>
-      <div class="ass-item"><div class="ass-t">キャンセル・返金</div><div class="ass-b">ご購入後の、お客様都合によるキャンセル・変更・払い戻しは承れません。公演が中止となった場合のみ、チケット代金を全額返金します。</div></div>
+      <div class="ass-item"><div class="ass-t">キャンセル・返金</div><div class="ass-b">ご購入後の、お客様都合によるキャンセル・変更・払い戻しは承れません。公演が中止となった場合、または当団体の都合により販売したサービスをご提供できなくなった場合は、代金を全額返金いたします。</div></div>
       <!-- 問い合わせの一次窓口はフォーム（2026-08-03）。メールへの返信は運営が見落とすため。
            購入前にこの画面で困った方の受け口もここに寄せる。info@ は補助として残す。 -->
       <div class="ass-item"><div class="ass-t">お困りのとき</div><div class="ass-b">ご購入やお席のご相談は<a href="contact.html" style="color:#c9a24b">お問い合わせフォーム</a>から承ります。お急ぎの場合は info@haribow.com へ。</div></div>
@@ -1452,7 +1426,7 @@ function applyInviteMode(){
   var phase=document.getElementById('phase'); if(phase) phase.style.display='none';
   var h=document.querySelector('h1'); if(h) h.textContent='ご招待の追加のお席';
   var sub=document.querySelector('.sub'); if(sub) sub.textContent=INVITE_ORG+' 様のご招待でお越しになる方の、4名様以降のお席です。';
-  // 団体・配信タブは出さない
+  // 個人タブだけ残す（2026-09-01：配信タブは廃止済みなので、いま隠れるのは団体タブ）
   document.querySelectorAll('.tab').forEach(function(b,i){ if(i>0) b.style.display='none'; });
   var note=document.getElementById('supDeadline');
   /* ★締切をベタ書きしない（2026-08-25）。サーバー（invite_extra_meta の closeLabel）が持つ。
@@ -1544,12 +1518,26 @@ function showTab(t,el){
 }
 
 /* URLで最初に開くタブを指定できるようにする（2026-08-24追加）。
-   公式サイトの「配信チケットを見る」から ?tab=stream で直接飛ばすため。
-   これが無いと、配信を見に来た人が個人・指定席の座席表に着地して迷う。 */
+   もとは公式サイトの「配信チケットを見る」から ?tab=stream で直接飛ばすためだった。
+   2026-09-01に配信を中止したので、?tab=stream は中止の案内に着地させる。 */
+/* 配信中止の案内を出す（2026-09-01）。タブボタンが無いので showTab は使えない。 */
+function showStreamCancelled(){
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-personal').style.display = 'none';
+  document.getElementById('tab-group').style.display    = 'none';
+  document.getElementById('tab-stream').style.display   = '';
+  var c = document.querySelector('.cart'); if(c) c.style.display = 'none';
+}
+
 (function openTabFromUrl(){
   var t = new URLSearchParams(location.search).get('tab');
-  if(!t || ['personal','group','stream'].indexOf(t) < 0) return;
-  var idx = {personal:0, group:1, stream:2}[t];
+  if(!t) return;
+  /* ?tab=stream は公式サイトと配布済みLINEから今も飛んでくる。ホワイトリストから
+     外して黙って座席表に落とすと、配信を買いに来た人が理由を知らないまま
+     来場チケットを買ってしまう。必ず中止の説明を出す。 */
+  if(t === 'stream'){ showStreamCancelled(); return; }
+  if(['personal','group'].indexOf(t) < 0) return;
+  var idx = {personal:0, group:1}[t];
   var btn = document.querySelectorAll('.tab')[idx];
   if(btn) showTab(t, btn);
 })();
@@ -1687,87 +1675,33 @@ function gCheckout(){
   }).catch(function(){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='団体予約を送信'; gCalc(); });
 }
 
-// ---- 配信タブ（2026-08-06 販売開始・決定No.25）。価格の正はサーバー側 STREAM_TYPES_（Streaming.js） ----
-var STREAM=[
-  {id:'live', name:'生配信＋アーカイブ', price:1000,  note:'生配信＋アーカイブ配信（10/13まで）／チーム・ご家族での鑑賞OK'},
-  {id:'ssup', name:'配信サポーター',     price:10000, note:'扇子・Tシャツ（国内発送）・サンクス動画／視聴＋アーカイブ込み'}
-];
-var sType=null, sSize=null, sCreditVal=null;
-function sSelect(t,el){
-  sType=t;
-  document.querySelectorAll('#streamTypes .type').forEach(function(b){b.classList.toggle('active',b===el);});
-  document.getElementById('sSupBox').style.display = (t.id==='ssup') ? '' : 'none';
-  sUpdate();
-}
-function setSSize(v,el){ sSize=v; document.querySelectorAll('#sSizeRow .pm').forEach(function(b){b.classList.toggle('active',b===el);}); sUpdate(); }
-function setSCredit(v,el){
-  sCreditVal=v;
-  document.querySelectorAll('#sCreditRow .pm').forEach(function(b){b.classList.toggle('active',b===el);});
-  document.getElementById('sCreditNameWrap').style.display = (v==='掲載する') ? '' : 'none';
-  sUpdate();
-}
-function sUpdate(){
-  var res=document.getElementById('sResult'), btn=document.getElementById('sBuy');
-  if(!res || !btn) return;
-  res.textContent='¥'+(sType?sType.price:0).toLocaleString();
-  var n=(document.getElementById('sName')||{}).value||'',
-      c=(document.getElementById('sContact')||{}).value||'',
-      p=(document.getElementById('sPhone')||{}).value||'';
-  var ok = sType && n.trim() && c.trim() && p.trim();
-  if(sType && sType.id==='ssup'){
-    ok = ok && sSize && ((document.getElementById('sAddress')||{}).value||'').trim().length>=8 && sCreditVal;
-  }
-  btn.disabled=!ok;
-}
-function sCheckout(){
-  var btn=document.getElementById('sBuy');
-  btn.disabled=true; btn.textContent='決済ページへ移動しています…';
-  var payload={ survey:'stream_order', typeId:sType.id,
-    name:document.getElementById('sName').value.trim(),
-    contact:document.getElementById('sContact').value.trim(),
-    phone:document.getElementById('sPhone').value.trim() };
-  if(sType.id==='ssup'){
-    payload.tshirt=sSize;
-    payload.address=document.getElementById('sAddress').value.trim();
-    payload.creditOk=sCreditVal;
-    payload.creditName=(document.getElementById('sCreditName')||{}).value||'';
-  }
-  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(res){
-    if(res && res.ok && res.url){ location.href=res.url; return; }
-    var msg = res && res.error==='ssup_closed' ? '配信サポーターの受付は9/5で終了しました。生配信チケットをご利用ください。'
-            : res && res.error==='bad_phone'   ? '電話番号をご確認ください。'
-            : res && res.error==='bad_email'   ? 'メールアドレスをご確認ください。'
-            : res && res.error==='need_address'? 'お届け先の住所をご記入ください。'
-            : 'お手続きできませんでした。時間をおいてもう一度お試しください。';
-    alert(msg); btn.textContent='カードで支払う（Square決済へ）'; sUpdate();
-  }).catch(function(){ alert('通信エラーが発生しました。もう一度お試しください。'); btn.textContent='カードで支払う（Square決済へ）'; sUpdate(); });
-}
-var stc=document.getElementById('streamTypes');
-STREAM.forEach(function(t){
-  var b=document.createElement('button'); b.className='type';
-  b.innerHTML='<div class="tn">'+t.name+'</div><div class="tp">¥'+t.price.toLocaleString()+'</div><div class="ta">'+t.note+'</div>';
-  b.onclick=function(){ sSelect(t,b); };
-  stc.appendChild(b);
-});
+/* 2026-09-01 配信を全面中止（決定No.37・ADR-015）。
+   配信の券種配列・選択UI・決済送信（STREAM / sSelect / setSSize / setSCredit /
+   sUpdate / sCheckout / #streamTypes への描画）を削除した。
+   ★ #streamTypes は既に無いので、描画コードを残すと null 参照で
+     この <script> の以降（?sconfirm の処理を含む）が丸ごと止まる。 */
+
 // Squareからの戻り（配信）。?sconfirm=トークン → サーバーで実決済を照合してから確定
 (function(){
   var m=location.search.match(/[?&]sconfirm=([^&]+)/);
   if(!m) return;
-  var stTab=document.querySelectorAll('.tab')[2];
-  if(stTab) showTab('stream', stTab);
+  /* 2026-09-01 配信中止。サーバーは stream_cancelled を返すので確定はしない。
+     発行済みの決済リンクから支払ってしまった方がここに着地しうるため、
+     黙って落とさず必ず説明を出す。.tab[2] はもう存在しないので参照しない。 */
+  showStreamCancelled();
   fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({survey:'stream_confirm',token:decodeURIComponent(m[1])})})
   .then(function(r){return r.json();}).then(function(res){
-    if(res && res.ok){
-      doneScreen('配信チケットのご購入ありがとうございます。<br><br>'
-        +'ご登録のメールへ確認メールをお送りしました。<br>'
-        +'▶ <a href="'+res.ticketUrl+'" style="color:var(--main);font-weight:700">あなたの視聴ページ</a><br><br>'
-        +'視聴URLは公演前日（9/28）までにこのページに表示され、メールでもお送りします。');
-    } else if(res && res.error==='not_paid_yet'){
-      alert('お支払いの確認がまだ取れていません。決済を完了された場合は、1時間以内に自動で確定しメールが届きます。');
-    }
-  }).catch(function(){});
+    doneScreen('配信は中止になりました。<br><br>'
+      +'生配信・アーカイブ配信は実施しないことになりました。<br>'
+      +'<b>お支払いが完了している場合は、代金を全額ご返金いたします。</b><br>'
+      +'お手数ですが <a href="mailto:info@haribow.com" style="color:var(--main);font-weight:700">info@haribow.com</a> までご連絡ください。<br><br>'
+      +'公演は9月29日に予定どおり開催します。ご来場のチケットは販売中です。');
+  }).catch(function(){
+    doneScreen('配信は中止になりました。<br><br>'
+      +'<b>お支払いが完了している場合は、代金を全額ご返金いたします。</b><br>'
+      +'<a href="mailto:info@haribow.com" style="color:var(--main);font-weight:700">info@haribow.com</a> までご連絡ください。');
+  });
 })();
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>視聴ページ｜HARIBOW「Go Beyond」配信</title>
+<title>配信中止のお知らせ｜HARIBOW「Go Beyond」</title>
 <style>
   :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --ink:#f3f1ea; --faint:#8b919e; --main:#c9a24b; }
   *{box-sizing:border-box}
@@ -23,51 +23,45 @@
 </style>
 </head>
 <body>
+<!-- 2026-09-01 配信を全面中止（決定No.37・ADR-015）。
+     このファイルは削除しない：購入者2名に ?t=トークン 付きのURLが確認メールで届いており、
+     404にすると何が起きたのか分からないまま放り出すことになる。
+     GAS（?page=ticket）は叩かない。サーバー側で配信注文の扱いを変えた瞬間に
+     「チケットが見つかりませんでした」が出るため、静的な告知だけにしてある。 -->
 <div class="wrap">
   <div class="brand">HARIBOW — GO BEYOND</div>
-  <h1>配信 視聴ページ</h1>
-  <div id="body"><p class="note">読み込んでいます…（最初の1回だけ20秒ほどかかります）</p></div>
+  <h1>配信は中止になりました</h1>
+
+  <div class="card">
+    <p class="note" style="font-size:14px;color:var(--ink);line-height:1.95;margin:0">
+      2026年9月29日の公演について、<b>生配信とアーカイブ配信を実施しないこと</b>にいたしました。<br>
+      チケットをお求めいただいたにもかかわらず、ご期待に添えず申し訳ございません。
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="lbl">ご返金について</div>
+    <p class="note" style="font-size:14px;color:var(--ink);line-height:1.95;margin:6px 0 0">
+      配信チケットの代金は、<b>全額をご返金いたします。</b><br>
+      ご購入時のカードへお戻しする手続きを、こちらから順に進めます。
+      お客様側でのお手続きは必要ありません。<br>
+      ご返金の完了は、あらためてメールでご連絡いたします。
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="lbl">公演について</div>
+    <p class="note" style="font-size:14px;color:var(--ink);line-height:1.95;margin:6px 0 0">
+      <b>公演は9月29日(火)に予定どおり開催します。</b>中止になったのは配信のみです。<br>
+      会場（めぐろパーシモンホール 大ホール）のチケットは販売中です。
+    </p>
+    <a class="watch" href="https://ticket.haribow.com/seats.html" style="margin-top:14px">ご来場のチケットを見る</a>
+  </div>
+
+  <p class="note">
+    ご不明な点やお急ぎのご事情がございましたら、<a href="mailto:info@haribow.com">info@haribow.com</a>
+    までご連絡ください。
+  </p>
 </div>
-<script>
-var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-var T=new URLSearchParams(location.search).get('t')||'';
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function load(){
-  if(!T){ document.getElementById('body').innerHTML='<p class="note">チケットの識別コードがありません。メールに記載のURLをそのまま開いてください。</p>'; return; }
-  fetch(BASE+'?page=ticket&t='+encodeURIComponent(T)+'&r='+Date.now())
-  .then(function(r){return r.json();}).then(function(d){
-    var el=document.getElementById('body');
-    if(!d || !d.ok){
-      el.innerHTML='<p class="note">'+(d&&d.error==='unpaid'
-        ? 'お支払いの確認がまだ取れていません。決済がお済みの場合、1時間以内に自動で有効になります。'
-        : 'チケットが見つかりませんでした。メールのURLをご確認いただくか、info@haribow.com までご連絡ください。')+'</p>';
-      return;
-    }
-    var h='<div class="card"><div class="lbl">お名前</div><div class="big">'+esc(d.name)+' 様</div>'
-      +'<div class="lbl" style="margin-top:12px">ご購入内容</div><div class="note">'+esc(d.breakdown)+'</div></div>';
-    h+='<div class="card"><div class="lbl">公演</div><div class="note">'
-      +esc(d.show&&d.show.date||'2026年9月29日(火)')+'　開演 '+esc(d.show&&d.show.start||'19:30')+'<br>'
-      +'配信開始は開演の少し前を予定しています。</div></div>';
-    if(d.stream && d.stream.ready){
-      h+='<div class="card"><div class="lbl">視聴はこちら</div>'
-        +'<a class="watch" href="'+esc(d.stream.url)+'">▶ 配信を開く</a>'
-        +(d.stream.password ? '<div class="note">パスワード: <b>'+esc(d.stream.password)+'</b></div>' : '')
-        +'<p class="note">アーカイブも同じURLで '+esc(d.stream.archiveUntil)+' までご覧いただけます。<br>'
-        +'本番中にURLが開けなくなった場合は、このページを開き直してください。予備URLに切り替わります。</p></div>';
-      if(d.stream.backup){
-        h+='<div class="card"><div class="lbl">予備URL</div><div class="note"><a href="'+esc(d.stream.backup)+'">'+esc(d.stream.backup)+'</a></div></div>';
-      }
-    } else {
-      h+='<div class="card"><div class="lbl">視聴URL</div>'
-        +'<div class="wait">視聴URLは <b>9/28（公演前日）</b>までにここに表示されます。<br>'
-        +'メールでもお送りします。このページをブックマークしておいてください。</div></div>';
-    }
-    h+='<p class="note">ご家族・チームのみなさんと同じ画面での鑑賞も歓迎です。<br>'
-      +'お困りのことは <a href="contact.html">お問い合わせフォーム</a> または info@haribow.com へ。</p>';
-    el.innerHTML=h;
-  }).catch(function(){ document.getElementById('body').innerHTML='<p class="note">通信エラーです。再読み込みしてください。</p>'; });
-}
-load();
-</script>
 </body>
 </html>
