@@ -349,7 +349,7 @@ function compute(){
   var thr = num(setting('連続警告のしきい値', 5));
   var last = {};
   S.blocks.forEach(function(b){
-    /* 種別で絞らない。作法コーナー（MC）や客席プレイにも演者がいる。
+    /* 種別で絞らない。観客同期コーナー（MC）や客席プレイにも演者がいる。
        舞台に立っているかどうかは種別ではなく『演目順・稼働』の◯で決まる。 */
     var cast = S.cast[b.name] || [];
     if(!cast.length) return;
