@@ -32,10 +32,22 @@ select:last-child,input:last-child{margin-bottom:0}
 <body>
 <div class="wrap">
   <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go Beyond">
-  <h1>Solo Show — Quick Survey</h1>
-  <p class="lead">HARIBOW is doing its first solo theater show in Tokyo on Sept 29, 2026, starting at 7:30 PM Japan time (JST). We're checking whether an online livestream would be worth setting up. Learn more at our <a href="https://haribow.com/" target="_blank" rel="noopener">official site</a>.</p>
+  <h1>We decided not to stream this show</h1>
+  <!-- 2026-09-01 配信を全面中止（決定No.37・ADR-015）。
+       このページは「有料配信の需要を聞く」アンケートで、公開したまま設問だけ直すと
+       「まだ検討中」と読まれる。フォームを閉じて告知に切り替えた。
+       ファイルは残す（URLが外に出ているため）。 -->
+  <p class="lead">HARIBOW is doing its first solo theater show in Tokyo on <b>Sept 29, 2026</b>, at 7:30 PM Japan time.
+    This page used to ask whether an online livestream would be worth setting up.
+    <b>We have decided not to stream the show</b> — there will be no live stream and no archive,
+    so the survey is closed. Thank you to everyone who answered.</p>
+  <p class="lead">If you bought a stream ticket, you are being refunded in full; you do not need to do anything.
+    <b>The show itself goes ahead as planned.</b> Seats at the venue are on sale at
+    <a href="https://ticket.haribow.com/seats.html" target="_blank" rel="noopener">ticket.haribow.com</a>
+    (the seat-picker and checkout are in Japanese). Questions: <a href="mailto:info@haribow.com">info@haribow.com</a>.
+    Learn more at our <a href="https://haribow.com/" target="_blank" rel="noopener">official site</a>.</p>
 
-  <div id="form">
+  <div id="form" style="display:none">
     <div class="card">
       <label>Name / Handle</label>
       <input type="text" id="name" placeholder="e.g. Alex">
