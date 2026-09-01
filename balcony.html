@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GO BEYOND ｜ バルコニー席割り表</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<style>
+:root{
+  --bg:#0a0b0e; --panel:#14161c; --panel2:#1a1d25; --panel3:#20242e;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+  --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280;
+  --teal:#63b6cc; --cream:#f0ece0;
+  --red:#c8433a; --amber:#c08f4a; --green:#6ba583; --violet:#8f7fb0; --sand:#b09a7a;
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px 110px}
+.tnum{font-variant-numeric:tabular-nums}
+
+.top{padding:20px 0 0}
+.eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 4px}
+h1{font-size:21px;font-weight:800;margin:0;letter-spacing:.02em}
+.sub{color:var(--faint);font-size:11.5px;margin:6px 0 0;max-width:720px;line-height:1.65}
+.sub b{color:var(--dim);font-weight:700}
+
+/* ---------- サマリー ---------- */
+.sticky{position:sticky;top:0;z-index:40;background:rgba(10,11,14,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);margin:16px -18px 0;padding:10px 18px}
+.stats{display:flex;align-items:stretch;flex-wrap:wrap}
+.stat{padding:2px 16px 2px 0;margin-right:16px;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;justify-content:center;min-width:58px}
+.stat:last-child{border-right:0;margin-right:0}
+.stat .k{font-size:9.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;font-weight:700}
+.stat .v{font-size:17px;font-weight:800;letter-spacing:.01em}
+.stat .v small{font-size:10px;font-weight:700;color:var(--dim);margin-left:1px}
+.stat.att .v{color:var(--amber)}
+
+/* ---------- 客席図 ---------- */
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  font-weight:800;margin:30px 0 10px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.map{display:grid;gap:14px}
+@media(min-width:1000px){ .map{grid-template-columns:1fr 1fr} }
+
+.block{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 16px}
+.block h3{margin:0 0 2px;font-size:13.5px;font-weight:800;letter-spacing:.03em}
+.block .note{margin:0 0 12px;font-size:10.5px;color:var(--faint)}
+
+.stagebar{display:flex;align-items:center;gap:8px;margin:0 0 10px;
+  font-size:9.5px;letter-spacing:.18em;color:var(--teal);font-weight:700;text-transform:uppercase}
+.stagebar .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--teal),transparent)}
+
+.rowscroll{overflow-x:auto;padding-bottom:4px}
+.seatrow{display:flex;align-items:center;gap:8px;margin-bottom:7px;min-width:max-content}
+.seatrow .rlabel{width:64px;flex:none;font-size:10px;color:var(--dim);font-weight:700;letter-spacing:.02em}
+.seats{display:flex;gap:3px}
+.seat{width:22px;height:26px;border-radius:4px;border:1px solid var(--line2);
+  background:var(--panel3);color:var(--faint);
+  font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .08s,box-shadow .08s;font-variant-numeric:tabular-nums;
+  padding:0;font-family:inherit}
+.seat:hover{transform:translateY(-2px)}
+.seat.sel{box-shadow:0 0 0 2px var(--cream);transform:translateY(-2px)}
+.seat.gap{visibility:hidden;cursor:default}
+.seat.inv_free{background:transparent;border-style:dashed;border-color:var(--line2);color:var(--faint)}
+.seat.inv_held{background:rgba(99,182,204,.20);border-color:rgba(99,182,204,.55);color:#cfe9f2}
+.seat.inv_fixed{background:rgba(107,165,131,.28);border-color:rgba(107,165,131,.7);color:#d8ecdf}
+.seat.cheer{background:rgba(143,127,176,.20);border-color:rgba(143,127,176,.5);color:#ded7ee}
+.seat.extra{background:rgba(192,143,74,.20);border-color:rgba(192,143,74,.55);color:#eeddc0}
+
+/* ---------- 凡例 ---------- */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;font-size:10.5px;color:var(--dim)}
+.legend span{display:flex;align-items:center;gap:6px}
+.chip{width:14px;height:14px;border-radius:3px;border:1px solid var(--line2);flex:none}
+.chip.inv_free{background:transparent;border-style:dashed}
+.chip.inv_held{background:rgba(99,182,204,.20);border-color:rgba(99,182,204,.55)}
+.chip.inv_fixed{background:rgba(107,165,131,.28);border-color:rgba(107,165,131,.7)}
+.chip.cheer{background:rgba(143,127,176,.20);border-color:rgba(143,127,176,.5)}
+.chip.extra{background:rgba(192,143,74,.20);border-color:rgba(192,143,74,.55)}
+
+/* ---------- 選択中の席 ---------- */
+.detail{margin:14px 0 0;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;min-height:64px}
+.detail .ttl{font-size:15px;font-weight:800;margin:0 0 3px}
+.detail .meta{font-size:11px;color:var(--dim);margin:0}
+.detail .who{font-size:12.5px;color:var(--teal);font-weight:700;margin:6px 0 0}
+.detail .empty{font-size:11.5px;color:var(--faint);margin:0}
+
+/* ---------- 招待先の一覧 ---------- */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;padding:0 10px 7px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr.click{cursor:pointer}
+tr.click:hover td{background:rgba(255,255,255,.03)}
+tr.on td{background:rgba(99,182,204,.09)}
+.name{font-weight:700}
+.seatlist{color:var(--teal);font-size:11px;line-height:1.7}
+.none{color:var(--amber);font-size:11px;font-weight:700}
+.badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;
+  padding:2px 7px;border-radius:99px;border:1px solid var(--line2);color:var(--dim);white-space:nowrap}
+.badge.ok{color:#d8ecdf;border-color:rgba(107,165,131,.6)}
+.badge.open{color:#cfe9f2;border-color:rgba(99,182,204,.5)}
+.badge.wait{color:var(--faint)}
+
+.foot{margin:26px 0 0;font-size:10.5px;color:var(--faint);line-height:1.8}
+.foot b{color:var(--dim)}
+.err{background:rgba(200,67,58,.12);border:1px solid rgba(200,67,58,.4);border-radius:10px;
+  padding:14px;font-size:12px;color:#f0c9c6;margin:20px 0}
+.loading{color:var(--faint);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <p class="eyebrow">Go Beyond ｜ 2026.09.29 めぐろパーシモンホール</p>
+    <h1>バルコニー席割り表</h1>
+    <p class="sub">LB席・RB席の<b>92席</b>が、いま誰に割り当たっているか。座席在庫と招待マスタを突き合わせた結果をそのまま出しています。<b>席をクリックすると割当先が出ます。</b>下の一覧で招待先を選ぶと、その団体の席が光ります。</p>
+  </div>
+
+  <div class="sticky">
+    <div class="stats" id="stats"><div class="loading">読み込み中…</div></div>
+  </div>
+
+  <div id="body" hidden>
+    <h2>客席図</h2>
+    <div class="map" id="map"></div>
+
+    <div class="legend">
+      <span><i class="chip inv_free"></i>招待枠・未割当</span>
+      <span><i class="chip inv_held"></i>招待枠・押さえ済</span>
+      <span><i class="chip inv_fixed"></i>招待・確定（先方が回答済）</span>
+      <span><i class="chip cheer"></i>Cheer Re-Man's 本体</span>
+      <span><i class="chip extra"></i>招待の有料追加席</span>
+    </div>
+
+    <div class="detail" id="detail">
+      <p class="empty">席をクリックすると、その席の区分・状態・割当先が出ます。</p>
+    </div>
+
+    <h2>招待先の一覧</h2>
+    <table>
+      <thead><tr>
+        <th>招待先</th><th>枠</th><th>案内の状態</th><th>割り当て済みの席</th>
+      </tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+
+    <p class="foot" id="foot"></p>
+  </div>
+
+  <div id="err"></div>
+</div>
+
+<script>
+/* ============================================================
+   バルコニー席割り表（2026-09-01）
+
+   ★団体名はこのファイルに1つも書かない。
+     このリポジトリは公開なので、静的側に書くと「誰を無料で招待しているか」が
+     GitHub上で読めてしまう。名前は必ず ?page=balcony（DASH_SECRET）から取る。
+     Invite.js の方針と同じ。
+   ★席の並びは「番号1が舞台に近い」。公式客席図の実読による（Seats.js の注記）。
+     LB2列・RB2列は1番と2番が存在しないので、頭に空きマスを2つ置いて
+     1列と番号の位置を縦に揃える。ここをズラすと図として嘘になる。
+   ============================================================ */
+var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var DASH_SECRET = 'hbw-2026-board-w3x8fq5r';
+
+var D = null, selInvite = null;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function el(id){ return document.getElementById(id); }
+
+function statBox(k,v,unit,att){
+  return '<div class="stat'+(att?' att':'')+'"><span class="k">'+k+'</span>'
+       + '<span class="v tnum">'+v+(unit?'<small>'+unit+'</small>':'')+'</span></div>';
+}
+
+function renderStats(){
+  var c = D.count;
+  var invTotal = c.inv_free + c.inv_held + c.inv_fixed;
+  el('stats').innerHTML =
+      statBox('総席数', 92, '席')
+    + statBox('招待枠', invTotal, '席')
+    + statBox('うち確定', c.inv_fixed, '席')
+    + statBox('うち押さえ', c.inv_held, '席')
+    + statBox('未割当', c.inv_free, '席', c.inv_free > 0)
+    + statBox('チアリーマンズ', c.cheer, '席')
+    + statBox('有料追加席', c.extra, '席')
+    + '<div class="stat"><span class="k">更新</span><span class="v" style="font-size:12px">'+esc(D.updatedAt)+'</span></div>';
+}
+
+function renderMap(){
+  var sides = { LB:[], RB:[] };
+  D.rows.forEach(function(r){ sides[r.side].push(r); });
+
+  var html = '';
+  ['LB','RB'].forEach(function(side){
+    html += '<div class="block">'
+          + '<h3>'+side+'席</h3>'
+          + '<p class="note">'+(side==='LB'?'Left Balcony':'Right Balcony')+'（会場の呼称）'
+          + ' ／ 1列24席＋2列22席＝46席。2列に1番・2番はありません</p>'
+          + '<div class="stagebar"><span>舞台側</span><span class="rule"></span><span>後方</span></div>'
+          + '<div class="rowscroll">';
+    sides[side].forEach(function(r){
+      html += '<div class="seatrow"><span class="rlabel">'+esc(r.label)+'</span><span class="seats">';
+      /* 2列は3番始まり。1番・2番の位置に空きマスを置いて縦を揃える */
+      var first = r.seats.length ? r.seats[0].n : 1;
+      for(var g=1; g<first; g++) html += '<span class="seat gap"></span>';
+      r.seats.forEach(function(s){
+        html += '<button type="button" class="seat '+s.use+'" data-id="'+esc(s.id)+'">'+s.n+'</button>';
+      });
+      html += '</span></div>';
+    });
+    html += '</div></div>';
+  });
+  el('map').innerHTML = html;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seat[data-id]'), function(b){
+    b.addEventListener('click', function(){ showSeat(b.getAttribute('data-id')); });
+  });
+}
+
+function findSeat(id){
+  for(var i=0;i<D.rows.length;i++){
+    var s = D.rows[i].seats.filter(function(x){ return x.id===id; });
+    if(s.length) return s[0];
+  }
+  return null;
+}
+
+function showSeat(id){
+  var s = findSeat(id);
+  if(!s) return;
+  Array.prototype.forEach.call(document.querySelectorAll('.seat.sel'), function(b){ b.classList.remove('sel'); });
+  var btn = document.querySelector('.seat[data-id="'+id+'"]');
+  if(btn) btn.classList.add('sel');
+
+  var kindText = { '確定':'先方が回答して確定した席', '指定':'運営が先に押さえた席',
+                   '追加席':'有料の追加席（1席 ¥2,000）' };
+  var h = '<p class="ttl">'+esc(s.label)+'</p>'
+        + '<p class="meta">区分 '+esc(s.seg)+' ／ 状態 '+esc(s.status)+' ／ 席ID '+esc(s.id)+'</p>';
+  if(s.who){
+    h += '<p class="who">'+esc(s.who)+(s.kind ? '（'+esc(kindText[s.kind]||s.kind)+'）' : '')+'</p>';
+  } else {
+    h += '<p class="empty" style="margin-top:6px">まだ誰にも割り当てていません。</p>';
+  }
+  el('detail').innerHTML = h;
+}
+
+function badge(status){
+  var s = String(status||'');
+  if(s === '回答済') return '<span class="badge ok">回答済</span>';
+  if(s.indexOf('開封') === 0) return '<span class="badge open">'+esc(s)+'</span>';
+  if(s === '未案内') return '<span class="badge wait">未案内</span>';
+  return '<span class="badge">'+esc(s)+'</span>';
+}
+
+function renderList(){
+  var html = '';
+  D.invites.forEach(function(iv){
+    if(!iv.free && !iv.seats.length) return;      // 枠取消かつ席なしの行は出さない
+    var seatTxt = iv.seatLabels.length
+        ? '<span class="seatlist">'+iv.seatLabels.map(esc).join('、')+'</span>'
+        : '<span class="none">未割当</span>';
+    if(iv.elsewhere > 0){
+      seatTxt += '<span class="seatlist"> ／ バルコニー外に'+iv.elsewhere+'席</span>';
+    }
+    html += '<tr class="click" data-inv="'+esc(iv.id)+'">'
+          + '<td class="name">'+esc(iv.name)+'</td>'
+          + '<td class="tnum">'+iv.free+'席</td>'
+          + '<td>'+badge(iv.status)+'</td>'
+          + '<td>'+seatTxt+'</td></tr>';
+  });
+  el('list').innerHTML = html;
+
+  Array.prototype.forEach.call(document.querySelectorAll('tr[data-inv]'), function(tr){
+    tr.addEventListener('click', function(){ highlight(tr.getAttribute('data-inv'), tr); });
+  });
+}
+
+function highlight(invId, tr){
+  var on = (selInvite === invId);
+  selInvite = on ? null : invId;
+  Array.prototype.forEach.call(document.querySelectorAll('tr.on'), function(t){ t.classList.remove('on'); });
+  Array.prototype.forEach.call(document.querySelectorAll('.seat.sel'), function(b){ b.classList.remove('sel'); });
+  if(on) return;
+  tr.classList.add('on');
+
+  var iv = D.invites.filter(function(x){ return x.id===invId; })[0];
+  if(!iv) return;
+  iv.seats.forEach(function(sid){
+    var b = document.querySelector('.seat[data-id="'+sid+'"]');
+    if(b) b.classList.add('sel');
+  });
+  if(iv.seats.length){
+    showSeatSilent(iv);
+  } else {
+    el('detail').innerHTML = '<p class="ttl">'+esc(iv.name)+'</p>'
+      + '<p class="meta">枠 '+iv.free+'席 ／ '+esc(iv.status)+'</p>'
+      + '<p class="empty" style="margin-top:6px">席はまだ押さえていません。先方が招待フォームで回答した時点で自動で割り当たります。</p>';
+  }
+}
+
+function showSeatSilent(iv){
+  el('detail').innerHTML = '<p class="ttl">'+esc(iv.name)+'</p>'
+    + '<p class="meta">枠 '+iv.free+'席 ／ '+esc(iv.status)+'</p>'
+    + '<p class="who">'+iv.seatLabels.map(esc).join('、')+'</p>';
+}
+
+function renderFoot(){
+  el('foot').innerHTML =
+      '<b>席の並び</b>：番号1が舞台に近い（前）。1階1列と同じ向きです。<br>'
+    + '<b>バルコニーの外</b>：招待区分の在庫は、ここに出ている92席のほかに<b>2階1列34〜36番の3席</b>があります（AIR FOOTWORKS のご家族用に、本体席の真横へ置いたもの）。<br>'
+    + '<b>この表の作り方</b>：座席在庫の区分・状態に、招待マスタの「割当席」「席の指定」「追加席の指定」を突き合わせています。手で作った表ではないので、シートを直せばここも変わります。<br>'
+    + '<b>取り扱い</b>：無料でご招待している相手の一覧です。チケットを買ってくださったお客様の目に触れる場所には置かないでください。';
+}
+
+fetch(BASE + '?page=balcony&k=' + encodeURIComponent(DASH_SECRET))
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d || !d.ok) throw new Error(d && d.error ? d.error : 'unknown');
+    D = d;
+    renderStats(); renderMap(); renderList(); renderFoot();
+    el('body').hidden = false;
+  })
+  .catch(function(e){
+    el('stats').innerHTML = '';
+    el('err').innerHTML = '<div class="err">読み込めませんでした（'+esc(e.message)+'）。'
+      + 'GASの公開URLが変わっているか、鍵が合っていない可能性があります。</div>';
+  });
+</script>
+</body>
+</html>
