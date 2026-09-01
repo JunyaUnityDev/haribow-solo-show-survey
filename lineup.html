@@ -806,8 +806,13 @@ function toggleCast(blockUid, member, td){
   td.classList.add('busy');
   render();
 
+  /* 列が無いと画面が把握している時だけ、作成を許可する。
+     古い画面（改名前の名前を持っている）は許可を送れないのでサーバー側で止まる。
+     2026-09-01、これが無かったために旧名の列が復活し、同じコーナーの出演者が
+     11名／2名の2列に割れた。 */
+  var allowCreate = S.engiNames.indexOf(b.name) < 0;
   fetch(BASE, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-    body: JSON.stringify({ survey:'cast_set', secret:DASH_SECRET,
+    body: JSON.stringify({ survey:'cast_set', secret:DASH_SECRET, allowCreate:allowCreate,
       changes: [{ engi:b.name, member:member, on:on }] }) })
     .then(function(res){ return res.json(); })
     .then(function(res){
