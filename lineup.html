@@ -181,7 +181,6 @@ table.mg td.c{text-align:center;width:19px}
 table.mg td.c.hit{cursor:pointer;border-radius:4px}
 table.mg td.c.hit:hover{background:rgba(99,182,204,.16)}
 table.mg td.c.hit:hover .dot{background:var(--teal);opacity:.75}
-table.mg td.c.busy{opacity:.35;cursor:progress}
 table.mg tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
 table.mg tbody tr:nth-child(even) td.n{background:#171920}
 table.mg tfoot td{border-top:1px solid var(--line);padding-top:4px}
@@ -341,10 +340,18 @@ function compute(){
     if(blank(b.dur)){ a.undef++; r.undef++; }
   });
 
-  /* 尺が未入力の区間を跨ぐ休息は計算できない。0分として警告すると、
-     本当に詰まっている箇所が「まだ入力していないだけ」の行に埋もれる。 */
-  var blankCum = [0];
-  S.blocks.forEach(function(b, i){ blankCum[i + 1] = blankCum[i] + (blank(b.dur) ? 1 : 0); });
+  /* 休息＝「前の出番が終わってから次の出番が始まるまで」。
+     ★絶対時刻の引き算で出してはいけない。前のほうに尺未入力があると
+       _start も _end も null になり、null - null が 0 になって
+       全部の繋ぎが「休息0分」の警告になる（先頭1件を空にしただけで30件→101件になった）。
+       開演からの積み上げが分からなくても、区間の合計は分かる。そちらで出す。
+     cumLen[i] ＝ 先頭からi個目の直前までの (尺＋転換) の合計（未入力は0として積む）
+     blankCum[i] ＝ 先頭からi個目の直前までに尺が未入力のブロックがいくつあるか */
+  var cumLen = [0], blankCum = [0];
+  S.blocks.forEach(function(b, i){
+    cumLen[i + 1]   = cumLen[i] + num(b.dur) + b._trans;
+    blankCum[i + 1] = blankCum[i] + (blank(b.dur) ? 1 : 0);
+  });
 
   var thr = num(setting('連続警告のしきい値', 5));
   var last = {};
@@ -352,6 +359,9 @@ function compute(){
     /* 種別で絞らない。観客同期コーナー（MC）や客席プレイにも演者がいる。
        舞台に立っているかどうかは種別ではなく『演目順・稼働』の◯で決まる。 */
     var cast = S.cast[b.name] || [];
+    /* 先に落としておく。出演者が0人になったブロックだけ下の return で素通りするため、
+       前回の計算結果（全員出演＝true）が残り続ける */
+    b._all = false;
     if(!cast.length) return;
     /* OP＋AGT と ED は全員出演。出番に数えると「出番ゼロ」が誰も出なくなり、
        決定No.27で出演演目を失ったメンバーを拾えない。名前で決め打ちせず全員一致で判定する。 */
@@ -360,10 +370,11 @@ function compute(){
       if(!b._all) r.own[m] = (r.own[m] || 0) + 1;
       var p = last[m];
       if(p){
+        /* p自身の尺も要る（前の出番がいつ終わるか）。だから範囲は [p, b) */
         if(blankCum[b._i] - blankCum[p._i] > 0){
           r.pending.push({ from:p, to:b });
         } else {
-          var rest = b._start - p._end;
+          var rest = cumLen[b._i] - cumLen[p._i] - num(p.dur);
           if(rest < thr){
             r.runs.push({ who:m, from:p, to:b, rest:rest });
             r.hot[m + ' ' + p.uid] = 1;
@@ -383,8 +394,35 @@ function compute(){
    ============================================================ */
 function render(){
   if(!S.loaded) return;
+  var f = captureFocus();
   var r = compute();
   renderStats(r); renderBar(r); renderList(r); renderWarns(r); renderGrid(r);
+  restoreFocus(f);
+}
+
+/* 尺を打っている途中で再描画が走ると、入力欄ごと作り直されてフォーカスが外れる。
+   「4.5」と打とうとして「4」で手が止まると、そこで描き直されて「.5」が入らない。
+   どこを触っていたかを控えて、描き直したあと同じ場所へ戻す。 */
+function captureFocus(){
+  var el = document.activeElement;
+  if(!el || ['INPUT','SELECT','TEXTAREA'].indexOf(el.tagName) < 0) return null;
+  var card = el.closest ? el.closest('[data-uid]') : null;
+  var c = { uid: card ? card.getAttribute('data-uid') : null,
+            f: el.getAttribute('data-f'), k: el.getAttribute('data-k'),
+            start: null, end: null };
+  // type=number では selectionStart に触ると例外が出る
+  try{ c.start = el.selectionStart; c.end = el.selectionEnd; }catch(e){}
+  return c;
+}
+function restoreFocus(c){
+  if(!c) return;
+  var sel = c.k ? '[data-k="' + c.k + '"]'
+          : (c.uid && c.f ? '[data-uid="' + c.uid + '"] [data-f="' + c.f + '"]' : null);
+  if(!sel) return;
+  var el = document.querySelector(sel);
+  if(!el || el === document.activeElement) return;
+  el.focus();
+  try{ if(c.start != null && el.setSelectionRange) el.setSelectionRange(c.start, c.end); }catch(e){}
 }
 
 function renderStats(r){
@@ -499,10 +537,12 @@ function buildCard(b, i, r){
     : '<span class="len tnum"><b>' + round1(num(b.dur)) + '分</b>'
       + (b._trans ? ' ＋転' + round1(b._trans) : '') + '</span>';
 
-  /* 名前：稼働タブに列がある限り選択式にする（自由入力にすると紐付けが切れる） */
+  /* 名前：稼働タブに列がある限り選択式にする（自由入力にすると出演者の紐付けが切れる）。
+     ただし名前が空の演目は自由入力にする。そうしないと稼働タブに無い演目を
+     この画面から一切作れない（選択肢が既存の列しか無いため）。 */
   var isCol = S.engiNames.indexOf(b.name) >= 0;
   var nameHtml;
-  if(b.kind === '演目' || isCol){
+  if((b.kind === '演目' || isCol) && b.name !== ''){
     var used = {};
     S.blocks.forEach(function(o){ if(o !== b) used[o.name] = 1; });
     var opts = S.engiNames.filter(function(nm){ return nm === b.name || !used[nm]; });
@@ -510,9 +550,11 @@ function buildCard(b, i, r){
     nameHtml = '<select class="name" data-f="name">' + opts.map(function(nm){
       return '<option value="' + esc(nm) + '"' + (nm === b.name ? ' selected' : '') + '>'
         + esc(nm) + (nm === b.name && !isCol ? '（稼働タブに列が無い）' : '') + '</option>';
-    }).join('') + '</select>';
+    }).join('')
+      + '<option value="">＋ 新しい名前にする…</option></select>';
   } else {
-    nameHtml = '<input class="name" data-f="name" value="' + esc(b.name) + '" placeholder="ブロック名">';
+    nameHtml = '<input class="name" data-f="name" value="' + esc(b.name) + '" '
+      + 'placeholder="' + (b.kind === '演目' ? '演目名（打ち終わってから確定）' : 'ブロック名') + '">';
   }
 
   /* 出演者：連続している人だけ常に見せ、残りは畳む */
@@ -580,16 +622,33 @@ function buildCard(b, i, r){
 function wireCard(el, b, i){
   el.querySelectorAll('[data-f]').forEach(function(inp){
     var f = inp.getAttribute('data-f');
-    inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', function(){
-      if(f === 'dur' || f === 'trans'){
-        snapshot();
+    var isSel = inp.tagName === 'SELECT';
+
+    if(f === 'note'){
+      inp.addEventListener('input', function(){ b.note = inp.value; markDirty(); });
+      return;                                   // 時刻に影響しないので描き直さない
+    }
+    if(f === 'dur' || f === 'trans'){
+      inp.addEventListener('input', function(){
+        snapshot(f + ':' + b.uid);
         b[f] = inp.value === '' ? '' : Number(inp.value);
         markDirty(); renderSoon();
-      } else if(f === 'note'){
-        b.note = inp.value; markDirty();       // 時刻に影響しないので描き直さない
-      } else {
-        snapshot(); b[f] = inp.value; markDirty(); render();
-      }
+      });
+      return;
+    }
+    if(f === 'name' && !isSel){
+      /* 自由入力の名前は、打っている途中で描き直さない。
+         1文字ごとに描き直すと、途中の文字列がたまたま列名と一致した瞬間に
+         入力欄がプルダウンへ切り替わってしまう。確定（blur/Enter）で反映する。 */
+      inp.addEventListener('input', function(){
+        snapshot('name:' + b.uid); b.name = inp.value; markDirty();
+      });
+      inp.addEventListener('change', function(){ render(); });
+      return;
+    }
+    // 種別のプルダウン／名前のプルダウン
+    inp.addEventListener('change', function(){
+      snapshot(f + ':' + b.uid); b[f] = inp.value; markDirty(); render();
     });
   });
 
@@ -597,7 +656,7 @@ function wireCard(el, b, i){
     btn.addEventListener('click', function(){
       var j = i + Number(btn.getAttribute('data-mv'));
       if(j < 0 || j >= S.blocks.length) return;
-      snapshot();
+      snapshot('move');
       var tmp = S.blocks[i]; S.blocks[i] = S.blocks[j]; S.blocks[j] = tmp;
       markDirty(); render(); jump(b.uid);
     });
@@ -780,10 +839,14 @@ function renderGrid(r){
           + esc(m.name) + '</td>'; }).join('')
     + '</tr></tfoot></table>';
   var wrap = document.getElementById('mgrid');
+  /* 丸を押すと描き直しになる。横スクロールを戻さないと、右端（出番の少ない人）を
+     見ながら足していく作業で毎回左端に飛ばされる */
+  var sl = wrap.scrollLeft;
   wrap.innerHTML = h;
+  wrap.scrollLeft = sl;
   wrap.querySelectorAll('td.c.hit').forEach(function(td){
     td.addEventListener('click', function(){
-      toggleCast(Number(td.getAttribute('data-u')), td.getAttribute('data-m'), td);
+      toggleCast(Number(td.getAttribute('data-u')), td.getAttribute('data-m'));
     });
   });
 }
@@ -791,7 +854,7 @@ function renderGrid(r){
 /* 香盤の丸を押して出演を切り替える。
    ★書き先は『演目順・稼働』タブ。構成台本タブには出演者を持たせない。
    ★構成台本の保存とは別経路で、押した瞬間に書く（未保存の状態を2種類作らないため）。 */
-function toggleCast(blockUid, member, td){
+function toggleCast(blockUid, member){
   var b = null;
   S.blocks.forEach(function(x){ if(x.uid === blockUid) b = x; });
   if(!b) return;
@@ -801,9 +864,9 @@ function toggleCast(blockUid, member, td){
   var idx = cast.indexOf(member);
   var on = idx < 0;
 
-  // 先に画面を動かし、失敗したら戻す
+  /* 先に画面を動かし、失敗したら戻す。
+     ★td に印を付けても意味がない。直後の render() で表ごと作り直されて消えるため。 */
   if(on) cast.push(member); else cast.splice(idx, 1);
-  td.classList.add('busy');
   render();
 
   /* 列が無いと画面が把握している時だけ、作成を許可する。
@@ -857,6 +920,7 @@ function renderSettings(){
   }).join('');
   el.querySelectorAll('[data-k]').forEach(function(inp){
     inp.addEventListener('input', function(){
+      snapshot('set:' + inp.getAttribute('data-k'));
       S.settings[inp.getAttribute('data-k')] = inp.value; markDirty(); renderSoon();
     });
   });
@@ -874,7 +938,13 @@ function addBlock(kind){
 }
 
 /* ---------- 取り消し ---------- */
-function snapshot(){
+/* 同じ欄を続けて打っている間は1回にまとめる。
+   1文字ごとに積むと「12.5」を打っただけで4回分たまり、⌘Zが実質使えなくなる。 */
+var lastSnap = { key:'', t:0 };
+function snapshot(key){
+  var now = Date.now();
+  if(key && key === lastSnap.key && now - lastSnap.t < 1500){ lastSnap.t = now; return; }
+  lastSnap = { key: key || '', t: now };
   undoStack.push(JSON.stringify({ blocks:S.blocks, settings:S.settings }));
   if(undoStack.length > 60) undoStack.shift();
   document.getElementById('undoBtn').disabled = false;
@@ -953,6 +1023,17 @@ function load(){
 
 function save(){
   if(!S.loaded || !S.dirty) return;
+
+  /* 名前が空のブロックを保存すると、読み戻す側が空行として読み飛ばすので
+     そのブロックだけ黙って消える。保存の前で止める。 */
+  var noName = S.blocks.filter(function(b){ return !String(b.name || '').trim(); });
+  if(noName.length){
+    toast('名前が空のブロックが' + noName.length + '件あります。名前を入れてから保存してください'
+      + '（空のまま保存すると読み戻した時に消えます）');
+    jump(noName[0].uid);
+    return;
+  }
+
   var btn = document.getElementById('saveBtn');
   btn.disabled = true;
   setStatus('保存中', '');
