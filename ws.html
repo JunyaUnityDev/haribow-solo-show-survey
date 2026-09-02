@@ -277,9 +277,9 @@ function render(){
       '<div class="num"><div class="k">想定来場</div><div class="v">' + t.expected + '<span style="font-size:12px">人</span></div></div>' +
       '<div class="num"><div class="k">予約済</div><div class="v">' + t.booked + '</div></div>' +
     '</div>' +
+    /* 2026-09-01 配信を全面中止（決定No.37・ADR-015）。配信の集計タイル2つを外した。
+       残すと「配信の希望◯人・◯枚」が並び、まだ売れる商品があるように読める。 */
     '<div class="nums" style="margin-top:9px">' +
-      '<div class="num"><div class="k">配信 視聴希望</div><div class="v">' + n(t.streamPeople) + '<span style="font-size:12px">人</span></div></div>' +
-      '<div class="num"><div class="k">配信 購入単位</div><div class="v">' + n(t.streamSeats) + '<span style="font-size:12px">枚</span></div></div>' +
       '<div class="num"><div class="k">打診済み</div><div class="v">' + n(t.contacted) + '<span style="font-size:12px">/' + t.orgs + '</span></div></div>' +
     '</div>' +
     '<p class="muted" style="margin-top:12px">' +
@@ -406,10 +406,8 @@ function render(){
     }else if((o.instructors || []).length){
       meta += '<div><span class="lbl">講師</span>' + esc(o.instructors.join('、')) + '</div>';
     }
-    if(o.streamSeats){
-      meta += '<div><span class="lbl">配信</span>視聴希望 <b>' + n(o.streamPeople) + '人</b>' +
-              '（購入単位 ' + n(o.streamSeats) + '枚）</div>';
-    }
+    /* 2026-09-01 配信中止（決定No.37）により、団体ごとの配信希望の表示を外した。
+       営業担当がこの数字を見て配信を案内し続けないようにするため。 */
     if(o.talk){
       meta += '<div><span class="lbl">話すこと</span>' + esc(o.talk) + '</div>';
     }

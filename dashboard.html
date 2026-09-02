@@ -1704,9 +1704,9 @@ function renderNow(data, orgs, cast){
     + cell('団体の打診', (orgs?orgs.contacted:0)+'<small>/'+(orgs?orgs.total:0)+'</small>',
            orgs?('受付終了まで'+orgs.daysToClose+'日'):'', orgs && orgs.contacted===0)
     + cell('出演者の動き', (cast?cast.moved:0)+'<small>/'+(cast?cast.people:0)+'名</small>',
-           cast?('購入 '+cast.bought+'枚'):'', cast && cast.moved===0)
-    + cell('配信の希望', orgs?(orgs.streamPeople+'<small>人</small>'):'—',
-           orgs?(orgs.streamSeats+'枚ぶん・未販売'):'');
+           cast?('購入 '+cast.bought+'枚'):'', cast && cast.moved===0);
+    /* 2026-09-01 配信を全面中止（決定No.37・ADR-015）。「配信の希望◯人／◯枚ぶん・未販売」の
+       タイルを外した。中止後も並んでいると、未回収の売上があるように読める。 */
   box.innerHTML = html;
 }
 
