@@ -315,8 +315,17 @@ function compute(){
   if(open == null) open = 19 * 60 + 30;
   var defTrans = num(setting('既定の転換', 0));
 
-  var t = open, act = 1, known = true;
+  /* 幕は「休憩で区切られた区間」。休憩が2つあれば3幕になる。
+     ★以前は 1／幕間／2 の3値しか持てず、休憩を2つ置くと「2幕」の見出しが2回出て、
+       どちらにも同じ集計（合算値）が入っていた。見出しの時刻レンジまで嘘になる。 */
+  var t = open, known = true, segIdx = -1, actNo = 0, prevRest = null;
   S.blocks.forEach(function(b, i){
+    var isRest = (b.kind === '休憩');
+    if(prevRest === null || isRest !== prevRest){
+      segIdx++; if(!isRest) actNo++; prevRest = isRest;
+    }
+    b._seg  = segIdx;
+    b._rest = isRest;
     b._i = i;
     b._trans = blank(b.trans) ? defTrans : num(b.trans);
     /* 開始は「ここまでの尺が全部埋まっているか」、終了は「さらに自分の尺も埋まっているか」。
@@ -324,20 +333,23 @@ function compute(){
     b._known = known && !blank(b.dur);
     b._start = known ? t : null;
     b._end   = (known && !blank(b.dur)) ? t + num(b.dur) : null;
-    b._act   = (b.kind === '休憩') ? 0 : act;
+    b._act   = isRest ? 0 : actNo;
     if(blank(b.dur)) known = false;
     t += num(b.dur) + b._trans;
-    if(b.kind === '休憩') act = 2;
   });
 
   var r = { open:open, end:known ? t : null, endKnown:known, undef:0,
-            act:{ 1:{len:0, n:0, undef:0}, 0:{len:0, n:0, undef:0}, 2:{len:0, n:0, undef:0} },
-            runs:[], pending:[], zero:[], own:{}, hot:{} };
+            segs:[], runs:[], pending:[], zero:[], own:{}, hot:{} };
 
   S.blocks.forEach(function(b){
-    var a = r.act[b._act];
-    a.n++; a.len += num(b.dur) + b._trans;
-    if(blank(b.dur)){ a.undef++; r.undef++; }
+    var g = r.segs[b._seg];
+    if(!g){
+      g = r.segs[b._seg] = { key:b._seg, rest:b._rest, act:b._act,
+                             label: b._rest ? '幕間' : (b._act + '幕'),
+                             n:0, len:0, undef:0, first:b, last:b };
+    }
+    g.n++; g.len += num(b.dur) + b._trans; g.last = b;
+    if(blank(b.dur)){ g.undef++; r.undef++; }
   });
 
   /* 休息＝「前の出番が終わってから次の出番が始まるまで」。
@@ -431,21 +443,20 @@ function renderStats(r){
   var endSub = !r.endKnown ? '尺' + r.undef + '件待ち'
              : (lim == null ? '' : (r.end > lim ? '+' + Math.round(r.end - lim) + '分'
                                                 : '余' + Math.round(lim - r.end) + '分'));
-  function actStat(k, label){
-    var a = r.act[k];
-    if(!a.n) return '';
-    /* 尺が未入力のブロックがあると、この合計は「確定している分だけ」になる。
-       ただの「9分」と出すと幕全体が9分に見えるので、〜 を付けて下限であることを示す。 */
-    return '<div class="stat' + (a.undef ? ' att' : '') + '"><span class="k">' + label + '</span>'
-      + '<span class="v tnum">' + Math.round(a.len) + '<small>分' + (a.undef ? '〜' : '') + '</small>'
-      + (a.undef ? '<small>未定' + a.undef + '件</small>' : '') + '</span></div>';
+  /* 尺が未入力のブロックがあると、この合計は「確定している分だけ」になる。
+     ただの「9分」と出すと幕全体が9分に見えるので、〜 を付けて下限であることを示す。 */
+  function segStat(g){
+    if(!g || !g.n) return '';
+    return '<div class="stat' + (g.undef ? ' att' : '') + '"><span class="k">' + esc(g.label) + '</span>'
+      + '<span class="v tnum">' + Math.round(g.len) + '<small>分' + (g.undef ? '〜' : '') + '</small>'
+      + (g.undef ? '<small>未定' + g.undef + '件</small>' : '') + '</span></div>';
   }
   document.getElementById('stats').innerHTML =
       '<div class="stat"><span class="k">開演</span><span class="v tnum">' + fmtHHMM(r.open) + '</span></div>'
     + '<div class="stat ' + endCls + '"><span class="k">終演</span><span class="v tnum">'
     + (r.endKnown ? fmtHHMM(r.end) : '--:--')
     + (endSub ? '<small>' + endSub + '</small>' : '') + '</span></div>'
-    + actStat(1, '1幕') + actStat(0, '幕間') + actStat(2, '2幕')
+    + r.segs.map(segStat).join('')
     + '<div class="stat ' + (r.runs.length ? 'att' : 'ok') + '"><span class="k">連続</span>'
     + '<span class="v tnum">' + r.runs.length + '<small>件</small></span></div>'
     + '<div class="stat ' + (r.undef ? 'att' : 'ok') + '"><span class="k">尺未入力</span>'
@@ -493,26 +504,25 @@ function renderList(r){
   list.innerHTML = '';
   var shown = null, first = true;
   S.blocks.forEach(function(b, i){
-    if(b._act !== shown){
-      list.appendChild(actHeader(b._act, r, first));
-      shown = b._act; first = false;
+    if(b._seg !== shown){
+      list.appendChild(actHeader(r.segs[b._seg], first));
+      shown = b._seg; first = false;
     }
     list.appendChild(buildCard(b, i, r));
   });
 }
 
-function actHeader(key, r, first){
-  var a = r.act[key];
+function actHeader(g, first){
   var el = document.createElement('div');
   el.className = 'actbar' + (first ? ' first' : '');
-  /* 幕の頭と尻の時刻。尻は最後のブロックの終了で、後ろの転換は含めない */
-  var inAct = S.blocks.filter(function(b){ return b._act === key; });
-  var s0 = inAct.length ? inAct[0]._start : null;
-  var e0 = inAct.length ? inAct[inAct.length - 1]._end : null;
+  /* 頭と尻の時刻は、この区間の実際の先頭・末尾から取る。
+     以前は「同じ幕番号のブロック全部」から取っていたので、休憩が2つあると
+     離れた区間どうしが1つに混ざった時刻レンジが出ていた。 */
+  var s0 = g.first._start, e0 = g.last._end;
   var span = (s0 != null && e0 != null) ? fmtHHMM(s0) + '–' + fmtHHMM(e0) + ' ／ ' : '';
-  el.innerHTML = '<span class="t">' + (key === 0 ? '幕間' : key + '幕') + '</span>'
-    + '<span class="d">' + span + a.n + 'ブロック ／ ' + Math.round(a.len) + '分'
-    + (a.undef ? '〜（尺未入力' + a.undef + '件）' : '') + '</span><span class="rule"></span>';
+  el.innerHTML = '<span class="t">' + esc(g.label) + '</span>'
+    + '<span class="d">' + span + g.n + 'ブロック ／ ' + Math.round(g.len) + '分'
+    + (g.undef ? '〜（尺未入力' + g.undef + '件）' : '') + '</span><span class="rule"></span>';
   return el;
 }
 
@@ -782,6 +792,21 @@ function renderWarns(r){
       + '<div class="sm">全員出演の演目（OP・ED）は数えていない</div></div>';
   }
 
+  /* 同じ名前のブロックが2つあると、出演者は名前で引くので両方が同じ人を持ち、
+     出番数も連続も二重に数えられる。数字が黙って狂うので出す。 */
+  var seen = {}, dup = {};
+  S.blocks.forEach(function(b){
+    var nm = String(b.name || '').trim();
+    if(!nm) return;
+    if(seen[nm]) dup[nm] = 1; else seen[nm] = 1;
+  });
+  var dupNames = Object.keys(dup);
+  if(dupNames.length){
+    h += '<div class="warn bad"><div class="h">同じ名前のブロックが2つ以上ある</div>'
+      + '<div class="who">' + dupNames.map(esc).join('／') + '</div>'
+      + '<div class="sm">出演者は名前で引くので、出番数も連続も二重に数えられる</div></div>';
+  }
+
   var orphan = S.blocks.filter(function(b){
     return b.kind === '演目' && S.engiNames.indexOf(b.name) < 0; });   // 演目なのに列が無い＝出演者を追えない
   if(orphan.length){
@@ -972,8 +997,7 @@ function copyScript(){
     + (r.endKnown ? ' → ' + fmtHHMM(r.end) + '終演' : ' ／ 終演は尺が揃うまで未定') + '）', ''];
   var shown = null;
   S.blocks.forEach(function(b){
-    var a = b._act === 0 ? '幕間' : b._act + '幕';
-    if(a !== shown){ lines.push('── ' + a + ' ──'); shown = a; }
+    if(b._seg !== shown){ lines.push('── ' + r.segs[b._seg].label + ' ──'); shown = b._seg; }
     lines.push((b._start != null ? fmtHHMM(b._start) : '--:--')
       + '–' + (b._end != null ? fmtHHMM(b._end) : '--:--') + '  ' + b.name
       + (blank(b.dur) ? '  [尺未定]' : '  ' + round1(num(b.dur)) + '分')
