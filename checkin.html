@@ -37,6 +37,12 @@
   .verdict.ng{background:var(--ng);color:#fff}
   .verdict .big{font-size:26px;font-weight:800;line-height:1.25;letter-spacing:.01em}
   .verdict .seat{font-size:19px;font-weight:700;margin-top:2px}
+  /* お渡し物（2026-09-03）。席と同じくらい強く出す——ここを読み飛ばされると
+     扇子・Tシャツを渡さずに通してしまい、当日その場でしか取り返せない。 */
+  .verdict .handout{font-size:17px;font-weight:800;margin-top:6px;
+    display:inline-block;padding:4px 12px;border-radius:8px;
+    background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.45)}
+  .verdict.warn .handout{background:rgba(0,0,0,.14);border-color:rgba(0,0,0,.35)}
   .verdict .sub{font-size:13px;opacity:.9;margin-top:4px}
   .verdict .acts{display:flex;gap:8px;justify-content:center;margin-top:10px}
   .verdict .acts button{padding:9px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.5);
@@ -61,6 +67,9 @@
     background:rgba(200,143,74,.12);border-left:2px solid #c08f4a;
     font-size:12.5px;line-height:1.75;color:var(--ink)}
   .hit.done{opacity:.5}
+  /* 検索結果側のお渡し物（2026-09-03） */
+  .hout{margin-top:6px;font-size:14px;font-weight:700;color:#f0d68a;
+    border:1px solid rgba(240,214,138,.5);border-radius:6px;padding:3px 9px;display:inline-block}
   .note{font-size:11.5px;color:var(--faint);line-height:1.85;margin-top:14px}
 </style>
 </head>
@@ -148,11 +157,16 @@ function post(survey, extra){
 }
 
 /* ---- 結果表示（次の人を読むまで消えない） ---- */
-function showVerdict(cls, big, seat, sub, acts){
+/* handout は末尾の任意引数（2026-09-03 追加）。
+   ★引数を末尾に足したのは、この関数が12箇所から呼ばれているため。
+     途中に差すと全部の呼び出しを直すことになり、直し漏れた1箇所が当日に出る。
+   ★席の直後・sub の前に出す。スタッフの目線が「誰・どこ」の次に来る位置。 */
+function showVerdict(cls, big, seat, sub, acts, handout){
   var v=document.getElementById('verdict');
   v.className='verdict '+cls;
   v.innerHTML='<div class="big">'+esc(big)+'</div>'
     + (seat?'<div class="seat">'+esc(seat)+'</div>':'')
+    + (handout?'<div class="handout">'+esc(handout)+'</div>':'')
     + (sub?'<div class="sub">'+esc(sub)+'</div>':'')
     + (acts?'<div class="acts">'+acts+'</div>':'');
 }
@@ -256,7 +270,7 @@ function doCheckin(token, fromSearch, force, cash){
       var note = othersNote(i);
       if(note) sub = note;
       showVerdict(note?'warn':'ok', i.name+' 様', i.seats+'　'+i.qty+'名', sub,
-        '<button onclick="undo(\''+esc(token)+'\')">取り消す</button>');
+        '<button onclick="undo(\''+esc(token)+'\')">取り消す</button>', i.handout);
       loadStats();
       // 検索結果から通した場合は一覧を更新する（同じボタンを二度押させない）
       if(fromSearch && document.getElementById('q').value.trim()) doLookup();
@@ -384,6 +398,9 @@ function doLookup(){
         + '<div class="meta">'+esc(h.seats)+'　'+esc(h.qty)+'名　'+esc(h.status)
         + (h.cashDue?('　／ 現金 ¥'+Number(h.amount||0).toLocaleString()+' 未受領'):'')
         + (done?('　／ '+esc(h.checkedAt)+' 入場済み'):'')+'</div>'
+        /* お渡し物（2026-09-03）。QRが使えず名前検索から通す方にも同じ情報を出す。
+           片方だけに出すと、検索経由で入った方だけ扇子・Tシャツを渡し損ねる。 */
+        + (h.handout?'<div class="hout">'+esc(h.handout)+'</div>':'')
         + btn
         + '</div>';
     }).join('');
