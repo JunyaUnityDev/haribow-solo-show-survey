@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GO BEYOND ｜ 提出資料パック（会場・消防）</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<style>
+/* ============================================================
+   配色 = HARIBOWパレット #8（White #e4e3df / Blue #1f294c）を基調に、
+   状態色だけ #91061b（未確定）／#076042（済）／#8c6f2d（進行中）を足す。
+   紙に出す資料なので、画面も紙と同じ「白地・黒文字」で統一する。
+   ============================================================ */
+:root{
+  --paper:#ffffff; --ground:#e4e3df; --ink:#1f294c; --ink2:#3a4361; --faint:#7a8199;
+  --line:#c9cbd3; --line2:#e2e3e7; --tint:#f4f4f1;
+  --red:#91061b; --green:#076042; --khaki:#8c6f2d; --blue:#2867ae;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6;font-size:13px}
+.tnum{font-variant-numeric:tabular-nums}
+a{color:var(--blue)}
+
+/* ---------- 固定ヘッダー ---------- */
+.bar{position:sticky;top:0;z-index:50;background:var(--ink);color:#e4e3df;
+  padding:9px 18px 0;box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.bar .row1{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.bar .ttl{font-size:14px;font-weight:800;letter-spacing:.02em}
+.bar .meta{font-size:11px;color:#a8b0c6}
+.bar .meta b{color:#e4e3df;font-weight:700}
+.bar .dday{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.08em;
+  background:#91061b;color:#fff;padding:3px 9px;border-radius:4px}
+.tabs{display:flex;gap:2px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;
+  border:0;border-radius:6px 6px 0 0;padding:8px 13px;background:transparent;color:#98a1ba;
+  border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button:hover{color:#e4e3df}
+.tabs button.on{background:var(--ground);color:var(--ink);border-bottom-color:var(--ground)}
+.tabs button .no{font-size:9.5px;color:#6f7893;margin-right:5px;letter-spacing:.1em}
+.tabs button.on .no{color:var(--faint)}
+
+/* ---------- 用紙 ---------- */
+.sheet{display:none;max-width:1180px;margin:20px auto;background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;padding:26px 30px 40px;
+  box-shadow:0 3px 18px rgba(31,41,76,.07)}
+.sheet.on{display:block}
+.docno{font-size:10px;letter-spacing:.22em;color:var(--faint);font-weight:700;text-transform:uppercase}
+h1{font-size:20px;font-weight:800;margin:4px 0 3px;letter-spacing:.01em}
+.lead{font-size:12px;color:var(--ink2);margin:8px 0 0;max-width:760px}
+h2{font-size:13px;font-weight:800;margin:30px 0 10px;padding-bottom:6px;
+  border-bottom:2px solid var(--ink);display:flex;align-items:baseline;gap:9px}
+h2 .n{font-size:10.5px;color:var(--faint);letter-spacing:.14em;font-weight:700}
+h2 .note{margin-left:auto;font-size:10.5px;font-weight:600;color:var(--faint)}
+h3{font-size:12px;font-weight:800;margin:20px 0 7px;color:var(--ink2)}
+p{margin:8px 0}
+.hr{height:1px;background:var(--line2);margin:22px 0}
+
+/* ---------- 表 ---------- */
+table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 4px}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+th{background:var(--tint);font-weight:700;font-size:10.5px;letter-spacing:.02em;white-space:nowrap}
+td.c,th.c{text-align:center}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.sub td{background:var(--tint);font-weight:700}
+.tiny{font-size:10.5px;color:var(--faint);line-height:1.5}
+
+/* ---------- 状態バッジ ---------- */
+.b{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.04em;
+  padding:1.5px 6px;border-radius:3px;white-space:nowrap;border:1px solid}
+.b.ok{color:var(--green);border-color:var(--green);background:rgba(7,96,66,.07)}
+.b.wip{color:var(--khaki);border-color:var(--khaki);background:rgba(140,111,45,.08)}
+.b.ng{color:var(--red);border-color:var(--red);background:rgba(145,6,27,.07)}
+.b.hall{color:var(--blue);border-color:var(--blue);background:rgba(40,103,174,.07)}
+.b.na{color:var(--faint);border-color:var(--line);background:var(--tint)}
+
+/* ---------- カード ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:10px;margin:12px 0}
+.card{border:1px solid var(--line);border-radius:4px;padding:9px 11px;background:var(--tint)}
+.card .k{font-size:9.5px;letter-spacing:.13em;color:var(--faint);font-weight:700;text-transform:uppercase}
+.card .v{font-size:14px;font-weight:800;margin-top:3px;line-height:1.35}
+.card .v small{font-size:11px;font-weight:600;color:var(--ink2);display:block;margin-top:2px}
+
+.warn{border-left:3px solid var(--red);background:rgba(145,6,27,.045);padding:10px 13px;margin:14px 0;font-size:11.5px}
+.warn b{color:var(--red)}
+.info{border-left:3px solid var(--blue);background:rgba(40,103,174,.05);padding:10px 13px;margin:14px 0;font-size:11.5px}
+
+/* ---------- フロー ---------- */
+.flow{display:flex;gap:0;flex-wrap:wrap;margin:12px 0}
+.flow .st{flex:1 1 150px;border:1px solid var(--line);border-left-width:0;padding:9px 11px;background:var(--paper);position:relative}
+.flow .st:first-child{border-left-width:1px;border-radius:4px 0 0 4px}
+.flow .st:last-child{border-radius:0 4px 4px 0}
+.flow .st .n{font-size:9.5px;font-weight:800;color:var(--faint);letter-spacing:.12em}
+.flow .st .t{font-size:11.5px;font-weight:700;margin-top:3px;line-height:1.45}
+.flow .st .w{font-size:10px;color:var(--ink2);margin-top:4px}
+.flow .st.us{background:rgba(145,6,27,.05)}
+.flow .st.hl{background:rgba(40,103,174,.05)}
+
+/* ---------- タイムグリッド ---------- */
+.tg-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;margin:10px 0}
+.tg{display:grid;min-width:820px;position:relative;background:var(--paper)}
+.tg .hd{position:sticky;top:0;background:var(--tint);border-bottom:1px solid var(--line);
+  font-size:10px;font-weight:800;padding:5px 6px;text-align:center;z-index:2;border-right:1px solid var(--line2)}
+.tg .hr0{border-top:1px solid var(--line2);grid-column:1/-1;pointer-events:none}
+.tg .hr0.hour{border-top-color:var(--line)}
+.tg .tl{font-size:9.5px;color:var(--faint);font-weight:700;padding:1px 5px 0 0;text-align:right;
+  font-variant-numeric:tabular-nums;border-right:1px solid var(--line)}
+.tg .it{margin:1px 2px;border-radius:3px;padding:3px 5px;font-size:10px;line-height:1.3;
+  overflow:hidden;border:1px solid;background:var(--paper);z-index:1}
+.tg .it b{font-weight:800;display:block}
+.tg .it .s{font-size:9px;opacity:.8}
+.it.fix{border-color:var(--ink);background:rgba(31,41,76,.06)}
+.it.tmp{border-color:var(--khaki);background:rgba(140,111,45,.07);border-style:dashed}
+.it.show{border-color:var(--red);background:rgba(145,6,27,.08)}
+.it.haz{border-color:var(--red);background:rgba(145,6,27,.05);border-style:dashed}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:16px;height:9px;border:1px solid;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+/* ---------- 図面 ---------- */
+.plan{width:100%;max-width:900px;height:auto;border:1px solid var(--line);border-radius:4px;background:var(--paper);display:block;margin:10px 0}
+
+/* ---------- 進行表 ---------- */
+table.cue td{font-size:11px}
+table.cue td.c{white-space:nowrap}
+table.cue tr.act td{background:var(--ink);color:#e4e3df;font-weight:800;font-size:11px;letter-spacing:.1em}
+table.cue tr.rest td{background:var(--tint)}
+table.cue .nm{font-weight:700}
+table.cue .hz{color:var(--red);font-weight:700}
+
+.foot{max-width:1180px;margin:0 auto 44px;padding:0 4px;font-size:10.5px;color:var(--faint)}
+.srcline{font-size:10.5px;color:var(--faint);margin-top:6px}
+.srcline b{color:var(--ink2)}
+
+/* ---------- 印刷 ---------- */
+@page{size:A4 landscape;margin:9mm}
+@page ptr{size:A4 portrait;margin:12mm}
+@media print{
+  body{background:#fff;font-size:10.5px}
+  .bar,.foot,.noprint{display:none!important}
+  .sheet{display:none;max-width:none;margin:0;border:0;border-radius:0;padding:0;box-shadow:none}
+  .sheet.on{display:block}
+  .sheet.ptr{page:ptr}
+  .printhead{display:block!important;border-bottom:1.5px solid #000;padding-bottom:5px;margin-bottom:10px}
+  h2{margin-top:16px;page-break-after:avoid}
+  table{page-break-inside:auto;font-size:9.5px}
+  tr{page-break-inside:avoid}
+  .tg-wrap{overflow:visible;page-break-inside:avoid}
+  .tg{min-width:0}
+  .cards{page-break-inside:avoid}
+  a{color:#000;text-decoration:none}
+}
+.printhead{display:none;font-size:10px}
+.printhead b{font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="bar noprint">
+  <div class="row1">
+    <span class="ttl">GO BEYOND ｜ 提出資料パック</span>
+    <span class="meta"><b>2026/9/29（火）</b> めぐろパーシモンホール 大ホール ／ 開場 <b>18:30</b>・開演 <b>19:30</b></span>
+    <span class="dday" id="dday">—</span>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<!-- ===================== 00 提出物一覧 ===================== -->
+<section class="sheet ptr" id="s0">
+  <div class="printhead"><b>HARIBOW 初単独公演「GO BEYOND」</b>　提出資料パック ／ 提出物一覧・申請フロー</div>
+  <div class="docno">00 ／ INDEX</div>
+  <h1>提出物一覧と申請フロー</h1>
+  <p class="lead">めぐろパーシモンホール経由で目黒消防署へ出す「禁止行為の解除承認申請」一式（①〜⑫）と、ホールへ直接出す書類の管理表。
+  <b>①〜⑫を3部作成のうえ、めぐろパーシモンホールへ持参する</b>のが最初のゴール。このページの各タブが、そのまま提出書類の本文になる。</p>
+
+  <div class="cards">
+    <div class="card"><div class="k">本番まで</div><div class="v" id="c-dday">—</div></div>
+    <div class="card"><div class="k">主催者が作る書類</div><div class="v">6点<small>③④⑤⑥⑦⑧</small></div></div>
+    <div class="card"><div class="k">ホールが用意する書類</div><div class="v">6点<small>①②⑨⑩⑪⑫（ひな型のまま添付）</small></div></div>
+    <div class="card"><div class="k">部数</div><div class="v">3部<small>①〜⑫すべて</small></div></div>
+    <div class="card"><div class="k">消防署の受付目安</div><div class="v" id="c-fire">—<small>おおむね10日前（東京消防庁）</small></div></div>
+  </div>
+
+  <h2><span class="n">A</span>禁止行為の解除承認申請 ①〜⑫</h2>
+  <table id="t-docs"></table>
+  <div class="srcline">出典：<b>めぐろパーシモンホールから受領した書類提出案内</b>（2026-09-03 撮影）。番号・名称は原文どおり。</div>
+
+  <h2><span class="n">B</span>申請の流れ</h2>
+  <div class="flow">
+    <div class="st us"><div class="n">STEP 1</div><div class="t">主催者が①〜⑫を3部作成</div><div class="w">③〜⑧は本ページ。①②⑨〜⑫はホールのひな型をそのまま添付</div></div>
+    <div class="st us"><div class="n">STEP 2</div><div class="t">めぐろパーシモンホールへ持参</div><div class="w">窓口 03-5701-2819 ／ mado@persimmon.or.jp</div></div>
+    <div class="st hl"><div class="n">STEP 3</div><div class="t">ホールが内容を確認</div><div class="w">不備があればここで差し戻し</div></div>
+    <div class="st hl"><div class="n">STEP 4</div><div class="t">財団理事長印を押印</div><div class="w">目黒区芸術文化振興財団</div></div>
+    <div class="st hl"><div class="n">STEP 5</div><div class="t">防災センターで決裁</div><div class="w">決裁後にホールから連絡が来る</div></div>
+    <div class="st us"><div class="n">STEP 6</div><div class="t">主催者が目黒消防署へ直接申請</div><div class="w">書類を持参して申請する</div></div>
+  </div>
+  <div class="tiny">※ 青＝ホール／財団側、赤＝主催者側の作業。STEP 3〜5 に何日かかるかは案内文に記載がなく<b>未確認</b>。ここが読めないと逆算が組めないため、持参時に必ず所要日数を聞く。<br>
+  ※ 受領した案内の「②目黒消防署への書類提出」の一部（ホールからの受け渡し方法）が撮影画像で判読できていない。<b>原文の再確認が必要。</b></div>
+
+  <h2><span class="n">C</span>逆算スケジュール（案）</h2>
+  <table id="t-back"></table>
+  <div class="tiny">※ 消防署の「おおむね10日前」は東京消防庁の一般的な案内。目黒消防署の実運用は要確認。STEP 3〜5 の所要日数が不明なため、ホール持参日は<b>安全側に7営業日</b>を見て置いた仮の日付。</div>
+
+  <h2><span class="n">D</span>ホールへ直接出す書類</h2>
+  <table id="t-hall"></table>
+
+  <h2><span class="n">E</span>この資料を完成させるために決めるべきこと</h2>
+  <table id="t-open"></table>
+  <div class="tiny">※ 赤の項目が埋まらないと、④⑤⑥⑦は「書けるが正しくない」書類になる。消防に出す書類なので、推測で埋めない。</div>
+</section>
+
+<!-- ===================== 01 公演概要 ===================== -->
+<section class="sheet ptr" id="s1">
+  <div class="printhead"><b>③ 公演概要</b>　HARIBOW 初単独公演「GO BEYOND」／ 2026年9月29日（火）めぐろパーシモンホール 大ホール</div>
+  <div class="docno">03 ／ 公演概要</div>
+  <h1>公演概要</h1>
+  <p class="lead">禁止行為の解除承認申請 添付書類 ③。公演そのものの内容と、申請対象となる特殊効果の全体像。</p>
+
+  <h2><span class="n">1</span>基本事項</h2>
+  <table id="t-basic"></table>
+
+  <h2><span class="n">2</span>公演内容</h2>
+  <p>ダブルダッチ（2本のロープを回し、その中で跳ぶ競技／パフォーマンス）を主体とした
+  ステージエンターテインメント公演。全2幕・全10演目のショーケース形式で、
+  各演目のあいだにMC（進行のための会話）と観客参加コーナーを挟む。
+  火を扱う演目、可燃物を燃やす演出、火薬・煙火を用いる演出は<b>一切行わない</b>。</p>
+  <p>HARIBOWは2025年 IJRU世界選手権 優勝チーム。本公演は同チーム初の単独公演にあたる。
+  出演は HARIBOWメンバーに加え、ゲスト2組（AIR FOOTWORKS／Cheer Re-Man's）。</p>
+
+  <h2><span class="n">3</span>演目構成（全10演目・2幕）</h2>
+  <table id="t-prog"></table>
+  <div class="srcline">出典：<b>『PJ単独公演2026』スプレッドシート「構成台本」タブ</b>（本ページが自動取得）。順番・尺の正典。</div>
+
+  <h2><span class="n">4</span>申請対象となる特殊効果</h2>
+  <p>本申請の対象は、以下の煙・霧・光の演出機材である。<b>裸火・火薬・喫煙は使用しない。</b></p>
+  <table id="t-fx"></table>
+  <div class="warn"><b>未確定：</b>使用タイミングが確定しているのはオープニング（OP＋AGT）および開演前の客入れのみ。
+  それ以外の演目での特殊効果の有無は、照明キューシートが「OP〜本編冒頭」までしか作られていないため<b>未確定</b>。
+  ⑤進行表の「特効」欄を埋めきるには、全演目分の照明・特効キューの確定が要る。</div>
+
+  <h2><span class="n">5</span>体制・人員</h2>
+  <table id="t-crew"></table>
+</section>
+
+<!-- ===================== 02 タイムスケジュール ===================== -->
+<section class="sheet" id="s2">
+  <div class="printhead"><b>⑧ 当日のタイムスケジュール</b>　HARIBOW「GO BEYOND」／ 2026年9月28日（月）〜29日（火）めぐろパーシモンホール 大ホール</div>
+  <div class="docno">08 ／ タイムスケジュール</div>
+  <h1>タイムスケジュール</h1>
+  <p class="lead">禁止行為の解除承認申請 添付書類 ⑧。ホール利用は 9/28〜9/30 の3日間。特殊効果を扱う時間帯を明示する。</p>
+
+  <div class="legend">
+    <span><i style="border-color:#1f294c;background:rgba(31,41,76,.06)"></i>確定</span>
+    <span><i style="border-color:#8c6f2d;background:rgba(140,111,45,.07);border-style:dashed"></i>仮（時刻未確定）</span>
+    <span><i style="border-color:#91061b;background:rgba(145,6,27,.08)"></i>本番</span>
+    <span><i style="border-color:#91061b;background:rgba(145,6,27,.05);border-style:dashed"></i>特殊効果を扱う時間帯</span>
+  </div>
+
+  <h2><span class="n">前日</span>2026年9月28日（月）</h2>
+  <div class="tg-wrap"><div class="tg" id="tg28"></div></div>
+
+  <h2><span class="n">当日</span>2026年9月29日（火）</h2>
+  <div class="tg-wrap"><div class="tg" id="tg29"></div></div>
+
+  <h2><span class="n">翌日</span>2026年9月30日（水）</h2>
+  <table id="t-d30"></table>
+
+  <div class="warn"><b>未確定が2つある。</b><br>
+  ① <b>通し稽古・ゲネプロ・場当たりの予定が1件も無い。</b>仕込み（9/28朝リノリウム・紗幕／9/28夜 照明／9/29朝 プロジェクター）は確定しているが、稽古の予定は決まっていない。ゲスト AIR FOOTWORKS からも「可能であれば通しできたら嬉しい」と要望が出ている。<br>
+  ② <b>消防査察の日時が未定。</b>他会場の事例では本番当日の午前中に入る。日時が決まり次第この表に入れる。</div>
+  <div class="tiny">※ 各作業の所要時間（プロジェクター設営2時間・撤去1時間／AIR FOOTWORKS 搬入設営60分・テクニカル60分・バラシ30分／紗幕の上げ下げ各約12秒／鉄棒の公演中の出しハケ30秒）は 2026-09-03 の現地調査およびゲスト回答で確定済み。<b>開始時刻</b>が未確定なので、上図の配置は仮。</div>
+</section>
+
+<!-- ===================== 03 進行表 ===================== -->
+<section class="sheet" id="s3">
+  <div class="printhead"><b>⑤ 進行表</b>　HARIBOW「GO BEYOND」／ 2026年9月29日（火）開演 19:30 ／ めぐろパーシモンホール 大ホール</div>
+  <div class="docno">05 ／ 進行表</div>
+  <h1>進行表</h1>
+  <p class="lead">禁止行為の解除承認申請 添付書類 ⑤。開演から終演までの全ブロックと、特殊効果を扱うタイミング。
+  順番・尺は『構成台本』タブから<b>自動取得</b>しているので、スプレッドシートを直せばこの表も変わる。</p>
+  <div id="cue-status" class="srcline">読み込み中…</div>
+  <table class="cue" id="t-cue"></table>
+  <div class="tiny">※ 開始時刻は「開演19:30」＋各ブロックの尺・転換の積み上げで自動計算。実測ではない。<br>
+  ※ 「特効」欄が空欄のブロックは、特殊効果を使わないことが確定しているのではなく<b>まだ決まっていない</b>。確定後に埋める。</div>
+  <div class="warn" id="cue-warn" style="display:none"></div>
+</section>
+
+<!-- ===================== 04 舞台図面 ===================== -->
+<section class="sheet" id="s4">
+  <div class="printhead"><b>④ 演技及び危険物の配置位置・操作・監視員の配置位置を記入した舞台図面</b>　HARIBOW「GO BEYOND」</div>
+  <div class="docno">04 ／ 舞台図面・配置</div>
+  <h1>危険物の配置位置・操作・監視員の配置</h1>
+  <p class="lead">禁止行為の解除承認申請 添付書類 ④。下図は<b>概念図</b>。提出用の正式図面は、会場から提供される舞台平面図（大ホールエリア平面図）の上に同じ記号を落として作成する。</p>
+
+  <div class="warn"><b>正式図面が未作成。</b>手元にあるのは会場公式の平面図PDF（<span class="tnum">venue/hall_l_area.pdf</span>）のみで、
+  そこに危険物・操作位置・監視員を記入した図はまだ無い。<b>加えて、監視員として誰を立てるかが決まっていない</b>（舞台監督が未確定）。この2つが④の完成を止めている。</div>
+
+  <h2><span class="n">1</span>配置概念図</h2>
+  <svg class="plan" viewBox="0 0 900 520" role="img" aria-label="舞台配置概念図">
+    <defs>
+      <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 z" fill="#91061b"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="900" height="520" fill="#fff"/>
+    <!-- 舞台 -->
+    <rect x="120" y="34" width="660" height="200" fill="#f4f4f1" stroke="#1f294c" stroke-width="1.4"/>
+    <text x="450" y="24" text-anchor="middle" font-size="12" font-weight="700" fill="#1f294c">舞台（間口 約18m ／ 奥行 約14m）</text>
+    <!-- ホリゾント -->
+    <line x1="120" y1="48" x2="780" y2="48" stroke="#7a8199" stroke-width="3"/>
+    <text x="128" y="44" font-size="9.5" fill="#7a8199">白ホリゾント幕</text>
+    <!-- 紗幕 -->
+    <line x1="120" y1="206" x2="780" y2="206" stroke="#91061b" stroke-width="3" stroke-dasharray="7 4"/>
+    <text x="128" y="221" font-size="10" font-weight="700" fill="#91061b">黒紗幕 W18.2m × H9m（プロジェクター投影面）</text>
+    <!-- 演技エリア -->
+    <rect x="255" y="86" width="390" height="104" fill="none" stroke="#2867ae" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="450" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#2867ae">演技エリア（ダブルダッチ）</text>
+    <!-- 袖 -->
+    <rect x="120" y="34" width="60" height="200" fill="#e9eaee" stroke="#c9cbd3"/>
+    <rect x="720" y="34" width="60" height="200" fill="#e9eaee" stroke="#c9cbd3"/>
+    <text x="150" y="140" text-anchor="middle" font-size="10" fill="#3a4361" transform="rotate(-90 150 140)">下手袖</text>
+    <text x="750" y="140" text-anchor="middle" font-size="10" fill="#3a4361" transform="rotate(-90 750 140)">上手袖</text>
+    <!-- ドライアイス -->
+    <circle cx="215" cy="182" r="13" fill="#91061b" opacity=".14" stroke="#91061b"/>
+    <text x="215" y="186" text-anchor="middle" font-size="10" font-weight="800" fill="#91061b">DI</text>
+    <circle cx="685" cy="182" r="13" fill="#91061b" opacity=".14" stroke="#91061b"/>
+    <text x="685" y="186" text-anchor="middle" font-size="10" font-weight="800" fill="#91061b">DI</text>
+    <!-- ヘイズ -->
+    <rect x="150" y="60" width="26" height="16" fill="#8c6f2d" opacity=".16" stroke="#8c6f2d"/>
+    <text x="163" y="72" text-anchor="middle" font-size="9" font-weight="800" fill="#8c6f2d">HZ</text>
+    <rect x="724" y="60" width="26" height="16" fill="#8c6f2d" opacity=".16" stroke="#8c6f2d"/>
+    <text x="737" y="72" text-anchor="middle" font-size="9" font-weight="800" fill="#8c6f2d">HZ</text>
+    <text x="450" y="70" text-anchor="middle" font-size="9" fill="#8c6f2d">ヘイズ ROSCO1200 ×2（袖・常設）</text>
+    <!-- 客席 -->
+    <rect x="120" y="252" width="660" height="150" fill="#fbfbf9" stroke="#c9cbd3"/>
+    <text x="450" y="276" text-anchor="middle" font-size="11" font-weight="700" fill="#3a4361">客席（1階・2階／販売席数 986席想定）</text>
+    <line x1="120" y1="330" x2="780" y2="330" stroke="#c9cbd3" stroke-dasharray="3 3"/>
+    <text x="450" y="326" text-anchor="middle" font-size="9" fill="#7a8199">中央通路</text>
+    <!-- FOH レーザー -->
+    <rect x="410" y="410" width="80" height="26" fill="#91061b" opacity=".14" stroke="#91061b" stroke-width="1.4"/>
+    <text x="450" y="427" text-anchor="middle" font-size="10" font-weight="800" fill="#91061b">LZR</text>
+    <text x="450" y="452" text-anchor="middle" font-size="9.5" fill="#91061b">レーザー（客席後方・FOH高所／照射は空中のみ）</text>
+    <!-- 照射方向 -->
+    <path d="M450,410 L300,215" stroke="#91061b" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)" opacity=".7"/>
+    <path d="M450,410 L600,215" stroke="#91061b" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)" opacity=".7"/>
+    <!-- 映写室 -->
+    <rect x="700" y="410" width="110" height="26" fill="#e9eaee" stroke="#c9cbd3"/>
+    <text x="755" y="427" text-anchor="middle" font-size="9.5" fill="#3a4361">映写室（PJ・約50m）</text>
+    <!-- 調光室 -->
+    <rect x="130" y="410" width="110" height="26" fill="#e9eaee" stroke="#c9cbd3"/>
+    <text x="185" y="427" text-anchor="middle" font-size="9.5" fill="#3a4361">調光室（1階後方下手）</text>
+    <!-- 監視員 -->
+    <circle cx="215" cy="243" r="9" fill="#fff" stroke="#91061b" stroke-width="1.6"/>
+    <text x="215" y="247" text-anchor="middle" font-size="9" font-weight="800" fill="#91061b">監</text>
+    <circle cx="685" cy="243" r="9" fill="#fff" stroke="#91061b" stroke-width="1.6"/>
+    <text x="685" y="247" text-anchor="middle" font-size="9" font-weight="800" fill="#91061b">監</text>
+    <circle cx="450" cy="396" r="9" fill="#fff" stroke="#91061b" stroke-width="1.6"/>
+    <text x="450" y="400" text-anchor="middle" font-size="9" font-weight="800" fill="#91061b">監</text>
+    <text x="450" y="490" text-anchor="middle" font-size="10" fill="#7a8199">◯監＝監視員配置（案・氏名未定）　DI＝ドライアイス低煙機（紗幕裏・上手／下手）　HZ＝ヘイズ　LZR＝レーザー</text>
+  </svg>
+
+  <h2><span class="n">2</span>危険物・特効機材の配置と操作</h2>
+  <table id="t-place"></table>
+
+  <h2><span class="n">3</span>監視員の配置（案）</h2>
+  <table id="t-watch"></table>
+  <div class="warn"><b>氏名が全て未定。</b>舞台監督の手配自体が確定しておらず（予算上も0円のまま）、監視員を誰が務めるかが決められない状態。
+  消防が最も見る欄なので、ここは埋めきる必要がある。</div>
+
+  <h2><span class="n">4</span>正式図面に記入する項目（チェックリスト）</h2>
+  <table id="t-plancheck"></table>
+</section>
+
+<!-- ===================== 05 使用器材 ===================== -->
+<section class="sheet ptr" id="s5">
+  <div class="printhead"><b>⑥ 使用器材仕様・取扱説明書 ／ ⑦ 危険性評価試験結果報告書</b>　HARIBOW「GO BEYOND」</div>
+  <div class="docno">06 · 07 ／ 使用器材</div>
+  <h1>使用器材と添付資料の入手状況</h1>
+  <p class="lead">禁止行為の解除承認申請 添付書類 ⑥⑦。機材ごとに「仕様書」「取扱説明書」「危険性評価試験結果報告書」の3点が揃っているかを管理する。
+  <b>本ページは管理表であり、提出物そのものではない。</b>実際にはメーカー／レンタル業者から受け取った書類の現物を添付する。</p>
+
+  <h2><span class="n">1</span>機材別・資料の入手状況</h2>
+  <table id="t-equip"></table>
+
+  <h2><span class="n">2</span>使用しないもの（申請対象外）</h2>
+  <table id="t-notuse"></table>
+
+  <h2><span class="n">3</span>レーザーの取り扱い</h2>
+  <p>レーザーは<b>客席へのスキャンを行わず、空中（客席上空〜舞台上空）への照射のみ</b>とする設計。
+  照射位置は客席後方 FOH 高所。演出上は「大事な瞬間だけ」短時間使用する。</p>
+  <div class="warn"><b>レーザーは本申請の中心。</b>機種・クラス・出力・照射角が未確定で、レンタル業者も決まっていない。
+  クラスによっては<b>安全管理者の選任</b>が必要になる（自チームの照明キューシートにも「消防申請・安全管理者 必須」と明記済み）。
+  ⑦危険性評価試験結果報告書は<b>機種が決まらないと発行してもらえない</b>ため、これが申請全体のクリティカルパスになる。</div>
+
+  <h2><span class="n">4</span>ドライアイスの取り扱い</h2>
+  <p>会場常設のドライアイス自動型（A型）×2 は、床が濡れてリノリウムに影響するため<b>使用せず、外部レンタル機に置き換える</b>（2026-09-03 現地調査で決定）。
+  ドライアイスは固体二酸化炭素であり、消防法上の危険物には該当しないが、<b>低温やけどと酸欠</b>の観点で取扱いと保管場所の説明を求められる可能性が高い。SDS（安全データシート）を業者から取り寄せる。</p>
+</section>
+
+<!-- ===================== 06 会場提出・窓口 ===================== -->
+<section class="sheet ptr" id="s6">
+  <div class="printhead"><b>会場提出書類・窓口一覧</b>　HARIBOW「GO BEYOND」</div>
+  <div class="docno">99 ／ 会場・窓口</div>
+  <h1>会場提出書類と窓口</h1>
+  <p class="lead">消防とは別に、めぐろパーシモンホールへ直接出す書類と、その記入内容の下書き。</p>
+
+  <h2><span class="n">1</span>連絡先</h2>
+  <table id="t-contact"></table>
+
+  <h2><span class="n">2</span>公演内容確認書（記入内容の下書き）</h2>
+  <p class="tiny">用紙は <span class="tnum">performance/solo_show/会場_パーシモン/掲載書類/公演内容確認書.pdf</span>。提出先 FAX 03-5701-2968 ／ mado@persimmon.or.jp。
+  <b>提出期限は利用日の2ヶ月前＝2026/7/29。</b>すでに提出済みかどうかが記録上たどれないため、<b>提出状況の確認が必要</b>。以下は現時点の確定情報で埋めた下書き。</p>
+  <table id="t-form"></table>
+
+  <h2><span class="n">3</span>楽屋割り</h2>
+  <p class="tiny">楽屋は6室（B1F: D-1〜D-4 ／ 1F: D-5・D-6）＋ B1F リハーサル室・練習室。分けたい区分は7つあり、<b>1室足りない</b>。割り当て表は未作成。</p>
+  <table id="t-room"></table>
+
+  <h2><span class="n">4</span>この資料の出どころ</h2>
+  <table id="t-src"></table>
+</section>
+
+<div class="foot noprint" id="foot"></div>
+
+<script>
+/* ============================================================
+ * 提出資料パック（会場・消防）
+ *   読み : GAS ?page=lineup  ← 『構成台本』（順番・尺）＋『演目順・稼働』（誰が出るか）
+ *   それ以外は下の DATA を直せば全部変わる。1箇所しか書かないこと。
+ *
+ * ★ 原則：確定していないものを確定として書かない。
+ *   消防に出す書類なので、空欄は「使わない」ではなく「未確定」と明記する。
+ * ============================================================ */
+var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var DASH_SECRET = 'hbw-2026-board-w3x8fq5r';
+
+var SHOW = {
+  name:'HARIBOW 初単独公演「GO BEYOND」',
+  date:'2026-09-29', dateJa:'2026年9月29日（火）',
+  open:'18:30', start:'19:30',
+  venue:'めぐろパーシモンホール 大ホール',
+  addr:'〒152-0023 東京都目黒区八雲1-1-1',
+  org:'株式会社HARIBOW', rep:'海野 鷹幸',
+  orgAddr:'〒168-0064 東京都杉並区永福2-1-25 リバーサイド永福105',
+  mail:'info@haribow.com'
+};
+
+/* ---- 消防 ①〜⑫ ---- */
+var DOCS = [
+  {n:'①', t:'禁止行為の解除承認申請書',  by:'ホール', st:'hall', s:'ホール提供のひな型', tab:null},
+  {n:'②', t:'会場管理計画書',            by:'ホール', st:'hall', s:'ホール提供のひな型', tab:null},
+  {n:'③', t:'公演概要',                  by:'主催者', st:'wip',  s:'本ページ 01 タブ。基本事項は確定、特効の全容が未確定', tab:1},
+  {n:'④', t:'演技及び危険物の配置位置、操作、監視員の配置位置を記入した舞台図面', by:'主催者', st:'ng', s:'概念図のみ。正式図面が未作成／監視員の氏名が未定', tab:4},
+  {n:'⑤', t:'進行表',                    by:'主催者', st:'wip',  s:'順番・尺は確定。特効の使用タイミングがOP以外未確定', tab:3},
+  {n:'⑥', t:'使用器材仕様・取扱説明書',  by:'主催者', st:'ng',  s:'レーザーの機種が未定＝資料を取り寄せられない', tab:5},
+  {n:'⑦', t:'危険性評価試験結果報告書',  by:'主催者', st:'ng',  s:'同上。機種確定が前提。<b>申請全体のクリティカルパス</b>', tab:5},
+  {n:'⑧', t:'当日のタイムスケジュール',  by:'主催者', st:'wip',  s:'所要時間は確定、開始時刻が仮。通し・ゲネの予定が未定', tab:2},
+  {n:'⑨', t:'防火対象物の案内図',        by:'ホール', st:'hall', s:'ひな型のまま添付', tab:null},
+  {n:'⑩', t:'解除承認申請場所の階平面図', by:'ホール', st:'hall', s:'ひな型のまま添付', tab:null},
+  {n:'⑪', t:'避難経路図',                by:'ホール', st:'hall', s:'ひな型のまま添付', tab:null},
+  {n:'⑫', t:'屋内消火栓・消火器・設置位置', by:'ホール', st:'hall', s:'ひな型のまま添付', tab:null}
+];
+
+/* ---- 逆算 ---- */
+var BACK = [
+  ['2026/9/8（月）',  'レーザーの機種・レンタル業者を確定',      '★最優先。⑥⑦が動き出さない', 'ng'],
+  ['2026/9/10（木）', '監視員（氏名）と舞台監督を確定',          '④に必要', 'ng'],
+  ['2026/9/11（金）', '④正式図面を作成（会場平面図に記入）',      '概念図→正式図面', 'ng'],
+  ['2026/9/12（土）', '①〜⑫を3部そろえてホールへ持参',           'STEP 2。所要日数を必ず聞く', 'ng'],
+  ['未定',            'ホール確認 → 理事長印 → 防災センター決裁', 'STEP 3〜5。<b>所要日数が不明</b>', 'hall'],
+  ['2026/9/19（金）', '目黒消防署へ主催者が直接申請（目安）',      '本番10日前。東京消防庁の一般的な目安', 'ng'],
+  ['2026/9/28（月）', '仕込み初日（リノリウム・紗幕／夜：照明）',  '確定', 'ok'],
+  ['2026/9/29（火）', '本番',                                     '確定', 'ok']
+];
+
+/* ---- ホールへ直接出す書類 ---- */
+var HALLDOCS = [
+  ['公演内容確認書', '利用日の2ヶ月前＝2026/7/29', 'FAX 03-5701-2968 ／ mado@persimmon.or.jp', '<span class="b ng">提出状況が不明</span> 記録上たどれない。要確認', 6],
+  ['事前打合せ（対面）', '利用日の1ヶ月前まで', '予約電話 03-5701-2819（10:30／14:00／16:00）', '<span class="b ng">実施状況が不明</span> 9/3に現地調査は実施済み', null],
+  ['チラシ配置掲示依頼書', '随時', 'ホール窓口', '<span class="b na">用紙受領済み</span>', null],
+  ['横断幕の掲出', '掲載名確定 9/4 ／ 入稿 9/11', 'ホール窓口', '<span class="b ok">掲出可能で確定</span>（2026-09-03）', null]
+];
+
+/* ---- 未確定の棚卸し ---- */
+var OPENQ = [
+  ['レーザーの機種・クラス・出力・レンタル業者', '⑥⑦が作れない。安全管理者の要否も決まらない', '加藤周平', 'ng'],
+  ['監視員の氏名と持ち場', '④の中心。舞台監督が未確定なため決められない', '未定', 'ng'],
+  ['舞台監督の手配', '予算上0円のまま。監視員体制の前提', '坂田潤弥／海野鷹幸', 'ng'],
+  ['OP以外の演目の特効の有無', '⑤進行表の特効欄が埋まらない', '坂田潤弥', 'ng'],
+  ['通し・ゲネプロ・場当たりの日程', '⑧タイムスケジュールが埋まらない', '坂田潤弥', 'ng'],
+  ['消防査察の日時', '⑧に入れる必要がある', 'ホールへ確認', 'ng'],
+  ['ホール確認〜防災センター決裁の所要日数', '逆算が組めない', 'ホールへ確認', 'ng'],
+  ['ドライアイスのレンタル業者', '⑥⑦のSDS・仕様書の入手先', '未定', 'ng'],
+  ['申請者名義（施設予約システムの登録名）', '①の申請者欄。株式会社HARIBOWかどうか未確認', '加藤周平', 'ng'],
+  ['レーザー／火気／音量の規制（会場の運用ルール）', '設計の前提。9/3の現地調査では未回答', 'ホールへ電話', 'ng'],
+  ['公演内容確認書の提出状況', '未提出なら期限を2ヶ月超過している', 'ホールへ確認', 'ng']
+];
+
+/* ---- 公演概要 基本事項 ---- */
+var BASIC = [
+  ['公演名', SHOW.name],
+  ['開催日', SHOW.dateJa],
+  ['会場', SHOW.venue + '　' + SHOW.addr],
+  ['時刻', '開場 ' + SHOW.open + '　開演 ' + SHOW.start + '　終演 <span id="b-end">—</span>（カーテンコール込み・予定）'],
+  ['公演ジャンル', '舞踊（ダブルダッチによるステージパフォーマンス）'],
+  ['主催', SHOW.org + '（代表取締役 ' + SHOW.rep + '）　' + SHOW.orgAddr],
+  ['連絡先', SHOW.mail],
+  ['入場', '有料・全席指定'],
+  ['予定入場者数', '<span class="b ng">確定前</span> 販売席数986席想定。実売は当日確定'],
+  ['申請者名義', '<span class="b ng">未確認</span> 施設予約システムの登録名を確認のうえ記入']
+];
+
+/* ---- 特殊効果 ---- */
+var FX = [
+  ['ヘイズ（スモーク）', 'ROSCO 1200 × 2台', '会場常設', '光線を見せるための微細な霧。<b>開演前に事前投入し、公演中は維持</b>', '水性グリコール系'],
+  ['ドライアイス低煙', 'レンタル機 × 2台（機種未定）', 'レンタル', '床を這う低い霧。<b>OP（UFO着陸表現）で紗幕裏から</b>', '固体二酸化炭素'],
+  ['レーザー', '<span class="b ng">機種未定</span>', '持込（業者未定）', '空中に扇状の光。<b>客席へのスキャンは行わない</b>。OPの見せ場で短時間', '—'],
+  ['プロジェクター', '16,000lm 級（機種調整中）', 'レンタル', '映写室から黒紗幕へ投影（投影距離 約50m）', '—']
+];
+
+/* ---- 体制 ---- */
+var CREW = [
+  ['出演者', '31名（HARIBOWメンバー）＋ ゲスト2組（AIR FOOTWORKS 6名／Cheer Re-Man\'s）'],
+  ['演出統括', '坂田 潤弥'],
+  ['会場・技術・業者折衝', '加藤 周平'],
+  ['舞台監督', '<span class="b ng">未確定</span>'],
+  ['運営スタッフ', '無償スタッフ16名を想定（香盤表は未作成）'],
+  ['ステージハンド', '4〜6名（公演中の大道具の出しハケに必要）'],
+  ['照明', '会場設備（PACOLIS-ne）＋ 持込インテリジェント灯体（sACN）'],
+  ['音響', '会場備え付けを使用（外部PA業者は使わない・2026-08-01決定）'],
+  ['映像オペレーター', '<span class="b ng">未手配</span> 会場では頼めないため自前手配が必要']
+];
+
+/* ---- 危険物の配置・操作 ---- */
+var PLACE = [
+  ['DI', 'ドライアイス低煙機 ×2', '舞台上・黒紗幕の裏（上手／下手）', '袖のオペレーターが手元スイッチで操作', '固体ドライアイスの保管場所は<span class="b ng">未定</span>（保冷容器の手配が要る）'],
+  ['HZ', 'ヘイズ ROSCO1200 ×2', '上手袖・下手袖（会場常設位置）', '開演前に投入し公演中は維持。転換と無関係', '常設機のため会場運用に従う'],
+  ['LZR', 'レーザー', '客席後方 FOH 高所', '照明卓から制御（DMX/ILDA）。照射は空中のみ', '<span class="b ng">機種・出力が未定</span>。安全管理者の要否も未確定'],
+  ['PJ', 'プロジェクター', '映写室', '映像オペレーターが操作', '危険物ではないが、映写室運用として記載']
+];
+
+var WATCH = [
+  ['監①', '下手袖', 'ドライアイス低煙機（下手）の操作と監視', '<span class="b ng">未定</span>'],
+  ['監②', '上手袖', 'ドライアイス低煙機（上手）の操作と監視', '<span class="b ng">未定</span>'],
+  ['監③', '客席後方 FOH', 'レーザーの照射監視（客席への誤照射の即時停止）', '<span class="b ng">未定</span>'],
+  ['統括', '舞台監督', '全特効の使用可否判断と中止指示', '<span class="b ng">未定（舞台監督が未手配）</span>']
+];
+
+var PLANCHECK = [
+  ['演技位置（ダブルダッチのロープを回す範囲）', '<span class="b wip">概念図のみ</span>'],
+  ['危険物・特効機材の設置位置（DI×2・HZ×2・LZR）', '<span class="b wip">概念図のみ</span>'],
+  ['各機材の操作位置（誰がどこで操作するか）', '<span class="b wip">概念図のみ</span>'],
+  ['監視員の配置位置と氏名', '<span class="b ng">氏名が未定</span>'],
+  ['消火器の位置（会場図面の⑫と整合させる）', '<span class="b ng">未記入</span>'],
+  ['避難通路・客席通路に置く機材（客席プレイ用）', '<span class="b ng">未記入</span>／通路への機材設置は会場から可の回答あり'],
+  ['紗幕・幕類の吊り位置（どのバトンか）', '<span class="b ng">未取得</span>']
+];
+
+/* ---- 使用器材 ⑥⑦ ---- */
+var EQUIP = [
+  ['ヘイズ ROSCO1200 ×2', '会場常設', '<span class="b ng">未取得</span>', '<span class="b ng">未取得</span>', '<span class="b ng">未取得</span>', 'ホールへ依頼（常設機のため会場が保有しているはず）'],
+  ['ドライアイス低煙機 ×2', 'レンタル（業者未定）', '<span class="b ng">未取得</span>', '<span class="b ng">未取得</span>', '<span class="b ng">未取得</span>', '業者決定と同時に3点セットで請求する'],
+  ['ドライアイス（固体CO2）', 'レンタル（業者未定）', '<span class="b ng">未取得</span>', '—', 'SDS（安全データシート）', '危険物ではないが低温・酸欠の説明を求められる想定'],
+  ['レーザー', '持込（業者未定）', '<span class="b ng">未取得</span>', '<span class="b ng">未取得</span>', '<span class="b ng">未取得</span>', '<b>機種確定が前提。ここが最も遅い</b>'],
+  ['プロジェクター 16,000lm級', 'レンタル（調整中）', '<span class="b wip">業者調整中</span>', '—', '—', '申請対象外だが、映写室運用としてホールに共有']
+];
+
+var NOTUSE = [
+  ['裸火（ろうそく・トーチ・ガスバーナー等）', '使用しない'],
+  ['火薬・煙火（クラッカー、紙テープ砲、火薬式紙吹雪を含む）', '使用しない'],
+  ['喫煙（演出上の喫煙を含む）', '行わない'],
+  ['危険物（ガソリン・アルコール等の引火性液体）', '持ち込まない'],
+  ['オイル系スモーク（残渣が出るもの）', '使用しない（水性ヘイズのみ）']
+];
+
+/* ---- 会場窓口 ---- */
+var CONTACT = [
+  ['めぐろパーシモンホール 窓口', 'TEL 03-5701-2819（9:00〜19:00）／ FAX 03-5701-2968 ／ mado@persimmon.or.jp', '公演内容確認書の提出・事前打合せの予約'],
+  ['目黒消防署', '所在・受付時間は<span class="b ng">未確認</span>', '禁止行為の解除承認申請を主催者が直接持参'],
+  ['主催者 窓口', '加藤 周平（会場・技術・業者折衝）', '会場とのやり取りはここに一本化'],
+  ['主催者 統括', '坂田 潤弥（演出統括・最終決定）', '内容の判断'],
+  ['主催者 代表', SHOW.rep + '（' + SHOW.org + '）／ ' + SHOW.mail, '申請書の代表者欄']
+];
+
+var FORM = [
+  ['利用日', '令和8年9月29日（火）／ 大ホール ／ 夜間'],
+  ['利用団体（主催者）名', SHOW.org + '　※<span class="b ng">施設予約システムの登録名と一致するか要確認</span>'],
+  ['連絡担当者', '加藤 周平'],
+  ['正式公演名', SHOW.name],
+  ['公演ジャンル', '舞踊（その他：ダブルダッチ）'],
+  ['演目・出演者・使用機材', '全2幕10演目。ダブルダッチ主体。ゲスト2組（AIR FOOTWORKS／Cheer Re-Man\'s）。持込：ムービングヘッド・LEDバー・レーザー・プロジェクター（16,000lm級）'],
+  ['ピアノ使用', '無'],
+  ['禁止行為関係', '<b>有</b>　スモークマシン（ヘイズ・ドライアイス低煙）／レーザー　※裸火なし'],
+  ['映像機器', 'ホール備付：使用しない ／ 持込：プロジェクター（映写室から黒紗幕へ投影）'],
+  ['予定時刻', '開場 18:30 ／ 開演 19:30 ／ 終演 <span id="f-end">—</span>'],
+  ['予定入場者数', '<span class="b ng">確定前</span>'],
+  ['入場料金', '有料・指定席（一般 前売3,500円／通常4,000円 ほか複数券種）'],
+  ['販売方法', '主催者手売り（自社Webでの座席指定販売）'],
+  ['ホール「催しもの案内」掲載', '掲載する ／ 問い合わせ先の表記は要確定']
+];
+
+var ROOM = [
+  ['D-1', 'B1F', '<span class="b ng">未定</span>'],
+  ['D-2', 'B1F', '<span class="b ng">未定</span>'],
+  ['D-3', 'B1F', '<span class="b ng">未定</span>'],
+  ['D-4', 'B1F', '<span class="b ng">未定</span>'],
+  ['D-5', '1F',  '<span class="b ng">未定</span>'],
+  ['D-6', '1F',  '<span class="b ng">未定</span>'],
+  ['リハーサル室・練習室', 'B1F', '<span class="b ng">未定</span>（6室では足りないぶんをここで吸収する想定）']
+];
+
+var SRC = [
+  ['①〜⑫の書類名・部数・申請フロー', 'めぐろパーシモンホールから受領した書類提出案内（2026-09-03 撮影）'],
+  ['演目の順番・尺・出演者', '『PJ単独公演2026』スプレッドシート「構成台本」「演目順・稼働」タブ（本ページが自動取得）'],
+  ['会場の物理条件・確定した所要時間', 'performance/solo_show/MINUTES_2026-09-03_パーシモン現調.md'],
+  ['特効の機材構成と使用箇所', 'performance/solo_show/lighting/照明キューシート_OP-本編.md'],
+  ['会場設備（照明・紗幕・電源・ドライアイス）', 'performance/solo_show/venue_specs/（会場公式PDFより）'],
+  ['法人情報・代表者・所在地', 'org/legal-entity.md'],
+  ['公演内容確認書のひな型', 'performance/solo_show/会場_パーシモン/掲載書類/公演内容確認書.pdf']
+];
+
+/* ---- タイムスケジュール ----
+   type: fix=確定 / tmp=仮（時刻未確定） / show=本番 / haz=特殊効果を扱う
+   col : 1=舞台 2=照明 3=音響 4=映像 5=特効 6=出演者 7=運営                     */
+var TG_COLS = ['舞台','照明','音響','映像','特効','出演者','運営'];
+
+var DAY28 = { from:8, to:23, items:[
+  {c:1, s:'09:00', e:'12:00', t:'リノリウム敷き込み', sub:'確定（9/28朝）', k:'fix'},
+  {c:1, s:'09:00', e:'12:00', t:'黒紗幕 設置', sub:'W18.2×H9m', k:'fix'},
+  {c:1, s:'13:00', e:'17:00', t:'トラス設営', sub:'（株）KOERU／時刻は仮', k:'tmp'},
+  {c:2, s:'18:00', e:'22:00', t:'照明仕込み', sub:'確定（9/28夜）', k:'fix'},
+  {c:2, s:'20:00', e:'22:00', t:'紗幕の透過・前明かりの確認', sub:'前日にしか見られない', k:'tmp'},
+  {c:7, s:'09:00', e:'12:00', t:'搬入', sub:'時刻は仮', k:'tmp'}
+]};
+
+var DAY29 = { from:8, to:23, items:[
+  {c:7, s:'08:00', e:'09:00', t:'スタッフ入り', sub:'時刻は仮', k:'tmp'},
+  {c:4, s:'09:00', e:'11:00', t:'プロジェクター設営', sub:'所要2時間（確定）／開始時刻は仮', k:'tmp'},
+  {c:4, s:'11:00', e:'12:00', t:'画合わせ', sub:'映写室から約50m・W18.2m黒紗幕', k:'tmp'},
+  {c:1, s:'10:00', e:'11:00', t:'AIR FOOTWORKS 搬入設営', sub:'60分（確定）／軽バン 車高2m', k:'tmp'},
+  {c:1, s:'11:00', e:'12:00', t:'AIR FOOTWORKS テクニカル', sub:'60分（確定）', k:'tmp'},
+  {c:7, s:'09:30', e:'10:30', t:'消防査察', sub:'日時は未定（他会場の事例で仮置き）', k:'tmp'},
+  {c:2, s:'12:00', e:'14:00', t:'照明シーンチェック', sub:'時刻は仮', k:'tmp'},
+  {c:3, s:'12:00', e:'14:00', t:'音響チェック・場当たり', sub:'会場備え付けPA', k:'tmp'},
+  {c:5, s:'13:00', e:'14:00', t:'特効チェック（ヘイズ・ドライアイス・レーザー）', sub:'消防承認後に実施', k:'haz'},
+  {c:4, s:'14:00', e:'15:00', t:'客席プレイ 疎通確認', sub:'低遅延／ゲームモード／コントローラー配線', k:'tmp'},
+  {c:6, s:'12:00', e:'13:00', t:'出演者 集合・楽屋割り', sub:'31名＋ゲスト2組', k:'tmp'},
+  {c:6, s:'14:00', e:'17:30', t:'通し稽古 / 場当たり', sub:'★日程未定。ゲストからも要望あり', k:'tmp'},
+  {c:5, s:'17:30', e:'18:30', t:'ヘイズ 事前投入・維持開始', sub:'開演前にロードして維持', k:'haz'},
+  {c:7, s:'17:30', e:'18:30', t:'開場準備', sub:'受付・物販・ホワイエ設営', k:'tmp'},
+  {c:7, s:'18:30', e:'19:30', t:'開場', sub:'確定', k:'fix'}
+]};
+
+var DAY30 = [
+  ['未定', '撤去・搬出（前日に入り切らなかったぶん）', 'ホールは9/28〜30の3日間を押さえてある。9/30に何をどこまでやるかは<span class="b ng">未定</span>'],
+  ['—', 'プロジェクター撤去', '所要1時間（確定）。レンタル日数が動くと金額も動く'],
+  ['—', 'AIR FOOTWORKS バラシ', '所要30分（確定）'],
+  ['—', 'リノリウム・紗幕・トラス撤去', '所要時間は<span class="b ng">未確定</span>'],
+  ['—', '会場の退館時刻', '<span class="b ng">未取得</span>。終演後の撤去が入り切るかの判断に要る']
+];
+
+/* ============================================================ 描画 */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function el(id){ return document.getElementById(id); }
+function tbl(id, head, rows){
+  var h = '<thead><tr>' + head.map(function(c){
+    var cls = /^\|/.test(c) ? ' class="c"' : '';
+    return '<th'+cls+'>' + c.replace(/^\|/,'') + '</th>'; }).join('') + '</tr></thead>';
+  var b = '<tbody>' + rows.map(function(r){
+    return '<tr>' + r.map(function(c){ return '<td>' + c + '</td>'; }).join('') + '</tr>';
+  }).join('') + '</tbody>';
+  el(id).innerHTML = h + b;
+}
+var BADGE = { ok:'<span class="b ok">済</span>', wip:'<span class="b wip">進行中</span>',
+  ng:'<span class="b ng">未</span>', hall:'<span class="b hall">ホール側</span>', na:'<span class="b na">—</span>' };
+
+/* --- 00 --- */
+(function(){
+  tbl('t-docs', ['|#','書類名','|作成','|状態','いまの状況','|本ページ'],
+    DOCS.map(function(d){
+      return ['<b>'+d.n+'</b>', esc(d.t),
+        d.by==='ホール' ? '<span class="b hall">ホール</span>' : '<span class="b na">主催者</span>',
+        BADGE[d.st], d.s,
+        d.tab==null ? '—' : '<a href="#" onclick="go('+d.tab+');return false">タブ '+('0'+d.tab)+'</a>'];
+    }));
+  tbl('t-back', ['|期日','やること','ねらい','|状態'],
+    BACK.map(function(r){ return ['<span class="tnum">'+r[0]+'</span>', r[1], r[2], BADGE[r[3]]]; }));
+  tbl('t-hall', ['書類・手続き','期限','提出先','状態'],
+    HALLDOCS.map(function(r){ return [r[0], r[1], r[2], r[3]]; }));
+  tbl('t-open', ['決めるべきこと','これが決まらないと','担当','|状態'],
+    OPENQ.map(function(r){ return [r[0], r[1], r[2], BADGE[r[3]]]; }));
+})();
+
+/* --- 01 --- */
+(function(){
+  tbl('t-basic', ['項目','内容'], BASIC.map(function(r){ return ['<b>'+r[0]+'</b>', r[1]]; }));
+  tbl('t-fx', ['機材','型番・仕様','所有','使い方','媒体'], FX.map(function(r){ return r; }));
+  tbl('t-crew', ['区分','内容'], CREW.map(function(r){ return ['<b>'+r[0]+'</b>', r[1]]; }));
+})();
+
+/* --- 04 --- */
+(function(){
+  tbl('t-place', ['|記号','機材','設置位置','操作','備考'], PLACE.map(function(r){ return ['<b>'+r[0]+'</b>',r[1],r[2],r[3],r[4]]; }));
+  tbl('t-watch', ['|区分','配置位置','役割','氏名'], WATCH.map(function(r){ return ['<b>'+r[0]+'</b>',r[1],r[2],r[3]]; }));
+  tbl('t-plancheck', ['正式図面に記入する項目','|状態'], PLANCHECK.map(function(r){ return r; }));
+})();
+
+/* --- 05 --- */
+(function(){
+  tbl('t-equip', ['機材','所有形態','|仕様書','|取扱説明書','|危険性評価試験結果報告書','備考'],
+    EQUIP.map(function(r){ return r; }));
+  tbl('t-notuse', ['項目','取り扱い'], NOTUSE.map(function(r){ return [r[0], '<b>'+r[1]+'</b>']; }));
+})();
+
+/* --- 06 --- */
+(function(){
+  tbl('t-contact', ['相手','連絡先','用途'], CONTACT.map(function(r){ return ['<b>'+r[0]+'</b>',r[1],r[2]]; }));
+  tbl('t-form', ['記入欄','記入内容（下書き）'], FORM.map(function(r){ return ['<b>'+r[0]+'</b>', r[1]]; }));
+  tbl('t-room', ['|楽屋','|階','割り当て'], ROOM.map(function(r){ return r; }));
+  tbl('t-src', ['この資料の中身','出どころ'], SRC.map(function(r){ return [r[0], '<span class="tnum">'+r[1]+'</span>']; }));
+  tbl('t-d30', ['|時刻','作業','備考'], DAY30.map(function(r){ return ['<span class="tnum">'+r[0]+'</span>', r[1], r[2]]; }));
+})();
+
+/* --- タイムグリッド --- */
+function mins(s){ var p = String(s).split(':'); return (+p[0])*60 + (+p[1]); }
+function hhmm(m){ m = Math.round(m); return ('0'+Math.floor(m/60)%24).slice(-2) + ':' + ('0'+(m%60)).slice(-2); }
+function renderTG(id, day){
+  var g = el(id); if(!g) return;
+  /* 5分刻み。15分刻みにすると 21:10 のような端数がグリッド行の小数になり、
+     CSSが無効値として扱って項目が左上へ飛ぶ（実際に起きた） */
+  var slot = 5, rows = (day.to - day.from) * 60 / slot;
+  g.style.gridTemplateColumns = '46px repeat(' + TG_COLS.length + ',minmax(96px,1fr))';
+  g.style.gridTemplateRows = '22px repeat(' + rows + ',4.4px)';
+  var h = '<div class="hd" style="grid-column:1;grid-row:1"></div>';
+  TG_COLS.forEach(function(c,i){
+    h += '<div class="hd" style="grid-column:'+(i+2)+';grid-row:1">'+c+'</div>'; });
+  for(var r=0;r<rows;r++){
+    var m = day.from*60 + r*slot;
+    if(m % 60 === 0){
+      h += '<div class="tl" style="grid-column:1;grid-row:'+(r+2)+'/span 12">'+hhmm(m)+'</div>';
+      h += '<div class="hr0 hour" style="grid-row:'+(r+2)+'"></div>';
+    } else if(m % 30 === 0){
+      h += '<div class="hr0" style="grid-row:'+(r+2)+'"></div>';
+    }
+  }
+  /* 同じ列で時間が重なる項目は横に割る。重ねて描くと文字が読めなくなる */
+  var byCol = {};
+  day.items.forEach(function(it){ (byCol[it.c] = byCol[it.c] || []).push(it); });
+  Object.keys(byCol).forEach(function(c){
+    var arr = byCol[c].slice().sort(function(a,b){ return mins(a.s) - mins(b.s); });
+    var lanes = [];                                  // lanes[i] = その車線の終了時刻
+    arr.forEach(function(it){
+      var s0 = mins(it.s), e0 = Math.max(mins(it.e), s0 + slot), k = -1;
+      for(var i=0;i<lanes.length;i++){ if(lanes[i] <= s0){ k = i; break; } }
+      if(k < 0){ k = lanes.length; lanes.push(0); }
+      lanes[k] = e0; it._lane = k;
+    });
+    arr.forEach(function(it){ it._lanes = lanes.length; });
+  });
+  day.items.forEach(function(it){
+    var r1 = Math.round((mins(it.s) - day.from*60)/slot) + 2;
+    var r2 = Math.round((mins(it.e) - day.from*60)/slot) + 2;
+    if(r2 <= r1 + 3) r2 = r1 + 4;                    /* 短い項目でも文字が入る高さを確保 */
+    var n = it._lanes || 1, k = it._lane || 0;
+    var pos = n > 1 ? ';width:' + (100/n) + '%;margin-left:' + (100*k/n) + '%' : '';
+    h += '<div class="it ' + it.k + '" style="grid-column:'+(it.c+1)+';grid-row:'+r1+'/'+r2+pos+'">'
+       + '<b>' + esc(it.t) + '</b><span class="s">' + esc(it.s) + '–' + esc(it.e)
+       + (it.sub ? ' ／ ' + esc(it.sub) : '') + '</span></div>';
+  });
+  g.innerHTML = h;
+}
+
+/* --- D-day --- */
+(function(){
+  var d = new Date(SHOW.date + 'T00:00:00+09:00');
+  var now = new Date();
+  var left = Math.ceil((d - now) / 86400000);
+  var s = left > 0 ? 'D-' + left : (left === 0 ? '本番当日' : '終演');
+  el('dday').textContent = s;
+  el('c-dday').innerHTML = (left>0 ? left + '<small>日</small>' : s);
+  var f = new Date(d.getTime() - 10*86400000);
+  el('c-fire').innerHTML = (f.getMonth()+1) + '/' + f.getDate() + ' 頃';
+})();
+
+/* --- タブ --- */
+var TABS = [
+  ['00','提出物一覧'], ['01','③ 公演概要'], ['02','⑧ タイムスケジュール'],
+  ['03','⑤ 進行表'], ['04','④ 舞台図面・配置'], ['05','⑥⑦ 使用器材'], ['06','会場提出・窓口']
+];
+(function(){
+  el('tabs').innerHTML = TABS.map(function(t,i){
+    return '<button onclick="go('+i+')" id="tb'+i+'"><span class="no">'+t[0]+'</span>'+t[1]+'</button>';
+  }).join('');
+})();
+function go(i){
+  TABS.forEach(function(_,j){
+    el('s'+j).classList.toggle('on', i===j);
+    el('tb'+j).classList.toggle('on', i===j);
+  });
+  location.hash = 'p' + i;
+  window.scrollTo(0,0);
+  if(i===2){ renderTG('tg28', DAY28); renderTG('tg29', DAY29); }
+}
+
+/* --- 進行表（ライブ取得） --- */
+/* 特効の対応表。演目名は『構成台本』のブロック名と完全一致させる。
+   ここに無いブロックは「未確定」であって「使わない」ではない。 */
+var FX_BY_BLOCK = {
+  '影アナ・暗転': { fx:'ヘイズ（維持）', note:'開演前に投入済みの霧を維持' },
+  'OP＋AGT':      { fx:'ヘイズ／ドライアイス低煙 ×2／レーザー', note:'紗幕裏でドライアイスを溜め、紗幕フライアウト後に床霧。レーザーは空中の扇のみ' }
+};
+
+function renderCue(d){
+  var settings = d.settings || {};
+  var t = mins(settings['開演時刻'] || SHOW.start);
+  var defTrans = Number(settings['既定の転換'] || 0);
+  var rows = [], curAct = null, endT = t;
+  (d.blocks || []).forEach(function(b, i){
+    var act = String(b.act || '');
+    if(act !== curAct){
+      curAct = act;
+      var label = act === '幕間' ? '幕間' : ('第' + act + '幕');
+      rows.push('<tr class="act"><td colspan="8">' + esc(label) + '</td></tr>');
+    }
+    var dur = Number(b.dur || 0);
+    var tr  = (b.trans === '' || b.trans == null) ? defTrans : Number(b.trans);
+    var st  = t, en = t + dur;
+    t = en + tr;
+    endT = t;
+    var f = FX_BY_BLOCK[b.name];
+    var cast = (d.cast && d.cast[b.name]) || [];
+    rows.push('<tr' + (b.kind==='休憩' ? ' class="rest"' : '') + '>'
+      + '<td class="c tnum">' + (i+1) + '</td>'
+      + '<td class="c tnum">' + hhmm(st) + '</td>'
+      + '<td class="c tnum">' + (dur ? dur + '分' : '—') + '</td>'
+      + '<td class="c">' + esc(b.kind || '') + '</td>'
+      + '<td class="nm">' + esc(b.name || '') + (b.unplaced ? ' <span class="b ng">未配置</span>' : '') + '</td>'
+      + '<td class="c tnum">' + (cast.length ? cast.length + '名' : '—') + '</td>'
+      + '<td class="' + (f ? 'hz' : '') + '">' + (f ? esc(f.fx) : '<span class="b ng">未確定</span>') + '</td>'
+      + '<td>' + esc(b.note || '') + (f && f.note ? (b.note ? ' ／ ' : '') + esc(f.note) : '') + (tr ? ' <span class="tiny">［転換 ' + tr + '分］</span>' : '') + '</td>'
+      + '</tr>');
+  });
+  el('t-cue').innerHTML = '<thead><tr>'
+    + '<th class="c">No.</th><th class="c">開始</th><th class="c">尺</th><th class="c">種別</th>'
+    + '<th>ブロック名</th><th class="c">出演</th><th>特効</th><th>備考</th></tr></thead>'
+    + '<tbody>' + rows.join('') + '</tbody>';
+
+  var endStr = hhmm(endT);
+  if(el('b-end')) el('b-end').textContent = endStr;
+  if(el('f-end')) el('f-end').textContent = endStr;
+
+  /* 公演概要の演目表 */
+  var prog = (d.blocks || []).filter(function(b){ return b.kind === '演目'; })
+    .map(function(b, i){
+      var cast = (d.cast && d.cast[b.name]) || [];
+      return ['<span class="tnum">' + (i+1) + '</span>', esc(b.name),
+        '<span class="tnum">' + (b.dur ? b.dur + '分' : '—') + '</span>',
+        cast.length ? cast.length + '名' : '—'];
+    });
+  tbl('t-prog', ['|#','演目名','|尺','|出演'], prog);
+
+  /* 当日タイムスケジュールに本番ブロックを足す */
+  var startM = mins(settings['開演時刻'] || SHOW.start);
+  DAY29.items = DAY29.items.filter(function(x){ return x.k !== 'show'; });
+  DAY29.items.push({c:6, s:hhmm(startM), e:endStr, t:'本 番', sub:'開演〜終演（カーテンコール込み）', k:'show'});
+  DAY29.items.push({c:7, s:endStr, e:'23:00', t:'客出し → 撤去・搬出', sub:'9/30へ持ち越し可', k:'tmp'});
+  if(el('s2').classList.contains('on')) renderTG('tg29', DAY29);
+
+  el('cue-status').innerHTML = '<b>『構成台本』タブから取得</b>：' + esc(d.updatedAt || '')
+    + ' ／ ブロック ' + (d.blocks||[]).length + '件 ／ 開演 ' + hhmm(startM) + ' → 終演 ' + endStr
+    + ' ／ <a href="lineup.html">構成台本エディタで直す</a>';
+
+  var w = [];
+  if((d.unplaced||[]).length) w.push('『演目順・稼働』に列があるのに構成台本に無い演目：<b>' + d.unplaced.map(esc).join('／') + '</b>');
+  if((d.orphan||[]).length)   w.push('構成台本にあるのに『演目順・稼働』に列が無い演目：<b>' + d.orphan.map(esc).join('／') + '</b>');
+  if(w.length){ el('cue-warn').style.display='block'; el('cue-warn').innerHTML = w.join('<br>'); }
+}
+
+function loadCue(){
+  fetch(BASE + '?page=lineup&k=' + encodeURIComponent(DASH_SECRET) + '&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok){ throw new Error(d && d.error || 'unknown'); }
+      renderCue(d);
+    })
+    .catch(function(e){
+      el('cue-status').innerHTML = '<span class="b ng">取得できませんでした</span> ' + esc(e.message)
+        + ' ／ スプレッドシートの『構成台本』タブを直接見てください。';
+    });
+}
+
+/* --- init --- */
+(function(){
+  var m = /^#p(\d)$/.exec(location.hash);
+  go(m ? Math.min(+m[1], TABS.length-1) : 0);
+  loadCue();
+  el('foot').innerHTML = '内部資料。順番・尺は『構成台本』タブから自動取得しているので、'
+    + '<a href="lineup.html">構成台本エディタ</a>を直せばこのページも変わる。'
+    + 'それ以外の内容は <span class="tnum">haribow-solo-show-survey/production.html</span> の DATA を直す。'
+    + '　印刷＝表示中のタブだけが出る（⌘P）。';
+})();
+</script>
+</body>
+</html>
