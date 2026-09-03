@@ -35,8 +35,12 @@ a{color:var(--blue)}
 .bar .ttl{font-size:14px;font-weight:800;letter-spacing:.02em}
 .bar .meta{font-size:11px;color:#a8b0c6}
 .bar .meta b{color:#e4e3df;font-weight:700}
-.bar .dday{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.08em;
+.bar .dday{font-size:11px;font-weight:800;letter-spacing:.08em;
   background:#91061b;color:#fff;padding:3px 9px;border-radius:4px}
+.bar .pdf{margin-left:auto;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;
+  border:1px solid rgba(255,255,255,.35);background:transparent;color:#e4e3df;
+  padding:4px 11px;border-radius:5px}
+.bar .pdf:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
 .tabs{display:flex;gap:2px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tabs button{flex:0 0 auto;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;
@@ -143,6 +147,10 @@ table.cue .hz{color:var(--red);font-weight:700}
 @page ptr{size:A4 portrait;margin:12mm}
 @media print{
   body{background:#fff;font-size:10.5px}
+  /* 「PDFに出力（全ページ）」を押したときだけ、表示中でないタブも全部出す。
+     消防へは紙で3部出すので、1回の書き出しで主催者作成分がそろう形にする。 */
+  body.printall .sheet{display:block!important;page-break-before:always}
+  body.printall .sheet:first-of-type{page-break-before:auto}
   .bar,.foot,.noprint{display:none!important}
   .sheet{display:none;max-width:none;margin:0;border:0;border-radius:0;padding:0;box-shadow:none}
   .sheet.on{display:block}
@@ -166,6 +174,7 @@ table.cue .hz{color:var(--red);font-weight:700}
   <div class="row1">
     <span class="ttl">HARIBOW 初単独公演「GO BEYOND」</span>
     <span class="meta"><b>2026/9/29（火）</b> めぐろパーシモンホール 大ホール ／ 開場 <b>18:00</b>・開演 <b>19:30</b></span>
+    <button class="pdf" onclick="printAll()">PDFに出力（全ページ）</button>
     <span class="dday" id="dday">—</span>
   </div>
   <div class="tabs" id="tabs"></div>
@@ -629,12 +638,13 @@ var SRC = [
 var TG_COLS = ['舞台','照明','音響','映像','特効','出演者','運営'];
 
 var DAY28 = { from:8, to:23, items:[
-  {c:1, s:'09:00', e:'12:00', t:'リノリウム敷き込み', sub:'9/28 午前', k:'fix'},
-  {c:1, s:'09:00', e:'12:00', t:'黒紗幕 設置', sub:'W18.2×H9m', k:'fix'},
-  {c:1, s:'13:00', e:'17:00', t:'トラス設営', sub:'時刻を調整中', k:'tmp'},
-  {c:2, s:'18:00', e:'22:00', t:'照明仕込み', sub:'9/28 夜', k:'fix'},
+  {c:1, s:'09:00', e:'11:30', t:'リノリウム敷き込み', sub:'9/28 午前', k:'fix'},
+  {c:1, s:'09:00', e:'11:30', t:'黒紗幕 設置', sub:'W18.2×H9m', k:'fix'},
+  {c:2, s:'12:00', e:'15:00', t:'照明仕込み', sub:'所要2〜3時間', k:'fix'},
+  {c:2, s:'18:00', e:'22:00', t:'照明打ち込み・パフォーマンス合わせ', sub:'9/28 夜', k:'fix'},
+  {c:6, s:'18:00', e:'22:00', t:'パフォーマンス合わせ', sub:'照明打ち込みと並行', k:'tmp'},
   {c:2, s:'20:00', e:'22:00', t:'紗幕の透過・前明かりの確認', sub:'前日に実施', k:'tmp'},
-  {c:7, s:'09:00', e:'12:00', t:'搬入', sub:'時刻を調整中', k:'tmp'}
+  {c:7, s:'09:00', e:'11:30', t:'搬入', sub:'時刻を調整中', k:'tmp'}
 ]};
 
 var DAY29 = { from:8, to:23, items:[
@@ -796,6 +806,14 @@ var TABS = [
     return '<button onclick="go('+i+')" id="tb'+i+'"><span class="no">'+t[0]+'</span>'+t[1]+'</button>';
   }).join('');
 })();
+/* 全ページを1つのPDFへ。タイムグリッドは開いたタブでしか描いていないので、先に描いておく */
+function printAll(){
+  renderTG('tg28', DAY28); renderTG('tg29', DAY29);
+  document.body.classList.add('printall');
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ window.print(); }); });
+}
+window.addEventListener('afterprint', function(){ document.body.classList.remove('printall'); });
+
 function go(i){
   TABS.forEach(function(_,j){
     el('s'+j).classList.toggle('on', i===j);
