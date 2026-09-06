@@ -197,11 +197,17 @@ table.cue .hz{color:var(--red);font-weight:700}
     <div class="card"><div class="k">消防署の受付目安</div><div class="v" id="c-fire">—<small>おおむね10日前（東京消防庁）</small></div></div>
   </div>
 
-  <h2><span class="n">A</span>禁止行為の解除承認申請 ①〜⑫</h2>
+  <h2><span class="n">A</span>構成台本との連動<span class="note">構成台本エディタの保存が、そのままこの資料に出ます</span></h2>
+  <div id="idx-cue" class="srcline">構成台本を読み込み中…</div>
+  <table id="t-lineup"></table>
+  <div class="tiny">※ 演目の順番・尺・出演者数は、この資料に固定で書いていません。<b>構成台本エディタで保存した内容を、開くたびに読み込んで</b>います。
+  台本を直したら、上記の各タブは自動で最新になります（この画面を再読み込みしてください）。</div>
+
+  <h2><span class="n">B</span>禁止行為の解除承認申請 ①〜⑫</h2>
   <table id="t-docs"></table>
   <div class="srcline">出典：<b>めぐろパーシモンホールよりご提供いただいた書類提出のご案内</b>（2026-09-03 受領）。番号・名称は原文のとおりです。</div>
 
-  <h2><span class="n">B</span>申請の流れ</h2>
+  <h2><span class="n">C</span>申請の流れ</h2>
   <div class="flow">
     <div class="st us"><div class="n">STEP 1</div><div class="t">主催者が①〜⑫を3部作成</div><div class="w">③〜⑧は本書。①②⑨〜⑫はホールご提供の様式をそのまま添付</div></div>
     <div class="st us"><div class="n">STEP 2</div><div class="t">めぐろパーシモンホールへ持参</div><div class="w">窓口 03-5701-2819 ／ mado@persimmon.or.jp</div></div>
@@ -213,14 +219,14 @@ table.cue .hz{color:var(--red);font-weight:700}
   <div class="tiny">※ 青＝ホール・財団側の工程、赤＝主催者側の作業。<br>
   ※ STEP 3〜5 に要する日数は、書類持参の際にあらためて伺います。</div>
 
-  <h2><span class="n">C</span>提出までの予定</h2>
+  <h2><span class="n">D</span>提出までの予定</h2>
   <table id="t-back"></table>
   <div class="tiny">※ 「おおむね10日前」は東京消防庁の一般的なご案内によるものです。ホールでの審査・押印・決裁に要する日数を伺ったうえで、持参日を確定いたします。</div>
 
-  <h2><span class="n">D</span>ホールへ直接出す書類</h2>
+  <h2><span class="n">E</span>ホールへ直接出す書類</h2>
   <table id="t-hall"></table>
 
-  <h2><span class="n">E</span>現在調整中の事項</h2>
+  <h2><span class="n">F</span>現在調整中の事項</h2>
   <table id="t-open"></table>
   <div class="tiny">※ 確定していない事項は、推測で記載せずこの一覧に整理しています。確定しだい各書類へ反映し、あらためてご提出いたします。</div>
 </section>
@@ -892,6 +898,31 @@ function renderCue(d){
   DAY29.items.push({c:7, s:endStr, e:'22:00', t:'客出し → 撤去・搬出', sub:'会場利用時間により22:00まで／残りは9/30', k:'tmp'});
   if(el('s2').classList.contains('on')) renderTG('tg29', DAY29);
 
+  /* 00 提出物一覧：この資料のどこが構成台本から来ているかを出す */
+  var progN = (d.blocks||[]).filter(function(b){ return b.kind === '演目'; }).length;
+  var castN = Object.keys(d.cast || {}).length;
+  tbl('t-lineup', ['|タブ','この資料に出る場所','構成台本から取っている内容','|いまの値'], [
+    ['<a href="#" onclick="go(1);return false">01</a>', '③ 公演概要 ／ 3 演目構成',
+     '演目名・順番・尺・出演者数', '演目 <b class="tnum">' + progN + '</b> 件'],
+    ['<a href="#" onclick="go(3);return false">03</a>', '⑤ 進行表 ／ 全ブロック',
+     'ブロックの順番・尺・転換・備考。開始時刻は開演から積み上げ',
+     '全 <b class="tnum">' + (d.blocks||[]).length + '</b> ブロック'],
+    ['<a href="#" onclick="go(1);return false">01</a>', '③ 公演概要 ／ 1 基本事項（終演）',
+     '終演時刻（尺と転換の積み上げ）', '<b class="tnum">' + endStr + '</b>'],
+    ['<a href="#" onclick="go(2);return false">02</a>', '⑧ タイムスケジュール ／ 9/29 の「本番」帯',
+     '開演〜終演の帯と、そのあとの客出し・撤去の開始時刻',
+     '<b class="tnum">' + hhmm(startM) + '–' + endStr + '</b>'],
+    ['<a href="#" onclick="go(1);return false">01</a>', '③ 公演概要 ／ 5 体制・人員',
+     '出演者の内訳（香盤の割り当て）', '香盤 <b class="tnum">' + castN + '</b> ブロック分']
+  ]);
+  var idxWarn = [];
+  if((d.unplaced||[]).length) idxWarn.push('構成台本に無い演目 ' + d.unplaced.length + '件');
+  if((d.orphan||[]).length)   idxWarn.push('『演目順・稼働』に列が無い演目 ' + d.orphan.length + '件');
+  el('idx-cue').innerHTML = '出どころ：<b>構成台本エディタ</b>（'
+    + '<a href="lineup.html">lineup.html</a>）／ 最終保存 <span class="tnum">' + esc(d.updatedAt || '—')
+    + '</span> ／ 開演 <span class="tnum">' + hhmm(startM) + '</span> → 終演 <span class="tnum">' + endStr + '</span>（予定）'
+    + (idxWarn.length ? ' ／ <b style="color:var(--red)">要確認：' + idxWarn.join('・') + '</b>' : '');
+
   el('cue-status').innerHTML = '構成台本より作成：' + esc(d.updatedAt || '') + ' 時点'
     + ' ／ 全 ' + (d.blocks||[]).length + 'ブロック ／ 開演 ' + hhmm(startM) + ' → 終演 ' + endStr + '（予定）'
     + '<a class="noprint" href="lineup.html" style="margin-left:10px">構成台本を編集</a>';
@@ -910,8 +941,10 @@ function loadCue(){
       renderCue(d);
     })
     .catch(function(e){
-      el('cue-status').innerHTML = '<span class="b wip">読み込みに失敗しました</span> ' + esc(e.message)
-        + ' ／ 再読み込みをお試しください。';
+      var msg = '<span class="b wip">構成台本を読み込めませんでした</span> ' + esc(e.message)
+        + ' ／ 再読み込みをお試しください（<a href="lineup.html">構成台本エディタ</a>）。';
+      el('cue-status').innerHTML = msg;
+      el('idx-cue').innerHTML = msg;
     });
 }
 
