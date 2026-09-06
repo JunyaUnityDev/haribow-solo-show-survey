@@ -84,7 +84,7 @@ input:focus,select:focus{border-color:var(--teal)}
 input::placeholder{color:#464d59}
 input[type=number]{font-variant-numeric:tabular-nums;text-align:right}
 select{cursor:pointer}
-.w56{width:58px} .w84{width:90px}
+.w56{width:58px} .w84{width:90px} .w150{width:154px}
 
 /* ---------- 設定 ---------- */
 .settings{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
@@ -627,6 +627,17 @@ function buildCard(b, i, r){
     +       'placeholder="備考（担当・転換で動かすもの・まだ決まっていないこと）">'
     +     '<button class="del" data-del="1" title="このブロックを外す">&times;</button>'
     +   '</div>'
+    /* 特効は消防提出資料の⑤進行表にそのまま出る。以前は提出資料側に
+       「演目名→特効」の対応表を直書きしていたので、ここで名前を変えると
+       提出資料の特効欄が黙って空になっていた。同じ行で持つ。 */
+    +   '<div class="r2">'
+    +     '<span class="unit">特効</span>'
+    +     '<input class="w150" data-f="fx" value="' + esc(b.fx || '') + '" '
+    +       'placeholder="ヘイズ／ドライアイス ×2／レーザー" '
+    +       'title="消防提出資料 ⑤進行表の「特効」欄。空欄なら「調整中」と出ます">'
+    +     '<input class="memo" data-f="fxNote" value="' + esc(b.fxNote || '') + '" '
+    +       'placeholder="特効メモ（使い方・向き・制限。⑤進行表の備考に出る）">'
+    +   '</div>'
     +   castHtml
     + '</div>';
 
@@ -639,8 +650,8 @@ function wireCard(el, b, i){
     var f = inp.getAttribute('data-f');
     var isSel = inp.tagName === 'SELECT';
 
-    if(f === 'note'){
-      inp.addEventListener('input', function(){ b.note = inp.value; markDirty(); });
+    if(f === 'note' || f === 'fx' || f === 'fxNote'){
+      inp.addEventListener('input', function(){ b[f] = inp.value; markDirty(); });
       return;                                   // 時刻に影響しないので描き直さない
     }
     if(f === 'dur' || f === 'trans'){
@@ -962,7 +973,7 @@ function addBlock(kind){
              '休憩':{ name:'休憩', dur:20 }, '映像':{ name:'つなぎ映像' },
              'その他':{ name:'' } })[kind] || { name:'' };
   snapshot();
-  var b = { uid:++uid, name:d.name || '', kind:kind, dur:(d.dur == null ? '' : d.dur), trans:'', note:'' };
+  var b = { uid:++uid, name:d.name || '', kind:kind, dur:(d.dur == null ? '' : d.dur), trans:'', note:'', fx:'', fxNote:'' };
   S.blocks.push(b);
   markDirty(); render(); jump(b.uid);
 }
@@ -1070,7 +1081,8 @@ function save(){
     body: JSON.stringify({
       survey:'lineup_save', secret:DASH_SECRET, settings:S.settings, rev:S.rev,
       blocks: S.blocks.map(function(b){
-        return { name:b.name, kind:b.kind, act:b._act, dur:b.dur, trans:b.trans, note:b.note }; })
+        return { name:b.name, kind:b.kind, act:b._act, dur:b.dur, trans:b.trans, note:b.note,
+                 fx:b.fx || '', fxNote:b.fxNote || '' }; })
     })
   })
     .then(function(res){ return res.json(); })
