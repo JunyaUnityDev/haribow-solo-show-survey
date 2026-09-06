@@ -448,6 +448,7 @@ var BADGE_LABEL = { ok:'作成済', wip:'作成中', hall:'ホール側', na:'�
 
 var D = { show:{}, tables:{}, headers:{}, days:{} };   // シートから来る中身
 var CUE = null;                                        // 構成台本から来る中身
+var CALC = {};                                         // 構成台本から計算した値（幕数・演目数・終演 …）
 
 /* ============================================================ 下ごしらえ */
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -467,7 +468,12 @@ function el(id){ return document.getElementById(id); }
 function rt(s){
   s = esc(s);
   s = s.replace(/\{\{公演\.([^}]+)\}\}/g, function(_, k){ return esc(D.show[k] || ''); });
+  /* 構成台本から計算する値。ここに書ける限り、紙の文章も台本に追従する。
+     休憩を1つ抜いただけで「全2幕」が嘘になる、という壊れ方を防ぐ。 */
   s = s.replace(/\{\{終演\}\}/g, '<span class="js-end">—</span>');
+  s = s.replace(/\{\{(幕数|演目数|ブロック数|休憩|開演)\}\}/g, function(_, k){
+    return CALC[k] == null ? '<span class="b wip">構成台本の読み込み待ち</span>' : esc(CALC[k]);
+  });
   s = s.replace(/\[\[(ok|wip|hall|na)(?:\|([^\]]*))?\]\]/g, function(_, k, label){
     return '<span class="b ' + k + '">' + (label || BADGE_LABEL[k]) + '</span>'; });
   s = s.replace(/\[\[tab:(\d+)\]\]/g, function(_, n){
@@ -698,13 +704,61 @@ var TABLE_OF = {
 };
 
 /* ============================================================ 進行表（構成台本） */
-function renderCue(d){
+/**
+ * 構成台本から決まる値を先に出す。描画より前に呼ぶ。
+ * ★紙の文章（「全2幕・全10演目」など）もここの値を差し込んで書く。
+ *   休憩を1つ抜いた瞬間に本文が嘘になる、という壊れ方をさせない。
+ */
+function calcCue(d){
   CUE = d;
   var settings = d.settings || {};
-  var t = mins(settings['開演時刻'] || D.show['開演'] || '19:30');
-  var startM = t;
+  var startM = mins(settings['開演時刻'] || D.show['開演'] || '19:30');
   var defTrans = Number(settings['既定の転換'] || 0);
-  var rows = [], curAct = null, endT = t;
+  var t = startM;
+  var acts = {}, prog = 0, rest = null;
+
+  (d.blocks || []).forEach(function(b){
+    var dur = Number(b.dur || 0);
+    var tr  = (b.trans === '' || b.trans == null) ? defTrans : Number(b.trans);
+    b._st = t; b._en = t + dur; b._tr = tr;
+    t = b._en + tr;
+    /* 未配置（『演目順・稼働』にあるのに構成台本に無い）は数に入れない。
+       台本に載っていないものを「全◯演目」と書くと、消防に出す紙が実物と食い違う。 */
+    if(b.unplaced) return;
+    var act = String(b.act || '');
+    if(act && act !== '幕間') acts[act] = true;
+    if(b.kind === '演目') prog++;
+    if(b.kind === '休憩') rest = (rest || 0) + dur;
+  });
+
+  var nActs = Object.keys(acts).length;
+  CALC = {
+    startM: startM, endM: t, defTrans: defTrans,
+    '開演': hhmm(startM),
+    '終演': hhmm(t),
+    '幕数': nActs || 1,
+    '演目数': prog,
+    'ブロック数': (d.blocks || []).filter(function(b){ return !b.unplaced; }).length,
+    '休憩': rest ? ('休憩' + rest + '分') : '休憩なし'
+  };
+
+  /* 当日タイムスケジュールの「本番」帯。
+     ★シートには書かない。開演＋尺の積み上げで決まる値なので、写すと二重管理になる。 */
+  var lane = D.tables['レーン'] || [];
+  var perf = (lane[5] && lane[5][0]) || '出演者';
+  var ops  = (lane[6] && lane[6][0]) || '運営';
+  var out  = (D.days['9/29'] || []).filter(function(x){ return !x._auto; });
+  var leave = D.show['退館'] || '22:00';
+  out.push({lane:perf, s:CALC['開演'], e:CALC['終演'], t:'本 番',
+            sub:'開演〜終演（カーテンコールを含む）', k:'show', _auto:true});
+  out.push({lane:ops, s:CALC['終演'], e:leave, t:'客出し → 撤去・搬出',
+            sub:'会場利用時間により' + leave + 'まで／残りは翌日', k:'tmp', _auto:true});
+  D.days['9/29'] = out;
+}
+
+function renderCue(d){
+  var startM = CALC.startM, endStr = CALC['終演'];
+  var rows = [], curAct = null;
 
   (d.blocks || []).forEach(function(b, i){
     var act = String(b.act || '');
@@ -714,9 +768,8 @@ function renderCue(d){
       rows.push('<tr class="act"><td colspan="8">' + esc(label) + '</td></tr>');
     }
     var dur = Number(b.dur || 0);
-    var tr  = (b.trans === '' || b.trans == null) ? defTrans : Number(b.trans);
-    var st  = t, en = t + dur;
-    t = en + tr; endT = t;
+    var tr  = b._tr;
+    var st  = b._st;
     /* 特効は『構成台本』の同じ行から取る。以前はここに演目名→特効の対応表を
        直書きしていたので、エディタでブロック名を変えると黙って空になっていた。 */
     var fx = String(b.fx || ''), fxNote = String(b.fxNote || '');
@@ -739,7 +792,6 @@ function renderCue(d){
     + '<th>ブロック名</th><th class="c">出演</th><th>特効</th><th>備考</th></tr></thead>'
     + '<tbody>' + rows.join('') + '</tbody>';
 
-  var endStr = hhmm(endT);
   setEnd(endStr);
 
   /* 公演概要の演目表 */
@@ -752,31 +804,20 @@ function renderCue(d){
           cast.length ? cast.length + '名' : '—'];
       }));
 
-  /* 当日タイムスケジュールに本番ブロックを足す。
-     ★ここはシートに書かない。開演＋尺の積み上げで決まる値なので、
-       シートに写すと構成台本を直すたびに二重管理になる。 */
-  var lane = (D.tables['レーン'] || []).length ? D.tables['レーン'] : [];
-  var perf = (lane[5] && lane[5][0]) || '出演者';
-  var ops  = (lane[6] && lane[6][0]) || '運営';
-  var day  = (D.days['9/29'] || []).filter(function(x){ return x.k !== 'show' && !x._auto; });
-  day.push({lane:perf, s:hhmm(startM), e:endStr, t:'本 番', sub:'開演〜終演（カーテンコールを含む）', k:'show', _auto:true});
-  day.push({lane:ops,  s:endStr, e:(D.show['退館'] || '22:00'), t:'客出し → 撤去・搬出',
-            sub:'会場利用時間により' + (D.show['退館'] || '22:00') + 'まで／残りは翌日', k:'tmp', _auto:true});
-  D.days['9/29'] = day;
-  if(el('s2').classList.contains('on')) renderTG('tg29', '9/29');
-
   el('cue-status').innerHTML = '構成台本より作成：' + esc(d.updatedAt || '') + ' 時点'
     + ' ／ 全 ' + (d.blocks||[]).length + 'ブロック ／ 開演 ' + hhmm(startM) + ' → 終演 ' + endStr + '（予定）'
     + '<a class="noprint" href="lineup.html" style="margin-left:10px">構成台本を編集</a>';
 
   /* 00 提出物一覧：この資料のどこが構成台本から来ているかを出す */
-  var progN = (d.blocks||[]).filter(function(b){ return b.kind === '演目'; }).length;
   var fxN   = (d.blocks||[]).filter(function(b){ return String(b.fx||''); }).length;
   tbl('t-lineup', ['|タブ','この資料に出る場所','構成台本から取っている内容','|いまの値'], [
     ['<a href="#" onclick="go(1);return false">01</a>', '③ 公演概要 ／ 3 演目構成',
-     '演目名・順番・尺・出演者数', '演目 <b class="tnum">' + progN + '</b> 件'],
+     '演目名・順番・尺・出演者数', '演目 <b class="tnum">' + CALC['演目数'] + '</b> 件'],
+    ['<a href="#" onclick="go(1);return false">01</a>', '③ 公演概要 ／ 2 公演内容の本文',
+     '「全◯幕・全◯演目」「休憩◯分」は文章に書かず、台本から数えて差し込む',
+     '<b>' + CALC['幕数'] + '幕・' + CALC['演目数'] + '演目・' + esc(CALC['休憩']) + '</b>'],
     ['<a href="#" onclick="go(3);return false">03</a>', '⑤ 進行表 ／ 全ブロック',
-     'ブロックの順番・尺・転換・備考', '全 <b class="tnum">' + (d.blocks||[]).length + '</b> ブロック'],
+     'ブロックの順番・尺・転換・備考', '全 <b class="tnum">' + CALC['ブロック数'] + '</b> ブロック'],
     ['<a href="#" onclick="go(3);return false">03</a>', '⑤ 進行表 ／ 特効の欄',
      '『構成台本』の「特効」「特効メモ」列', '特効あり <b class="tnum">' + fxN + '</b> ブロック'],
     ['<a href="#" onclick="go(1);return false">01</a>', '③ 公演概要 ／ 1 基本事項（終演）',
@@ -825,6 +866,9 @@ function boot(){
   Promise.all([get('firedoc'), get('lineup')])
     .then(function(r){
       D = { show:r[0].show||{}, tables:r[0].tables||{}, headers:r[0].headers||{}, days:r[0].days||{} };
+      /* 先に台本から数えてから描く。順番を逆にすると、本文の {{幕数}} が
+         「読み込み待ち」のまま残った紙が刷れてしまう。 */
+      calcCue(r[1]);
       renderDoc();
       renderCue(r[1]);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at:new Date().toISOString(), doc:r[0], cue:r[1] })); } catch(e){}
@@ -835,6 +879,7 @@ function boot(){
       var c = stale();
       if(c && c.doc){
         D = { show:c.doc.show||{}, tables:c.doc.tables||{}, headers:c.doc.headers||{}, days:c.doc.days||{} };
+        if(c.cue) calcCue(c.cue);
         renderDoc();
         if(c.cue) renderCue(c.cue);
         var at = new Date(c.at);
