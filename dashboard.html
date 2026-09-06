@@ -45,6 +45,25 @@ h1{font-size:21px;font-weight:800;margin:0 0 2px;letter-spacing:.02em}
 .sticky .seatmini{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
 .sticky .seatmini b{color:var(--teal);font-size:14px}
 
+/* ---------- タブ（2026-09-07新設） ----------
+   このページは長いので、性質の違うものを縦に足すと下に埋まって誰も見ない。
+   「進捗」＝WBSと客席、「提出状況」＝出演者プロフィールの回収。見る目的が違うので分ける。
+   タブはstickyの直下に置き、スクロールしても切り替えに戻れるようにする。 */
+.tabs{position:sticky;top:38px;z-index:29;display:flex;gap:6px;
+  background:rgba(10,11,14,.86);backdrop-filter:blur(12px);
+  margin:0 -16px;padding:8px 16px 10px;border-bottom:1px solid var(--line)}
+.tabbtn{appearance:none;border:1px solid var(--line);background:var(--panel);
+  color:var(--dim);font-family:inherit;font-size:12.5px;font-weight:700;
+  padding:7px 15px;border-radius:9px;cursor:pointer;letter-spacing:.03em;
+  display:inline-flex;align-items:center;gap:7px}
+.tabbtn:hover{color:var(--ink)}
+.tabbtn[aria-selected="true"]{background:var(--cream);border-color:var(--cream);color:#14161c}
+.tabbtn .tb-n{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;
+  background:rgba(255,255,255,.10);border-radius:5px;padding:1px 6px}
+.tabbtn[aria-selected="true"] .tb-n{background:rgba(0,0,0,.13)}
+/* 未提出が残っている間は数字を赤くする。0になったら色を落とす */
+.tabbtn .tb-n.warn{background:var(--red);color:#fff}
+
 h2.tight-h2{margin-top:16px}
 h2{font-size:13px;font-weight:800;margin:34px 0 12px;letter-spacing:.05em;
   display:flex;align-items:center;gap:9px;color:var(--cream)}
@@ -131,6 +150,41 @@ table.cm td small{color:var(--faint);font-size:10.5px;margin-left:3px}
 /* まだ0の人を沈ませず、むしろ目立たせる（催促対象なので） */
 table.cm tr.cm-zero td{color:var(--ink)}
 table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-weight:800;font-size:10.5px}
+
+/* ---------- 提出状況タブ（2026-09-07新設） ----------
+   ここが答えるのは「誰に催促するか」の1点。数だけなら集計行で足りるので、
+   人の名前と、その人に何を言えばいいかが読めることを最優先にする。 */
+.st-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-bottom:14px}
+.st-cell{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 12px}
+.st-cell .k{font-size:10.5px;color:var(--faint);font-weight:700;letter-spacing:.04em}
+.st-cell .v{font-size:19px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+.st-cell .v small{font-size:11px;color:var(--faint);font-weight:600;margin-left:1px}
+.st-cell.done .v{color:var(--green)}
+.st-cell.todo .v{color:var(--red)}
+
+/* 宛先パターンごとの塊。文面が違うので、この単位で読めないと催促の役に立たない */
+.st-group{background:var(--panel);border:1px solid var(--line);border-radius:13px;
+  padding:15px 17px;margin-bottom:11px}
+.st-group.a1{border-left:3px solid var(--red)}
+.st-group.a2{border-left:3px solid var(--amber)}
+.st-group.b {border-left:3px solid var(--teal)}
+.st-group.done{border-left:3px solid var(--green)}
+.st-gh{display:flex;align-items:baseline;gap:9px;margin-bottom:3px}
+.st-gh h3{font-size:13px;font-weight:800;margin:0;letter-spacing:.03em;color:var(--cream)}
+.st-gh .n{font-size:11px;font-weight:800;color:var(--faint);font-variant-numeric:tabular-nums}
+.st-note{font-size:11px;color:var(--faint);margin:0 0 11px;line-height:1.6}
+.st-names{display:flex;flex-wrap:wrap;gap:7px}
+.st-name{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:5px 10px;font-size:12.5px;font-weight:700;line-height:1.4}
+.st-name .pn{color:var(--faint);font-size:10.5px;font-weight:600;margin-left:5px}
+/* 足りないものを名前の下に出す。B群は人によって違うので、ここが無いと使えない */
+.st-name .miss{display:block;color:var(--red);font-size:10.5px;font-weight:700;margin-top:2px}
+/* 内部LINEに宛先が無い人。送っても届かないので、催促の前に気づく必要がある */
+.st-name.noreach{border-color:var(--red)}
+.st-name.noreach::after{content:"宛先なし";display:block;color:var(--red);
+  font-size:10px;font-weight:800;margin-top:2px}
+.st-group.done .st-names{opacity:.62}
+.st-group.done .st-name{font-weight:600;font-size:12px}
 
 /* ---------- 運用ルール（畳んで置く参照資料） ----------
    ダッシュボードが答えるのは「いま、どうなってる？」。ルールが答えるのは「どう動くか」。
@@ -459,6 +513,15 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
     <div class="seatmini" id="seatmini"></div>
   </div>
 
+  <!-- タブ（2026-09-07新設）。進捗＝WBSと客席／提出状況＝出演者プロフィールの回収。
+       見る目的が違うものを縦に足すと下に埋まって誰も見ないので、切り替え式にした。 -->
+  <div class="tabs" role="tablist">
+    <button class="tabbtn" id="tabProgress" role="tab" aria-selected="true"
+            aria-controls="content" onclick="switchTab('progress')">進捗</button>
+    <button class="tabbtn" id="tabStatus" role="tab" aria-selected="false"
+            aria-controls="panelStatus" onclick="switchTab('status')">出演者の提出状況<span class="tb-n" id="tabStatusN">…</span></button>
+  </div>
+
   <div id="content">
 
 
@@ -670,6 +733,12 @@ table.cm tr.cm-zero td:first-child::before{content:"未 ";color:var(--red);font-
       </div>
     </details>
 
+  </div>
+
+  <!-- 出演者の提出状況（2026-09-07新設）。中身は load() が進捗と並列に読む。
+       タブの赤い数字を出すのが目的なので、押されるまで待ってはいけない。 -->
+  <div id="panelStatus" hidden>
+    <div id="statusBody"><div class="card"><p class="muted">読み込み中…</p></div></div>
   </div>
 </div>
 
@@ -1811,12 +1880,119 @@ function fetchJson(url, tried){
   });
 }
 
+/* ==================================================== 出演者の提出状況（タブ）
+ *  ★出すのは数ではなく名前。「19/31」は推し診断_回答の集計行を見れば分かる。
+ *    ここが要るのは催促に回るときで、そのとき必要なのは「誰に」「何を言うか」。
+ *  ★宛先パターン（A1/A2/B）はサーバー側で付けている。文面がこの単位で違うため。
+ *  ★プレイ動画は任意なので未提出の判定に入れない（催促する筋合いがない）。
+ */
+var STATUS_LOADED = false;
+
+var ST_GROUPS = [
+  { key:'A1',   cls:'a1',   title:'フォームも素材も、まだ何も',
+    note:'初回の依頼と同じ内容をもう一度送る。フォームのURLと、LINEに送る3つ。' },
+  { key:'A2',   cls:'a2',   title:'フォームは済み、素材がゼロ',
+    note:'フォームの回答は届いている。残りは顔写真・自己紹介動画・座右の銘の3つだけ、と書く。' },
+  { key:'B',    cls:'b',    title:'あと少し',
+    note:'足りないものが人によって違う。名指しで、足りないものだけを書く。' },
+  { key:'done', cls:'done', title:'そろっている',
+    note:'4項目そろい。プレイ動画は任意なので、無くてもここに入る。' }
+];
+
+function switchTab(name){
+  var isStatus = (name === 'status');
+  document.getElementById('content').hidden = isStatus;
+  document.getElementById('panelStatus').hidden = !isStatus;
+  document.getElementById('tabProgress').setAttribute('aria-selected', String(!isStatus));
+  document.getElementById('tabStatus').setAttribute('aria-selected', String(isStatus));
+  if(isStatus && !STATUS_LOADED) loadCastStatus();
+  window.scrollTo(0, 0);
+}
+
+function loadCastStatus(){
+  STATUS_LOADED = true;
+  fetchJson(apiUrl('cast_status')).then(renderCastStatus).catch(function(e){
+    STATUS_LOADED = false;   // 失敗したら次に開いたとき引き直す
+    document.getElementById('statusBody').innerHTML =
+      '<div class="err">提出状況を読み込めませんでした<br>'+esc(String(e.message||e))+
+      '<br><button class="refresh" onclick="loadCastStatus()">もう一度読み込む</button></div>';
+  });
+}
+
+function renderCastStatus(d){
+  var el = document.getElementById('statusBody');
+  if(!d || !d.ok){
+    el.innerHTML = '<div class="card"><p class="muted">提出状況を取得できませんでした。'
+      + esc((d && d.error) || '') + '</p></div>';
+    return;
+  }
+  var t = d.totals, N = t.all;
+
+  /* タブの数字は「未提出の人数」。0になるまで赤いままにする */
+  var badge = document.getElementById('tabStatusN');
+  if(badge){
+    badge.textContent = t.todo;
+    badge.className = 'tb-n' + (t.todo > 0 ? ' warn' : '');
+  }
+
+  var cell = function(k, v, cls){
+    return '<div class="st-cell'+(cls?' '+cls:'')+'"><div class="k">'+esc(k)+'</div>'
+      + '<div class="v">'+v+'<small>/'+N+'</small></div></div>';
+  };
+  var html = '<h2 class="tight-h2">出演者プロフィールの提出状況'
+    + '<span class="h2note">最終更新 '+esc(d.updatedAt||'')+'</span></h2>'
+    + '<div class="st-grid">'
+    + cell('未提出', t.todo, 'todo')
+    + cell('そろった', t.done, 'done')
+    + cell('フォーム', t.form)
+    + cell('顔写真', t.photo)
+    + cell('自己紹介動画', t.video)
+    + cell('座右の銘', t.motto)
+    + cell('プレイ動画（任意）', t.clip)
+    + '</div>';
+
+  if(t.noReach > 0){
+    html += '<div class="card"><p class="muted"><b style="color:var(--red)">'
+      + '内部LINEに宛先が無い人が '+t.noReach+'名います。</b>'
+      + 'この人たちには一斉配信が届きません。個別に連絡するか、先に内部LINEへ登録してもらってください。</p></div>';
+  }
+
+  ST_GROUPS.forEach(function(g){
+    var list = (d.people||[]).filter(function(p){ return p.group === g.key; });
+    if(!list.length) return;
+    html += '<div class="st-group '+g.cls+'">'
+      + '<div class="st-gh"><h3>'+esc(g.title)+'</h3><span class="n">'+list.length+'名</span></div>'
+      + '<p class="st-note">'+esc(g.note)+'</p>'
+      + '<div class="st-names">'
+      + list.map(function(p){
+          return '<span class="st-name'+(p.reach?'':' noreach')+'">'
+            + esc(p.name)
+            + (p.pname ? '<span class="pn">'+esc(p.pname)+'</span>' : '')
+            + (g.key === 'B' && p.missing && p.missing.length
+                ? '<span class="miss">'+esc(p.missing.join('・'))+'</span>' : '')
+            + '</span>';
+        }).join('')
+      + '</div></div>';
+  });
+
+  html += '<div class="card"><p class="muted">'
+    + '正典は <a href="https://docs.google.com/spreadsheets/d/1qZPr5yUliMlEP-KQT8p31i5R8P5CbcRihkpS2bt3HqM/edit?gid=1176691880" target="_blank" rel="noopener">推し診断_回答タブ</a>。'
+    + '写真・自己紹介動画・座右の銘は内部LINEで受け取ってV〜Y列に記入したものを数えています。'
+    + 'フォームは <a href="cast_profile.html" target="_blank" rel="noopener">cast_profile.html</a>。'
+    + '<button class="refresh" onclick="STATUS_LOADED=false;loadCastStatus()">最新を取得</button></p></div>';
+
+  el.innerHTML = html;
+}
+
 function load(){
   var head = document.getElementById('updated');
   if(head) head.textContent = FRESH ? '最新を取得しています…' : '読み込み中…';
   // 同時に投げる。cast は dashboard の完了を待たない
   var pCast = fetchJson(apiUrl('cast')).catch(function(){ return null; });
   var pOrgs = fetchJson(apiUrl('orgstats')).catch(function(){ return null; });
+  /* 提出状況も一緒に投げる。タブを開いてから読むと、タブの赤い数字（未提出の人数）が
+     押すまで出ない。押さない人に気づかせるための数字なので、それでは意味がない */
+  loadCastStatus();
   fetchJson(apiUrl('dashboard')).then(function(data){
     renderCastMove(pCast);
     latestData=data;
