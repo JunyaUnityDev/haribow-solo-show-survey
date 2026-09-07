@@ -449,6 +449,7 @@ var BADGE_LABEL = { ok:'作成済', wip:'作成中', hall:'ホール側', na:'�
 var D = { show:{}, tables:{}, headers:{}, days:{} };   // シートから来る中身
 var CUE = null;                                        // 構成台本から来る中身
 var CALC = {};                                         // 構成台本から計算した値（幕数・演目数・終演 …）
+var LOADED = false;                                    // シートの読み込みが1度でも終わったか
 
 /* ============================================================ 下ごしらえ */
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -550,8 +551,12 @@ function renderTG(id, dayKey){
   var range = dayRange(items);
 
   if(!items.length || !COLS.length){
-    g.innerHTML = '<div class="tiny" style="padding:10px">『消防提出_時間割』に ' + esc(dayKey)
-      + ' の行がありません</div>';
+    /* ★「まだ読んでいない」と「行が無い」を混ぜない。
+       GASの応答に数秒かかることがあり、#p2 を直接開くと読み込み中に
+       「行がありません」が出る。紙に出す資料なので、データの不備に見える。 */
+    g.innerHTML = '<div class="tiny" style="padding:10px">' + (LOADED
+      ? '『消防提出_時間割』に ' + esc(dayKey) + ' の行がありません'
+      : '読み込み中…') + '</div>';
     return;
   }
 
@@ -868,6 +873,7 @@ function boot(){
       D = { show:r[0].show||{}, tables:r[0].tables||{}, headers:r[0].headers||{}, days:r[0].days||{} };
       /* 先に台本から数えてから描く。順番を逆にすると、本文の {{幕数}} が
          「読み込み待ち」のまま残った紙が刷れてしまう。 */
+      LOADED = true;
       calcCue(r[1]);
       renderDoc();
       renderCue(r[1]);
@@ -876,6 +882,7 @@ function boot(){
     .catch(function(e){
       /* ★ここで真っ白にしない。持参して紙に出す資料なので、読めないより
          「いつ時点のものか」を出したうえで前回の内容を見せるほうが役に立つ。 */
+      LOADED = true;
       var c = stale();
       if(c && c.doc){
         D = { show:c.doc.show||{}, tables:c.doc.tables||{}, headers:c.doc.headers||{}, days:c.doc.days||{} };
