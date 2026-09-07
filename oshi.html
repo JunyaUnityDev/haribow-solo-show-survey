@@ -136,6 +136,10 @@ select{
 .task .t .lb{display:block;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.24em;
   text-transform:uppercase;color:var(--teal);margin-bottom:5px}
 .task .t p{margin:0;font-size:15px;line-height:1.65}
+/* 注釈。業界の言葉や固有名詞をそのまま残したいときに、意味だけ足す欄。
+   言い換えると本人の言葉でなくなるので、原文は変えずにここで補う（2026-09-07 坂田）。 */
+.task .t .note{display:block;margin-top:8px;padding-left:11px;border-left:2px solid var(--line);
+  font-size:11.5px;line-height:1.6;color:var(--dim)}
 .task .t .src{display:block;margin-top:7px;font-size:11px;color:var(--faint);letter-spacing:.02em}
 .task[data-done="1"] .t p{color:var(--dim)}
 
@@ -424,6 +428,8 @@ function card(o,i){
   h+='<div class="task" data-key="'+m.id+'" role="button" tabindex="0" aria-pressed="false" data-done="0">'+
      '<span class="box">'+CHECK+'</span>'+
      '<span class="t"><span class="lb">今日これを探す</span><p>'+esc(task)+'</p>'+
+     /* 注釈は alt でも自己申告でも出す。業界の言葉は書いた人によらず出てくる */
+     ((m.alt&&m.alt.note)||m.note?'<span class="note">'+esc((m.alt&&m.alt.note)||m.note)+'</span>':'')+
      (m.alt?'<span class="src">'+nameLink(m.alt.by)+' さんが見つけたこと</span>':'')+'</span></div>';
 
   var e=m.e||[];
