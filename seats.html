@@ -265,6 +265,11 @@
     </div>
   </div>
 
+  <!-- 応援金（STEP4）。2026-09-07 に受付終了。サーバーの donOpen が正で、
+       false のときこの div ごと消える。★端末の時計で判定しないこと。
+       理由＝応援金の対価は下の「デジパン・横断幕へのお名前掲載」だけで、
+       横断幕の入稿は9/12。掲載できない時期に受け取るとお約束を果たせない。 -->
+  <div id="donBox">
   <p class="step"><b>STEP 4</b>　応援金を追加（任意）</p>
   <div class="donationbox">
     <p class="don-note">気持ちとして上乗せできます。応援金をいただいた方は、<b style="color:var(--sup)">デジタルパンフレットとホワイエの横断幕にお名前を掲載</b>します（掲載の可否はお選びいただけます）。</p>
@@ -276,6 +281,7 @@
       <span class="dchip-custom">＋¥<input type="number" min="0" id="donCustom" placeholder="自由" oninput="setDonCustom(this.value)"></span>
     </div>
   </div>
+  </div><!-- /#donBox -->
 
   <!-- 何で知ったか（2026-08-06追加）。
        ★これが無いと売れた枚数の出所が分からない。8/6時点で個人109枚のうち、
@@ -500,6 +506,21 @@ function supOk(){
   if(needsCredit() && !creditOk) return false;
   return true;
 }
+/* 応援金の受付終了を画面に反映する（2026-09-07）。
+   STEP4 を丸ごと隠したうえで、選択済みの金額も0に戻す。隠すだけだと、
+   閉じる前に金額を押していた画面がそのまま決済に進んで応援金が付いてしまう。 */
+function applyDonState(){
+  var box=document.getElementById('donBox');
+  if(box) box.style.display = DONOPEN ? '' : 'none';
+  if(!DONOPEN){
+    donation = 0;
+    var c=document.getElementById('donCustom'); if(c) c.value='';
+    document.querySelectorAll('.dchip').forEach(function(b){ b.classList.remove('active'); });
+    syncOptionBoxes();
+    updateCart();
+  }
+}
+
 // 券種の切替・応援金の増減で表示を出し入れする
 function syncOptionBoxes(){
   var sb=document.getElementById('supBox');    if(sb) sb.style.display = isSupporter() ? '' : 'none';
@@ -621,6 +642,10 @@ var SIDESOPEN = false;                    // 8/17以降＝空きサイド席を�
 var SUPOPEN = true;
 var SUPEND  = '9月5日';
 
+/* 応援金の受付（2026-09-07 終了）。サーバーの donOpen が正。
+   ★ここを true に戻すだけでは復活しない。サーバーの DONATION_END_（Deadlines.js）が正。 */
+var DONOPEN = true;
+
 /* ご招待の追加席モード（2026-08-25）。
    ?k=<招待トークン> 付きで開くと切り替わる。
    ★専用ページに座席図をもう1つ作らない。2026-08-18〜20 の3日間事故は
@@ -690,6 +715,8 @@ function loadAvail(){
     SUPOPEN = (d.supOpen !== false);
     if(d.supEnd) SUPEND = d.supEnd;
     applySupState();
+    DONOPEN = (d.donOpen !== false);
+    applyDonState();
     GONLY={}; (d.groupOnly||[]).forEach(function(id){ GONLY[id]=1; });
     var bankOpen = (d.bankOpen!==false);
     var pbk=document.getElementById('payBank'); if(pbk) pbk.style.display=bankOpen?'':'none';
