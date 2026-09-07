@@ -82,6 +82,27 @@
   .before{background:var(--panel);border:1px solid var(--line);border-radius:14px;
     padding:14px 17px;margin-top:12px;box-shadow:var(--shadow)}
   .before b{color:var(--main)}
+
+  /* 電子チケット（?t=トークン のときだけ出る・2026-09-07追加） */
+  .tk{background:var(--panel);border:1px solid rgba(99,182,204,.45);border-radius:16px;
+    overflow:hidden;box-shadow:var(--shadow)}
+  .tk .hd{background:linear-gradient(180deg,#0d3947,var(--stage));padding:16px 18px;text-align:center}
+  .tk .hd .ev{font-size:10.5px;letter-spacing:.22em;color:var(--main);margin:0 0 8px}
+  .tk .hd .nm{font-size:20px;font-weight:800;margin:0}
+  .tk .hd .nm small{font-size:13px;font-weight:400;margin-left:4px;color:#cfeaf2}
+  .tk .hd .st{font-size:15px;margin:8px 0 0;color:#cfeaf2}
+  .tk .qr{background:#fff;padding:20px;text-align:center}
+  .tk .qr img{width:200px;height:200px;image-rendering:pixelated;display:inline-block}
+  .tk .bd{padding:14px 18px;font-size:13px;color:var(--dim);line-height:1.9}
+  .tk .bd b{color:var(--ink)}
+  .tk .due{margin:0 0 8px;padding:9px 12px;border-radius:8px;font-size:13.5px;
+    background:rgba(201,162,75,.14);border:1px solid rgba(201,162,75,.5);color:var(--sup)}
+
+  .oshi{display:block;text-decoration:none;background:linear-gradient(180deg,#123a46,var(--panel));
+    border:1px solid rgba(99,182,204,.45);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+  .oshi .t{font-size:17px;font-weight:800;color:var(--ink);margin:0 0 6px}
+  .oshi .d{font-size:13.5px;color:var(--dim);margin:0}
+  .oshi .go{display:inline-block;margin-top:12px;font-size:13.5px;font-weight:800;color:var(--main)}
 </style>
 </head>
 <body>
@@ -98,6 +119,17 @@
       めぐろパーシモンホール 大ホール
     </div>
   </div>
+
+  <!-- 電子チケット（2026-09-07追加）。?t=トークン 付きで開いたときだけ出す。
+       トークンが無ければ丸ごと隠れるので、公開URLのままでも普通のパンフレットとして成立する。
+       中身は ticket.html と同じ page=ticket を叩いているので、席や状態はサーバー側の1箇所で決まる。 -->
+  <section id="tkSec" style="display:none">
+    <h2>あなたのチケット</h2>
+    <p class="lead">受付でこの画面をご提示ください。印刷は不要です。</p>
+    <div class="tk" id="tkCard"></div>
+    <p class="note">会場の電波が弱いときに備えて、スクリーンショットの保存をおすすめします。
+      画面が開けない場合も、受付でお名前をお伝えいただければご入場いただけます。</p>
+  </section>
 
   <section>
     <h2>ごあいさつ</h2>
@@ -131,39 +163,62 @@
     </div>
   </section>
 
+  <!-- 演目は official_site/content.js の LINEUP と同じ内容・同じ並び（2026-09-07 同期）。
+       片方だけ直すと必ずズレる。変えたら両方直すこと。 -->
   <section>
     <h2>本日の演目</h2>
-    <p class="lead">全編HARIBOWだけのショーケース構成です。上演順は当日のプログラムをご覧ください。</p>
+    <p class="lead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
 
-    <div class="act">
-      <span class="badge gold">世界王者</span>
-      <p class="n">2025 IJRU世界選手権 優勝演技</p>
-      <p class="d">世界30カ国以上が集う舞台を制した、HARIBOW世界一の演技。</p>
-    </div>
     <div class="act">
       <span class="badge gold">世界王者</span>
       <p class="n">YOUNG BLOOD</p>
       <p class="d">DOUBLE DUTCH CONTEST WORLD 2026 世界一。頂点に立った次世代チームの演技。</p>
     </div>
     <div class="act">
+      <span class="badge gold">世界王者</span>
+      <p class="n">2025 IJRU世界選手権 優勝演技</p>
+      <p class="d">世界30カ国以上が集う2025 IJRU世界選手権を制した、HARIBOW世界一の演技。</p>
+    </div>
+    <div class="act">
+      <span class="badge teal">限定コラボ</span>
+      <p class="n">Cheer Re-Man's × HARIBOW</p>
+      <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度は“空飛ぶスーツ集団”が、この舞台に立つ。</p>
+    </div>
+    <div class="act">
+      <span class="badge teal">限定ゲスト</span>
+      <p class="n">AIR FOOTWORKS</p>
+      <p class="d">2018年結成、世界初のエアダンス（鉄棒ダンス）ユニット。America's Got Talent 2024 でゴールデンブザーを受け、グランドファイナルへ進出。一夜限りのゲスト出演。</p>
+    </div>
+    <div class="act">
       <span class="badge teal">復活</span><span class="badge teal">完全新作</span>
       <p class="n">Roar</p>
-      <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム「Roar」が、完全新作として復活します。</p>
+      <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム『Roar』が、完全新作のパフォーマンスとして復活する。</p>
     </div>
     <div class="act">
       <p class="n">Cirque du Soleil オーディション演技</p>
-      <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した作品。究極のスピードと、ダブルダッチでの新たな表現を追求しました。</p>
+      <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した、究極のスピード、ダブルダッチでの新たな表現を追求した作品。</p>
+    </div>
+    <div class="act">
+      <span class="badge teal">完全新作</span>
+      <p class="n">HOMECOMING</p>
+      <p class="d">一年中海外で活動しているメンバーが、この日のために帰ってくる。過去の実績ではなく、この夜のためだけに作られた完全新作。</p>
     </div>
     <div class="act">
       <span class="badge teal">原点</span>
       <p class="n">DOUBLE DUTCH CONTEST JAPAN 2023</p>
       <p class="d">国内最大のダブルダッチ大会。HARIBOW第一世代がシーンに名乗りを上げた、原点の演技。</p>
     </div>
-    <div class="act">
-      <span class="badge teal">限定コラボ</span>
-      <p class="n">Cheer Re-Man's × HARIBOW</p>
-      <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。Britain's Got Talent 2025 準決勝に進んだ“空飛ぶスーツ集団”。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度はこの舞台に立ってもらう。</p>
-    </div>
+  </section>
+
+  <!-- 推し診断への導線（2026-09-07追加）。出演者一覧の直前に置く：
+       31名の名前を先に見せると覚えられずに流されるので、3人に絞る側を先に出す。 -->
+  <section>
+    <h2>誰を見ればいいか</h2>
+    <a class="oshi" id="oshiLink" href="oshi.html">
+      <p class="t">31人は、多すぎます。</p>
+      <p class="d">3つの質問に答えると、あなたが今日いちばん楽しめる3人と、その人の「ここを見て」が出ます。1分で終わります。</p>
+      <span class="go">推し診断をはじめる →</span>
+    </a>
   </section>
 
   <section>
@@ -219,8 +274,10 @@
   </footer>
 </div>
 
+<script src="vendor/qrcode.js"></script>
 <script>
 var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var TOKEN=new URLSearchParams(location.search).get('t')||'';
 
 /* 出演者（動員見込み_出演者シートの31名） */
 var CAST = ['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤周平','前田航希','谷瑠奈','佐藤善平',
@@ -247,6 +304,47 @@ fetch(BASE+'?page=supporters')
     document.getElementById('thanksNames').innerHTML =
       '<span class="empty">公演当日までに掲載いたします。</span>';
   });
+
+/* ---------- 電子チケット（?t= がある時だけ） ----------
+   ticket.html と同じ page=ticket を叩く。席・状態・お支払いの判断はサーバー側の1箇所に置き、
+   こちらでは持たない（2箇所で判定すると必ず食い違う）。
+   取れなかった時は黙って隠す：パンフレットとしては読めるので、赤いエラーで不安にさせない。 */
+if (TOKEN) {
+  /* 推し診断へもトークンを渡す。どの注文の人が診断したか後で辿れる */
+  var ol = document.getElementById('oshiLink');
+  if (ol) ol.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+
+  fetch(BASE + '?page=ticket&t=' + encodeURIComponent(TOKEN))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || !d.ok) return;
+      var due = d.cashDue
+        ? '<p class="due"><b>お支払い前です。</b>当日、受付で現金 ¥'
+          + Number(d.amount||0).toLocaleString() + ' をお支払いください。</p>' : '';
+      var inn = d.checkedIn ? '<p class="due">ご入場済みです。</p>' : '';
+      document.getElementById('tkCard').innerHTML =
+          '<div class="hd">'
+        + '  <p class="ev">ELECTRONIC TICKET</p>'
+        + '  <p class="nm">' + esc(d.name) + '<small>様</small></p>'
+        + '  <p class="st">' + esc(d.seats) + '　' + esc(d.qty) + '名</p>'
+        + '</div>'
+        + '<div class="qr"><div id="pqr"></div></div>'
+        + '<div class="bd">' + due + inn
+        + '  ・<b>画面の明るさを上げて</b>ご提示ください。暗いと読み取れないことがあります。<br>'
+        + (Number(d.qty) >= 2
+            ? '  ・お連れ様（' + Number(d.qty) + '名分）もこの1枚に含まれています。ご一緒にお越しください。<br>'
+            : '')
+        + '  ・<a href="contact.html?t=' + encodeURIComponent(d.token) + '" style="color:var(--main)">お問い合わせはこちら</a>'
+        + '</div>';
+      /* QRは端末内で生成（外部サービスに情報を渡さない）。中身はトークン文字列そのもの */
+      var qr = qrcode(0, 'M');
+      qr.addData(d.token);
+      qr.make();
+      document.getElementById('pqr').innerHTML = qr.createImgTag(6, 0);
+      document.getElementById('tkSec').style.display = '';
+    })
+    .catch(function(){ /* 出さないだけ。パンフレットは読める */ });
+}
 </script>
 </body>
 </html>
