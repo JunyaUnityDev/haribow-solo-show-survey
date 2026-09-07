@@ -74,6 +74,14 @@
   footer{margin-top:34px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2}
   footer a{color:var(--main)}
   .note{font-size:11.5px;color:var(--faint);margin-top:8px}
+
+  /* ウェルカム動画（縦型・2026-09-07追加）。横幅を絞らないと9:16がPCで縦に伸びすぎる */
+  .vid{max-width:330px;margin:0 auto;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:var(--shadow);background:#000}
+  .vid video{width:100%;display:block}
+  .before{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px 17px;margin-top:12px;box-shadow:var(--shadow)}
+  .before b{color:var(--main)}
 </style>
 </head>
 <body>
@@ -99,6 +107,28 @@
       これが結成以来はじめての単独公演です。世界で戦ってきた技と、
       メンバー一人ひとりの物語を、同じ舞台に並べました。
     </p>
+  </section>
+
+  <!-- ウェルカム動画（2026-09-07追加）。実体は media/welcome.mp4（縦1080×1920・66.6秒・字幕入り）。
+       公演後は中身が古くなる（19:25の案内・新メンバー紹介）ので、9/30以降はこの節ごと外すか差し替える。 -->
+  <section>
+    <h2>HARIBOWからのご案内</h2>
+    <p class="lead">出演メンバーから、当日の楽しみ方を2つお伝えします。（1分）</p>
+    <div class="vid">
+      <video controls playsinline preload="none" poster="media/welcome-poster.jpg">
+        <source src="media/welcome.mp4" type="video/mp4">
+        お使いの環境では動画を再生できません。
+      </video>
+    </div>
+    <p class="note">字幕が入っているので、音を出せない場所でも内容がわかります。</p>
+    <div class="before">
+      <p style="margin:0 0 6px;font-size:14.5px">
+        <b>開演は19:30ですが、19:25ごろから開演の演出が始まります。</b>少し早めにお席へお着きください。
+      </p>
+      <p style="margin:0;font-size:14.5px">
+        <b>BGTメンバーに新しい仲間・TAKUMIが加わりました。</b>彼の動きにもご注目ください。
+      </p>
+    </div>
   </section>
 
   <section>
