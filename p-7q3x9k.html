@@ -295,7 +295,7 @@ table.cue .hz{color:var(--red);font-weight:700}
   <div id="cue-status" class="srcline">読み込み中…</div>
   <table class="cue" id="t-cue"></table>
   <div class="tiny" data-note="03-2"></div>
-  <div class="warn" id="cue-warn" style="display:none"></div>
+  <div class="warn noprint" id="cue-warn" style="display:none"></div>
 </section>
 
 <!-- ===================== 04 舞台図面 ===================== -->
@@ -815,7 +815,11 @@ function renderCue(d){
   var startM = CALC.startM, endStr = CALC['終演'];
   var rows = [], curAct = null;
 
-  (d.blocks || []).forEach(function(b, i){
+  /* ★未配置は出さない。『演目順・稼働』に列があるのに構成台本に無いブロックのことで、
+     台本に載っていない＝当日やらないもの。消防に出す進行表に混ぜると、
+     本文の「全◯演目」と表の行数が食い違う（2026-09-08、休憩でこれが起きた）。
+     運営には 00 の「構成台本との連動」と下の警告で見せているので、気づけなくはならない。 */
+  (d.blocks || []).filter(function(b){ return !b.unplaced; }).forEach(function(b, i){
     var act = String(b.act || '');
     if(act !== curAct){
       curAct = act;
@@ -834,7 +838,7 @@ function renderCue(d){
       + '<td class="c tnum">' + hhmm(st) + '</td>'
       + '<td class="c tnum">' + (dur ? dur + '分' : '—') + '</td>'
       + '<td class="c">' + esc(b.kind || '') + '</td>'
-      + '<td class="nm">' + esc(b.name || '') + (b.unplaced ? ' <span class="b wip">確認中</span>' : '') + '</td>'
+      + '<td class="nm">' + esc(b.name || '') + '</td>'
       + '<td class="c tnum">' + (cast.length ? cast.length + '名' : '—') + '</td>'
       + '<td class="' + (fx ? 'hz' : '') + '">' + (fx ? esc(fx) : '<span class="b wip">調整中</span>') + '</td>'
       + '<td>' + esc(b.note || '') + (fxNote ? (b.note ? ' ／ ' : '') + esc(fxNote) : '')
@@ -851,7 +855,7 @@ function renderCue(d){
 
   /* 公演概要の演目表 */
   tbl('t-prog', ['|#','演目名','|尺','|出演'],
-    (d.blocks || []).filter(function(b){ return b.kind === '演目'; })
+    (d.blocks || []).filter(function(b){ return b.kind === '演目' && !b.unplaced; })
       .map(function(b, i){
         var cast = (d.cast && d.cast[b.name]) || [];
         return ['<span class="tnum">' + (i+1) + '</span>', esc(b.name),
