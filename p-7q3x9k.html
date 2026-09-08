@@ -612,17 +612,45 @@ function renderTG(id, dayKey){
     arr.forEach(function(it){ it._lanes = ls.length; });
   });
 
+  /* 同じ列・同じ車線の「次の項目が始まる行」。ここまでなら下へ伸ばしてよい */
+  items.forEach(function(it){
+    var lim = rows + 2;
+    items.forEach(function(o){
+      if(o === it || o._c !== it._c || o._lane !== it._lane) return;
+      var os = mins(o.s);
+      if(os >= mins(it.e)) lim = Math.min(lim, Math.round((os - range.from*60)/slot) + 2);
+    });
+    it._limRow = lim;
+  });
+
   items.forEach(function(it){
     var r1 = Math.round((mins(it.s) - range.from*60)/slot) + 2;
     var r2 = Math.round((mins(it.e) - range.from*60)/slot) + 2;
     if(r2 <= r1 + 3) r2 = r1 + 4;                    /* 短い項目でも文字が入る高さを確保 */
     var n = it._lanes || 1, k = it._lane || 0;
     var pos = n > 1 ? ';width:' + (100/n) + '%;margin-left:' + (100*k/n) + '%' : '';
-    h += '<div class="it ' + esc(it.k) + '" style="grid-column:'+(it._c+1)+';grid-row:'+r1+'/'+r2+pos+'">'
+    h += '<div class="it ' + esc(it.k) + '" data-r1="' + r1 + '" data-lim="' + it._limRow + '"'
+       + ' style="grid-column:'+(it._c+1)+';grid-row:'+r1+'/'+r2+pos+'">'
        + '<b>' + esc(it.t) + '</b><span class="s">' + esc(it.s) + '–' + esc(it.e)
        + (it.sub ? ' ／ ' + esc(it.sub) : '') + '</span></div>';
   });
   g.innerHTML = h;
+
+  /* ★入りきらない帯だけ下へ伸ばす。
+     枠の高さは「所要時間」で決まるので、名前が長い項目は文字が単語の途中で切れる
+     （2026-09-08、「特効チェック（油性スモーク・水性スモー…」で実際に切れていた）。
+     紙にして消防へ出すものなので、次の項目に当たらない範囲で伸ばす。 */
+  var boxes = g.querySelectorAll('.it');
+  for(var i=0;i<boxes.length;i++){
+    var el = boxes[i];
+    var r1b = +el.getAttribute('data-r1'), lim = +el.getAttribute('data-lim');
+    var end = +el.style.gridRowEnd || r1b + 4;
+    var guard = 0;
+    while(el.scrollHeight > el.clientHeight + 1 && end < lim && guard++ < 60){
+      end += 2;
+      el.style.gridRow = r1b + '/' + end;
+    }
+  }
 }
 
 /* ============================================================ タブ */
