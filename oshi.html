@@ -153,6 +153,11 @@ select{
 .hook.self cite{color:var(--faint)}
 .facts{margin:16px 0 0;font-size:12px;color:var(--faint);line-height:1.9;letter-spacing:.01em}
 
+.gloss{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+.gloss .lb{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--faint);margin-bottom:8px}
+.gloss p{margin:0 0 8px;font-size:12.5px;line-height:1.85;color:var(--dim)}
+.gloss p:last-child{margin-bottom:0}
+.gloss b{display:block;color:var(--ink);font-weight:700;font-size:13px}
 .fav-set{background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:16px;margin:0 0 30px}
 .fav-set .q2{margin:0 0 4px;font-family:var(--jp);font-weight:700;font-size:14.5px}
 .fav-set .note2{margin:8px 0 0;font-size:11.5px;color:var(--faint)}
@@ -416,6 +421,40 @@ function nameLink(n){
   return '<button type="button" class="nm" data-n="'+esc(n)+'">'+esc(m.p)+'</button>';
 }
 
+/* ------------------------------------------------------------------
+   用語の注釈（2026-09-08）
+   ★出どころを勝手に作らない：
+     ・マックスの説明は 城向葵 が推し診断フォームに書いた注釈をそのまま使っている
+       （cast_data.js の note:"音楽の1拍のあいだに、足が3回入ります…"）
+     ・ステップ／アクロ／フロアの呼び分けは、オーディションの評価項目
+       「ベーシック(リズム)／ハリー(倍速/ステップ)／3倍(スピード/マックス)／フロア／アクロ」に合わせた
+       （audition/audition_line_gas/HARIBOW_GAS.js の AUDIT_COL）
+   ★「抜け足」は社内でも定義が揃っていないので入れない。分からないものを説明しない。
+   ★カードに実際に出た言葉だけ注釈する（出ていない言葉を並べると読む気が失せる）
+   ------------------------------------------------------------------ */
+var GLOSS=[
+ {t:"マックス（3倍・スピード）", k:["マックス","3倍","３倍"],
+  d:"音楽の1拍のあいだに、足が3回入る跳び方です。3倍、スピードとも言います。"},
+ {t:"ステップ（ハリー）", k:["ステップ","ハリー"],
+  d:"縄が倍の速さで回るなかで踏む跳び方です。オーディションでは「ハリー（倍速／ステップ）」として見ています。"},
+ {t:"アクロ", k:["アクロ"], d:"アクロバットのこと。バク転や宙返りです。"},
+ {t:"フロア", k:["フロア"], d:"床を使う動きのことです。"},
+ {t:"ターナー・縄さばき", k:["ターナー","縄さばき"],
+  d:"ターナーは縄を回す人のこと。縄さばきは、その回し方の技術です。"},
+ {t:"ジャンパー", k:["ジャンパー"], d:"縄の中で跳ぶ人のことです。"}
+];
+/* カードのHTMLから、実際に画面に出た言葉だけ拾う */
+function glossBlock(html){
+  var txt=String(html).replace(/<[^>]*>/g,' ');
+  var hit=GLOSS.filter(function(g){
+    return g.k.some(function(k){ return txt.indexOf(k)>=0; });
+  });
+  if(!hit.length) return '';
+  var h='<div class="gloss"><span class="lb">出てきた言葉</span>';
+  hit.forEach(function(g){ h+='<p><b>'+esc(g.t)+'</b>'+esc(g.d)+'</p>'; });
+  return h+'</div>';
+}
+
 function card(o,i){
   var m=o.m, a=m.a||{}, base='assets/cast/'+m.id+'/', vs=VOICE[m.n]||[], r=rate(m);
   /* 「今日これを探す」に使った推薦文が、下の「◯◯さんいわく」にも出て二重になるのを避ける */
@@ -445,7 +484,7 @@ function card(o,i){
     h+='<div class="blk"><span class="lb">この人について</span>'+
        '<p style="color:var(--dim)">本人のプロフィールは準備中です。いまお見せできるのは、'+
        '一緒に跳んでいるメンバーが書いた言葉だけです。</p></div>';
-    return h+'</article>';
+    return h+glossBlock(h)+'</article>';
   }
 
   /* 相性度。数字の下に必ず内訳を出す（何が効いたか分からないと占いになる） */
@@ -484,7 +523,7 @@ function card(o,i){
      (m.w?'<br><span style="color:var(--dim)">「'+esc(m.w)+'」</span>':'')+'</p></div>';
   if(a.m) h+='<div class="motto"><span class="lb">座右の銘<b>本人の手書きです</b></span>'+
              '<figure><img src="'+base+'motto.png" alt="'+esc(m.p)+'さんの座右の銘" loading="lazy"></figure></div>';
-  return h+'</article>';
+  return h+glossBlock(h)+'</article>';
 }
 
 function show(list){
@@ -524,6 +563,10 @@ function show(list){
 /* 名前から開いた人を重ねて表示する。閉じると元の位置に戻る。
    開いた先でも名前を押せるので、推薦をたどって回遊できる。 */
 var SHEET=[];
+/* ?p=名前 で開いたとき（パンフレットの出演者一覧から来た人）だけ立つ。
+   この人は診断をしに来たのではないので、「閉じる」は診断のトップではなく
+   元のページ（パンフレット）に戻す。 */
+var FROMLINK=false;
 function openPerson(n){
   var m=BY[n]; if(!m) return;
   SHEET.push(window.scrollY);
@@ -535,9 +578,18 @@ function openPerson(n){
   document.body.style.overflow='hidden';
   el.scrollTop=0;
   bindCard(el);
-  document.getElementById('sheetX').addEventListener('click',closePerson);
+  var x=document.getElementById('sheetX');
+  if(FROMLINK) x.textContent='パンフレットに戻る';
+  x.addEventListener('click',closePerson);
 }
 function closePerson(){
+  /* ?p= で直接開いた1枚目を閉じる場合は、来たページへ戻す。
+     戻り先が無い（URLを直接開かれた等）ときだけパンフレットへ送る。 */
+  if(FROMLINK){
+    if(history.length>1){ history.back(); }
+    else{ location.href='pamphlet.html'+(TK?'?t='+encodeURIComponent(TK):''); }
+    return;
+  }
   var el=document.getElementById('sheet');
   el.classList.remove('on'); el.innerHTML='';
   document.body.style.overflow='';
@@ -605,6 +657,17 @@ function sync(){
   document.getElementById('go').disabled=!(A.bt&&A.ky&&A.ouen);
 }
 document.getElementById('go').addEventListener('click',function(){ show(pick()); });
+
+/* ---- ?p=名前 で1人のプロフィールを直接開く（2026-09-08） ----
+   パンフレット（pamphlet.html）の出演者一覧から来る導線。
+   名前が名簿に無い／打ち間違いのときは何もしない＝普通に診断のトップが出る。 */
+var QS=new URLSearchParams(location.search);
+var TK=QS.get('t')||'';
+var QP=QS.get('p')||'';
+if(QP && BY[QP]){
+  FROMLINK=true;
+  openPerson(QP);
+}
 </script>
 </body>
 </html>

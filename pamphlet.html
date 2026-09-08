@@ -41,23 +41,35 @@
     border-radius:14px;padding:15px 17px;margin-bottom:10px;box-shadow:var(--shadow)}
   .act .n{font-size:16px;font-weight:800;margin:0 0 4px}
   .act .d{font-size:13px;color:var(--dim);margin:0}
-  /* 演目写真を薄く敷く（2026-09-08）。公式サイトの .pcard.ph と同じ見え方に揃えている。
-     文字が読めなくなるのが一番まずいので、暗さ(brightness)とグラデは触らないこと。 */
-  .act.ph{border-color:rgba(255,255,255,.14)}
-  .act.ph .bg{position:absolute;inset:0;background-size:cover;background-position:center 28%;
+  /* 演目写真を薄く敷く（2026-09-08 ／ 2026-09-08 見切れ修正）。
+     文字が読めなくなるのが一番まずいので、暗さ(brightness)とグラデは触らないこと。
+     ★カードの高さは文章の量で決まっていたので、短い演目だと写真が90pxの帯になり、
+       人の顔がまるごと切れていた。min-height で帯を広げ、文字は下に寄せている。
+     ★背景の位置は写真ごとに違う（--fy）。人が下に写っている写真（チアリーマンズ）や
+       全身が縦に散る写真（シルク）は 28% では顔が入らない。数字は実物を見て決めたもの。
+       写真を差し替えたら --fy も付け直すこと。 */
+  .act.ph{border-color:rgba(255,255,255,.14);min-height:168px;
+    display:flex;flex-direction:column;justify-content:flex-end}
+  .act.ph .bg{position:absolute;inset:0;background-size:cover;
+    background-position:center var(--fy,32%);
     filter:grayscale(.22) brightness(.44) contrast(1.05);z-index:0}
   .act.ph::after{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(175deg,rgba(10,11,14,.42),rgba(10,11,14,.7) 55%,rgba(10,11,14,.9))}
-  .act.ph .badge,.act.ph .n,.act.ph .d{position:relative;z-index:2}
+  .act.ph .tx{position:relative;z-index:2}
   .act.ph .d{color:#cdd3dd}
   .badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;
     padding:2px 8px;border-radius:20px;margin:0 6px 6px 0;vertical-align:middle}
   .badge.gold{background:rgba(201,162,75,.16);color:var(--sup);border:1px solid rgba(201,162,75,.5)}
   .badge.teal{background:rgba(99,182,204,.14);color:var(--main);border:1px solid rgba(99,182,204,.45)}
 
+  /* 出演者。名前は押すとプロフィールが開く（2026-09-08）。
+     中身は推し診断（oshi.html）のカードをそのまま使う。ここで書き直すと必ずズレる。 */
   .cast{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 6px}
-  .cast span{background:var(--panel);border:1px solid var(--line);border-radius:8px;
-    padding:7px 11px;font-size:13.5px}
+  .cast a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:7px 11px;font-size:13.5px;color:var(--ink);text-decoration:none;
+    -webkit-tap-highlight-color:transparent}
+  .cast a:hover,.cast a:active{border-color:rgba(99,182,204,.55);color:var(--main)}
+  .cast a .ar{color:var(--main);font-size:11px;margin-left:5px;opacity:.85}
 
   .achv{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 17px;box-shadow:var(--shadow)}
   .achv div{padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
@@ -178,52 +190,68 @@
     <h2>本日の演目</h2>
     <p class="lead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
 
-    <div class="act ph">
+    <div class="act ph" style="--fy:35%">
       <div class="bg" style="background-image:url(assets/lineup/young-blood.jpg)"></div>
-      <span class="badge gold">世界王者</span>
-      <p class="n">YOUNG BLOOD</p>
-      <p class="d">DOUBLE DUTCH CONTEST WORLD 2026 世界一。頂点に立った次世代チームの演技。</p>
+      <div class="tx">
+        <span class="badge gold">世界王者</span>
+        <p class="n">YOUNG BLOOD</p>
+        <p class="d">DOUBLE DUTCH CONTEST WORLD 2026 世界一。頂点に立った次世代チームの演技。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:33%">
       <div class="bg" style="background-image:url(assets/lineup/ijru-2025.jpg)"></div>
-      <span class="badge gold">世界王者</span>
-      <p class="n">2025 IJRU世界選手権 優勝演技</p>
-      <p class="d">世界30カ国以上が集う2025 IJRU世界選手権を制した、HARIBOW世界一の演技。</p>
+      <div class="tx">
+        <span class="badge gold">世界王者</span>
+        <p class="n">2025 IJRU世界選手権 優勝演技</p>
+        <p class="d">世界30カ国以上が集う2025 IJRU世界選手権を制した、HARIBOW世界一の演技。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:72%">
       <div class="bg" style="background-image:url(assets/lineup/cheer-remans.jpg)"></div>
-      <span class="badge teal">限定コラボ</span>
-      <p class="n">Cheer Re-Man's × HARIBOW</p>
-      <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度は“空飛ぶスーツ集団”が、この舞台に立つ。</p>
+      <div class="tx">
+        <span class="badge teal">限定コラボ</span>
+        <p class="n">Cheer Re-Man's × HARIBOW</p>
+        <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度は“空飛ぶスーツ集団”が、この舞台に立つ。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:30%">
       <div class="bg" style="background-image:url(assets/lineup/air-footworks.jpg)"></div>
-      <span class="badge teal">限定ゲスト</span>
-      <p class="n">AIR FOOTWORKS</p>
-      <p class="d">2018年結成、世界初のエアダンス（鉄棒ダンス）ユニット。America's Got Talent 2024 でゴールデンブザーを受け、グランドファイナルへ進出。一夜限りのゲスト出演。</p>
+      <div class="tx">
+        <span class="badge teal">限定ゲスト</span>
+        <p class="n">AIR FOOTWORKS</p>
+        <p class="d">2018年結成、世界初のエアダンス（鉄棒ダンス）ユニット。America's Got Talent 2024 でゴールデンブザーを受け、グランドファイナルへ進出。一夜限りのゲスト出演。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:34%">
       <div class="bg" style="background-image:url(assets/lineup/roar.jpg)"></div>
-      <span class="badge teal">復活</span><span class="badge teal">完全新作</span>
-      <p class="n">Roar</p>
-      <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム『Roar』が、完全新作のパフォーマンスとして復活する。</p>
+      <div class="tx">
+        <span class="badge teal">復活</span><span class="badge teal">完全新作</span>
+        <p class="n">Roar</p>
+        <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム『Roar』が、完全新作のパフォーマンスとして復活する。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:50%">
       <div class="bg" style="background-image:url(assets/lineup/cirque-du-soleil.jpg)"></div>
-      <p class="n">Cirque du Soleil オーディション演技</p>
-      <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した、究極のスピード、ダブルダッチでの新たな表現を追求した作品。</p>
+      <div class="tx">
+        <p class="n">Cirque du Soleil オーディション演技</p>
+        <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した、究極のスピード、ダブルダッチでの新たな表現を追求した作品。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:27%">
       <div class="bg" style="background-image:url(assets/lineup/homecoming.jpg)"></div>
-      <span class="badge teal">完全新作</span>
-      <p class="n">HOMECOMING</p>
-      <p class="d">一年中海外で活動しているメンバーが、この日のために帰ってくる。過去の実績ではなく、この夜のためだけに作られた完全新作。</p>
+      <div class="tx">
+        <span class="badge teal">完全新作</span>
+        <p class="n">HOMECOMING</p>
+        <p class="d">一年中海外で活動しているメンバーが、この日のために帰ってくる。過去の実績ではなく、この夜のためだけに作られた完全新作。</p>
+      </div>
     </div>
-    <div class="act ph">
+    <div class="act ph" style="--fy:30%">
       <div class="bg" style="background-image:url(assets/lineup/ddc-japan-2023.jpg)"></div>
-      <span class="badge teal">原点</span>
-      <p class="n">DOUBLE DUTCH CONTEST JAPAN 2023</p>
-      <p class="d">国内最大のダブルダッチ大会。HARIBOW第一世代がシーンに名乗りを上げた、原点の演技。</p>
+      <div class="tx">
+        <span class="badge teal">原点</span>
+        <p class="n">DOUBLE DUTCH CONTEST JAPAN 2023</p>
+        <p class="d">国内最大のダブルダッチ大会。HARIBOW第一世代がシーンに名乗りを上げた、原点の演技。</p>
+      </div>
     </div>
   </section>
 
@@ -240,6 +268,7 @@
 
   <section>
     <h2>出演者</h2>
+    <p class="lead">お名前を押すと、その人のプロフィールが開きます。</p>
     <div class="cast" id="cast"></div>
     <p class="note">※ 出演者・演目は変更になる場合があります。</p>
   </section>
@@ -301,8 +330,13 @@ var CAST = ['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤�
  '城向葵','清水大佑','永井竜斗','黒岩基','岡澤礼','刀祢槙斗','坂上健太','新遥生','三輪卓海',
  '勝山誠也','越智孔聖','竹中理貴','山口泰侑','西川世那','米田玲音','金箱秀亮','武山心','稲葉大空',
  '大森優馬','飯島未来','高木美幸','福満翔','坂井奏'];
-document.getElementById('cast').innerHTML =
-  CAST.map(function(n){ return '<span>'+n+'</span>'; }).join('');
+/* 名前を押したら推し診断のプロフィールへ飛ばす（2026-09-08）。
+   プロフィールの中身は oshi.html の card() が1箇所で作っている。
+   ここで作り直すと、素材やコメントを足したときに片方だけ古くなる。
+   ?p= で開いた側は「閉じる」でこのパンフレットに戻ってくる。 */
+document.getElementById('cast').innerHTML = CAST.map(function(n){
+  return '<a href="oshi.html?p='+encodeURIComponent(n)+'">'+n+'<span class="ar">▸</span></a>';
+}).join('');
 
 /* 支援者のお名前は毎日変わるのでGASから取る（手で更新すると必ず古くなる） */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
@@ -330,6 +364,10 @@ if (TOKEN) {
   /* 推し診断へもトークンを渡す。どの注文の人が診断したか後で辿れる */
   var ol = document.getElementById('oshiLink');
   if (ol) ol.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+  /* 出演者一覧からのプロフィールにもトークンを渡す（診断への導線と揃える） */
+  document.querySelectorAll('#cast a').forEach(function(a){
+    a.href += '&t=' + encodeURIComponent(TOKEN);
+  });
 
   fetch(BASE + '?page=ticket&t=' + encodeURIComponent(TOKEN))
     .then(function(r){ return r.json(); })
