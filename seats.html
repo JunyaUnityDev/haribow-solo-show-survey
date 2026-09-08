@@ -269,7 +269,7 @@
        false のときこの div ごと消える。★端末の時計で判定しないこと。
        理由＝応援金の対価は下の「デジパン・横断幕へのお名前掲載」だけで、
        横断幕の入稿は9/12。掲載できない時期に受け取るとお約束を果たせない。 -->
-  <div id="donBox">
+  <div id="donBox" style="display:none">
   <p class="step"><b>STEP 4</b>　応援金を追加（任意）</p>
   <div class="donationbox">
     <p class="don-note">気持ちとして上乗せできます。応援金をいただいた方は、<b style="color:var(--sup)">デジタルパンフレットとホワイエの横断幕にお名前を掲載</b>します（掲載の可否はお選びいただけます）。</p>
@@ -643,8 +643,12 @@ var SUPOPEN = true;
 var SUPEND  = '9月5日';
 
 /* 応援金の受付（2026-09-07 終了）。サーバーの donOpen が正。
-   ★ここを true に戻すだけでは復活しない。サーバーの DONATION_END_（Deadlines.js）が正。 */
-var DONOPEN = true;
+   ★ここを true に戻すだけでは復活しない。サーバーの DONATION_END_（Deadlines.js）が正。
+   ★初期値は false（閉じている側）。true にすると、サーバーの応答が返るまでの
+     数百ミリ秒だけ STEP4 の応援金ボタンが出てしまう。受付が終わっているのに
+     出す＝押せてしまう見た目になるので、開いている確証が取れるまで隠しておく。
+     #donBox 側にも style="display:none" を入れて、JSが動く前から出ないようにしてある。 */
+var DONOPEN = false;
 
 /* ご招待の追加席モード（2026-08-25）。
    ?k=<招待トークン> 付きで開くと切り替わる。
