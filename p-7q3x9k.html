@@ -640,15 +640,18 @@ function renderTG(id, dayKey){
      枠の高さは「所要時間」で決まるので、名前が長い項目は文字が単語の途中で切れる
      （2026-09-08、「特効チェック（油性スモーク・水性スモー…」で実際に切れていた）。
      紙にして消防へ出すものなので、次の項目に当たらない範囲で伸ばす。 */
+  /* ★変数名に el を使わないこと。var は関数スコープなので、この関数の先頭にある
+     var g = el(id) が「まだ代入されていないローカルの el」を呼びに行き、
+     renderTG 全体が el is not a function で落ちる（実際に落とした）。 */
   var boxes = g.querySelectorAll('.it');
   for(var i=0;i<boxes.length;i++){
-    var el = boxes[i];
-    var r1b = +el.getAttribute('data-r1'), lim = +el.getAttribute('data-lim');
-    var end = +el.style.gridRowEnd || r1b + 4;
+    var box = boxes[i];
+    var r1b = +box.getAttribute('data-r1'), lim = +box.getAttribute('data-lim');
+    var end = +box.style.gridRowEnd || r1b + 4;
     var guard = 0;
-    while(el.scrollHeight > el.clientHeight + 1 && end < lim && guard++ < 60){
+    while(box.scrollHeight > box.clientHeight + 1 && end < lim && guard++ < 60){
       end += 2;
-      el.style.gridRow = r1b + '/' + end;
+      box.style.gridRow = r1b + '/' + end;
     }
   }
 }
