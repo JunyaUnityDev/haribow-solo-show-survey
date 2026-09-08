@@ -287,6 +287,11 @@ table.cue .hz{color:var(--red);font-weight:700}
   <div class="docno">05 ／ 進行表</div>
   <h1>進行表</h1>
   <p class="lead" data-note="03-1"></p>
+
+  <h2><span class="n">1</span>当日の責任者と特殊効果の担当<span class="note">01 体制・04 監視員と同じ内容です</span></h2>
+  <table id="t-cue-who"></table>
+
+  <h2><span class="n">2</span>開演から終演までの進行</h2>
   <div id="cue-status" class="srcline">読み込み中…</div>
   <table class="cue" id="t-cue"></table>
   <div class="tiny" data-note="03-2"></div>
@@ -651,6 +656,22 @@ function setEnd(s){
   for(var i=0;i<n.length;i++) n[i].textContent = s;
 }
 
+/* ⑤進行表に出す責任者。『体制』『監視員』から引くだけで、ここでは名前を持たない。
+   2箇所に書くと、片方を直した時に消防へ違う氏名が2つ出る。 */
+function renderCueWho(){
+  var crew = {}, rows = [];
+  (D.tables['体制'] || []).forEach(function(r){ crew[r[0]] = r[1] || ''; });
+  ['演出統括','舞台監督','会場・技術担当'].forEach(function(k){
+    if(crew[k]) rows.push([rt('**' + k + '**'), rt(crew[k]), '公演全体']);
+  });
+  (D.tables['監視員'] || []).forEach(function(r){
+    /* r = [記号, 配置位置, 役割, 氏名] */
+    rows.push([rt('**' + r[0] + '**' + (r[1] ? '（' + r[1] + '）' : '')),
+               rt(r[3] || ''), rt(r[2] || '')]);
+  });
+  tbl('t-cue-who', ['区分','氏名','担当'], rows);
+}
+
 function renderDoc(){
   /* 差し込みだけの要素（印刷ヘッダ・見出し・カード） */
   var t = document.querySelectorAll('[data-tpl]');
@@ -697,6 +718,7 @@ function renderDoc(){
     el('c-fire').innerHTML = (f.getMonth()+1) + '/' + f.getDate() + ' 頃<small>おおむね10日前（東京消防庁）</small>';
   }
 
+  renderCueWho();
   renderTG('tg28', '9/28'); renderTG('tg29', '9/29');
 }
 
