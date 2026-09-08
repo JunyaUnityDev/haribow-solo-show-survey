@@ -319,6 +319,9 @@ select{
      「今日これを探す（癖）」なので、答えと出力が別の言語になっていた。
    ★MBTIは4文字の一致数で点にする。定説が無いので断定しない（注記を必ず出す）。 */
 var BY={}; M.forEach(function(m){ BY[m.n]=m; });
+/* ph:1（プロフィール未提出）は抽選に入れない。データが無いので相性が占いになる。
+   「お目当ての人」で名前を選んだときだけ出る。BY には入れてあるので選択は効く。 */
+var MP=M.filter(function(m){ return !m.ph; });
 var VOICE={}; V.forEach(function(v){ (VOICE[v[1]]=VOICE[v[1]]||[]).push({f:v[0],t:v[2]}); });
 
 var TYPES=["INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP",
@@ -368,12 +371,12 @@ function wpick(pool){
 function pick(){
   var out=[], has=function(n){ return out.some(function(o){return o.m.n===n;}); };
   if(A.fav&&BY[A.fav]) out.push({m:BY[A.fav],via:null});
-  else out.push({m:wpick(M),via:null});
+  else out.push({m:wpick(MP),via:null});
   while(out.length<3){
     var prev=out[out.length-1].m,next=null;
     var c=prev.r.map(function(n){return BY[n];}).filter(function(x){return x&&!has(x.n);});
     if(c.length) next={m:wpick(c),via:prev};
-    else { var rest=M.filter(function(m){return !has(m.n);}); if(rest.length) next={m:wpick(rest),via:null}; }
+    else { var rest=MP.filter(function(m){return !has(m.n);}); if(rest.length) next={m:wpick(rest),via:null}; }
     if(!next) break;
     out.push(next);
   }
@@ -415,6 +418,8 @@ function nameLink(n){
 
 function card(o,i){
   var m=o.m, a=m.a||{}, base='assets/cast/'+m.id+'/', vs=VOICE[m.n]||[], r=rate(m);
+  /* 「今日これを探す」に使った推薦文が、下の「◯◯さんいわく」にも出て二重になるのを避ける */
+  if(m.alt) vs=vs.filter(function(v){ return v.t!==m.alt.t; });
   var h='<article class="card">';
   var ey = i<0 ? 'Profile' : (i===0?'Your Pick':'Chain '+(i+1));
   h+='<div class="hd"><span class="ey">'+ey+'</span>';
@@ -424,7 +429,24 @@ function card(o,i){
   h+= a.p ? '<img src="'+base+'photo.jpg" alt="'+esc(m.p)+'" loading="lazy">' : '<span>'+esc(m.p)+'</span>';
   h+='<div class="scrim"></div>';
   if(a.i) h+='<button class="play" type="button" aria-label="'+esc(m.p)+'さんの自己紹介を再生">'+TRI+'</button>';
-  h+='<div class="cap"><p class="pn">'+esc(m.p)+'</p><p class="kn">'+esc(m.k)+'</p></div></div>';
+  h+='<div class="cap"><p class="pn">'+esc(m.p||m.n)+'</p><p class="kn">'+esc(m.k)+'</p></div></div>';
+
+  /* プロフィール未提出の人。本人の言葉が1つも無いので、相性度も自己申告の欄も出さない。
+     出せるのは他のメンバーが書いた推薦文だけ。無いものを埋めない。 */
+  if(m.ph){
+    h+='<div class="task" data-key="'+m.id+'" role="button" tabindex="0" aria-pressed="false" data-done="0">'+
+       '<span class="box">'+CHECK+'</span>'+
+       '<span class="t"><span class="lb">今日これを探す</span><p>'+esc(m.alt.t)+'</p>'+
+       '<span class="src">'+nameLink(m.alt.by)+' さんが見つけたこと</span></span></div>';
+    if(vs.length){ var v0=vs[Math.floor(Math.random()*vs.length)];
+      h+='<div class="blk"><span class="lb">'+nameLink(v0.f)+' さんいわく</span><p class="say">'+esc(v0.t)+'</p></div>'; }
+    h+='<div class="when"><span class="lb">この人が出る演目</span>'+
+       '<p class="also">オープニングとエンディングに出ます。31人が揃うこの2つが、探せる場面です。</p></div>';
+    h+='<div class="blk"><span class="lb">この人について</span>'+
+       '<p style="color:var(--dim)">本人のプロフィールは準備中です。いまお見せできるのは、'+
+       '一緒に跳んでいるメンバーが書いた言葉だけです。</p></div>';
+    return h+'</article>';
+  }
 
   /* 相性度。数字の下に必ず内訳を出す（何が効いたか分からないと占いになる） */
   h+='<div class="rate"><span class="lb2">Match</span>'+
@@ -560,7 +582,7 @@ function bindResult(){
 /* ---- 操作 ---- */
 var sel=document.getElementById('fav');
 M.slice().sort(function(a,b){return a.n.localeCompare(b.n,'ja');})
- .forEach(function(m){ sel.appendChild(new Option(m.p+'（'+m.n+'）',m.n)); });
+ .forEach(function(m){ sel.appendChild(new Option(m.p?m.p+'（'+m.n+'）':m.n, m.n)); });
 sel.addEventListener('change',function(){ A.fav=sel.value; });
 
 var msel=document.getElementById('mbti');
