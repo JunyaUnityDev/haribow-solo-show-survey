@@ -326,6 +326,29 @@ function forceIn(token){
   doCheckin(token, true, true);
 }
 
+/* トークンが無い行（未入金など）を、注文番号／予約IDで通す（2026-09-09）。
+   ★支払状態は変えない。入場時刻とスタッフ名だけ記録し、運営に通知が飛ぶ。
+     集金するかどうかは、あとで入金確認コンソール側で判断する。 */
+function rowIn(id, kind){
+  if(!confirm('お支払いが未確認のまま入場を記録します。\n受付責任者の確認は取れていますか？\n（支払状態は変わりません。運営に通知が飛びます）')) return;
+  post('checkin_row',{id:id, kind:kind}).then(function(r){
+    if(r.ok){
+      feedback('ok');
+      var i=r.info||{};
+      showVerdict('ok','ご入場ください', (i.name?i.name+' 様':''),
+        (i.seats||'')+'　'+(i.qty||'')+'名　※お支払いは未確定のままです', '', i.handout);
+      loadStats(); doLookup();
+    } else if(r.error==='already'){
+      showVerdict('warn','入場済みです', ((r.info&&r.info.name)||'')+' 様',
+        ((r.info&&r.info.checkedAt)||'')+' に記録があります');
+    } else {
+      showVerdict('ng','通せませんでした','','受付責任者にお回しください');
+    }
+  }).catch(function(){
+    showVerdict('ng','通信エラー','','電波をご確認ください。紙の名簿に記録してください');
+  });
+}
+
 function undo(token){
   if(!confirm('入場の記録を取り消します。よろしいですか？')) return;
   post('checkin_undo',{token:token}).then(function(r){
@@ -375,11 +398,23 @@ function doLookup(){
          「なぜ通せないのか」も「次に何をすればいいのか」も分からず止まっていた。
          その場で発行する導線は当日運用の設計と併せて作る必要があるので、
          ここでは最低限「なぜ出ないか」と「誰に言えばいいか」を必ず出す。 */
-      if(!done && !h.token){
-        btn='<p class="nobtn">電子チケットが未発行のため、この画面からは通せません。<br>'
+      /* ご招待（2階席）。QRを発行していないので全員この検索経路で来る。
+         入場記録は取らない（招待マスタに入場列が無い）。席を伝えて通すだけでよい。 */
+      if(h.isInvite){
+        btn='<p class="nobtn"><b>ご招待のお客様です。そのままご案内してください。</b><br>'
+          + 'お席をお伝えください。'+(h.guests?'（ご来場予定：'+esc(h.guests)+'）':'')
+          + '<br>この画面に入場の記録は残りません。紙の名簿に印を付けてください。</p>';
+      }
+      /* 2026-09-09：ボタンを出す。以前は理由を出すだけで、当日朝に振込した方や
+         現金未受領の方の行列が受付で完全に止まっていた。
+         ★支払状態は変えない。入場時刻とスタッフ名だけ記録し、運営に通知が飛ぶ。
+           集金の要否は入金確認コンソール側で後から判断する。 */
+      else if(!done && !h.token){
+        btn='<p class="nobtn">電子チケットが未発行です。'
           + '<b>お支払いが確認できていない可能性があります。</b><br>'
-          + '受付責任者に「'+esc(String(h.no||''))+'」をお伝えください。'
-          + 'シートで入金を確定するとチケットが発行され、ここから通せるようになります。</p>';
+          + '受付責任者の確認のうえで通してください（注文番号 '+esc(String(h.no||''))+'）。</p>'
+          + '<button onclick="rowIn(\''+esc(String(h.no||''))+'\',\''+(h.isTeam?'team':'order')+'\')">'
+          + '責任者の確認で入場させる（支払いは未確定のまま）</button>';
       }
       if(!done && h.token){
         if(h.cashDue){
