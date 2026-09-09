@@ -55,6 +55,10 @@
     filter:grayscale(.22) brightness(.44) contrast(1.05);z-index:0}
   .act.ph::after{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(175deg,rgba(10,11,14,.42),rgba(10,11,14,.7) 55%,rgba(10,11,14,.9))}
+  /* シルクの1枚だけ元の写真が暗すぎて、brightness(.44) だと何も見えない。
+     この写真は文字の後ろが黒い床なので、明るくしても可読性は落ちない。
+     ★他の写真に .dark を付けないこと（明るい写真だと文字が読めなくなる） */
+  .act.ph.dark .bg{filter:grayscale(.18) brightness(1) contrast(1.12)}
   .act.ph .tx{position:relative;z-index:2}
   .act.ph .d{color:#cdd3dd}
   .badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;
@@ -206,7 +210,7 @@
         <p class="d">世界30カ国以上が集う2025 IJRU世界選手権を制した、HARIBOW世界一の演技。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:40%">
+    <div class="act ph" style="--fy:50%">
       <div class="bg" style="background-image:url(assets/lineup/cheer-remans.jpg)"></div>
       <div class="tx">
         <span class="badge teal">限定コラボ</span>
@@ -230,7 +234,7 @@
         <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム『Roar』が、完全新作のパフォーマンスとして復活する。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:50%">
+    <div class="act ph dark" style="--fy:60%">
       <div class="bg" style="background-image:url(assets/lineup/cirque-du-soleil.jpg)"></div>
       <div class="tx">
         <p class="n">Cirque du Soleil オーディション演技</p>

@@ -465,7 +465,9 @@ function card(o,i){
   var h='<article class="card">';
   var ey = i<0 ? 'Profile' : (i===0?'Your Pick':'Chain '+(i+1));
   h+='<div class="hd"><span class="ey">'+ey+'</span>';
-  h+='<span class="via">'+(i<0?'名前から開いた人':(o.via?nameLink(o.via.n)+' さんが「見てほしい」と言っていた人':'診断からの1人目'))+'</span></div>';
+  var via = i<0 ? (FROMLINK?'出演者一覧から開いた人':'名前から開いた人')
+                : (o.via?nameLink(o.via.n)+' さんが「見てほしい」と言っていた人':'診断からの1人目');
+  h+='<span class="via">'+via+'</span></div>';
 
   h+='<div class="por'+(a.p?'':' none')+'" data-id="'+m.id+'">';
   h+= a.p ? '<img src="'+base+'photo.jpg" alt="'+esc(m.p)+'" loading="lazy">' : '<span>'+esc(m.p)+'</span>';
@@ -490,13 +492,17 @@ function card(o,i){
     return h+glossBlock(h)+'</article>';
   }
 
-  /* 相性度。数字の下に必ず内訳を出す（何が効いたか分からないと占いになる） */
-  h+='<div class="rate"><span class="lb2">Match</span>'+
-     '<span class="big">'+r.pct+'<small>%</small></span><table>';
-  r.rows.forEach(function(x){
-    h+='<tr><td>'+esc(x.k)+'</td><td>'+esc(x.v)+'</td><td'+(x.hit?'':' class="no"')+'>'+esc(x.note)+'</td></tr>';
-  });
-  h+='</table></div>';
+  /* 相性度。数字の下に必ず内訳を出す（何が効いたか分からないと占いになる）。
+     ★診断を1問も答えていない人（パンフレットの出演者一覧から直接来た人）には出さない。
+       内訳が空なので「Match 0%」とだけ出て、相性が悪いという意味に読めてしまう。 */
+  if(r.rows.length){
+    h+='<div class="rate"><span class="lb2">Match</span>'+
+       '<span class="big">'+r.pct+'<small>%</small></span><table>';
+    r.rows.forEach(function(x){
+      h+='<tr><td>'+esc(x.k)+'</td><td>'+esc(x.v)+'</td><td'+(x.hit?'':' class="no"')+'>'+esc(x.note)+'</td></tr>';
+    });
+    h+='</table></div>';
+  }
 
   var task = m.alt ? m.alt.t : m.o;
   var taskBy = m.alt ? ((BY[m.alt.by]||{}).p || m.alt.by) : null;
