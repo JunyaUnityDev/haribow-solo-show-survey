@@ -300,9 +300,14 @@ function doCheckin(token, fromSearch, force, cash){
     } else if(r.error==='bad_key'){
       showVerdict('ng','このURLでは受付できません','','正しい受付用URLを開いてください');
     } else {
-      feedback('ng'); showVerdict('ng','読み取れませんでした','','お名前検索でご確認ください');
+      /* 2026-09-10：ここで recent を消す。消さないと同じQRが10秒間まったく反応せず、
+         スタッフには「壊れた」のか「QRが汚い」のか区別が付かない。
+         GAS側の例外もロック待ちのタイムアウトも、全部この分岐に化けて落ちてくる。 */
+      delete recent[token];
+      feedback('ng'); showVerdict('ng','読み取れませんでした','','もう一度かざすか、お名前検索でご確認ください');
     }
   }).catch(function(){
+    delete recent[token];   // 通信エラーも同じ。かざし直しをブロックしない
     feedback('ng');
     showVerdict('ng','通信エラー','','電波をご確認ください。お名前検索も使えます');
   }).then(function(){
@@ -330,7 +335,9 @@ function forceIn(token){
    ★支払状態は変えない。入場時刻とスタッフ名だけ記録し、運営に通知が飛ぶ。
      集金するかどうかは、あとで入金確認コンソール側で判断する。 */
 function rowIn(id, kind){
-  if(!confirm('お支払いが未確認のまま入場を記録します。\n受付責任者の確認は取れていますか？\n（支払状態は変わりません。運営に通知が飛びます）')) return;
+  /* 2026-09-10：確認文言に「取り消せません」を明記。undoCheckin はトークンでしか行を引かず、
+     この経路で通した行はトークンが空なので、押し間違えると受付画面からは戻せない。 */
+  if(!confirm('お支払いが未確認のまま入場を記録します。\n\n★この操作は取り消せません。\n注文番号と席を、ご本人と読み合わせてから押してください。\n\n受付責任者の確認は取れていますか？\n（支払状態は変わりません。運営に通知が飛びます）')) return;
   post('checkin_row',{id:id, kind:kind}).then(function(r){
     if(r.ok){
       feedback('ok');
