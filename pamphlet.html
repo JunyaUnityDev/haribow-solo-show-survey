@@ -60,6 +60,18 @@
      ★他の写真に .dark を付けないこと（明るい写真だと文字が読めなくなる） */
   .act.ph.dark .bg{filter:grayscale(.18) brightness(1) contrast(1.12)}
   .act.ph .tx{position:relative;z-index:2}
+  /* 上演順（2026-09-10）。番号は『構成台本』タブから取る。ここには順番を持たない。
+     取得に失敗したら番号は出ない＝静的な並びのまま。黙って違う順番を出さないため。 */
+  .act .no{position:absolute;top:12px;right:14px;z-index:2;
+    font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--main);
+    border:1px solid rgba(99,182,204,.45);border-radius:20px;padding:2px 9px;
+    background:rgba(10,11,14,.55)}
+  /* オープニング／エンディングは番号を振らない枠。カードを作らず細い行で並びだけ示す */
+  .lead-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:11px 17px;
+    background:rgba(20,22,28,.6);border:1px solid var(--line);border-radius:14px;
+    font-size:13.5px;color:var(--dim)}
+  .lead-row b{color:var(--ink);font-weight:700;font-size:14.5px}
+  .lead-row .zen{font-size:11px;color:var(--faint)}
   .act.ph .d{color:#cdd3dd}
   .badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;
     padding:2px 8px;border-radius:20px;margin:0 6px 6px 0;vertical-align:middle}
@@ -95,6 +107,18 @@
     background:var(--panel);border:1px solid var(--line)}
   .closing p{margin:0 0 10px;font-size:14.5px;color:var(--dim)}
   .closing .big{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:.04em}
+
+  /* 終演後の導線（2026-09-10）。拍手が鳴り止んだ直後がいちばん熱が高いのに、
+     これまで次にやることが何も無かった。リンク先は org/web-presence.md が一次ソース。 */
+  .after{margin-top:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+  .after .t{font-size:13px;letter-spacing:.1em;color:var(--main);font-weight:800;margin:0 0 10px}
+  .after a{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    text-decoration:none;color:var(--ink);font-size:14.5px;
+    padding:12px 2px;border-bottom:1px solid var(--line)}
+  .after a:last-child{border-bottom:0}
+  .after a span{color:var(--faint);font-size:12.5px}
+  .after a .go{color:var(--main);font-weight:800}
 
   footer{margin-top:34px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2}
   footer a{color:var(--main)}
@@ -164,6 +188,7 @@
       これが結成以来はじめての単独公演です。世界で戦ってきた技と、
       メンバー一人ひとりの物語を、同じ舞台に並べました。
     </p>
+    <p class="lead" style="text-align:right;margin:0">HARIBOW 一同</p>
   </section>
 
   <!-- ウェルカム動画（2026-09-07追加）。実体は media/welcome.mp4（縦1080×1920・66.6秒・字幕入り）。
@@ -192,7 +217,8 @@
        片方だけ直すと必ずズレる。変えたら両方直すこと。 -->
   <section>
     <h2>本日の演目</h2>
-    <p class="lead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
+    <p class="lead" id="actsLead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
+    <div id="acts">
 
     <div class="act ph" style="--fy:35%">
       <div class="bg" style="background-image:url(assets/lineup/young-blood.jpg)"></div>
@@ -257,6 +283,7 @@
         <p class="d">国内最大のダブルダッチ大会。HARIBOW第一世代がシーンに名乗りを上げた、原点の演技。</p>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- 推し診断への導線（2026-09-07追加）。出演者一覧の直前に置く：
@@ -306,8 +333,10 @@
         <dt>会場</dt>
         <dd>めぐろパーシモンホール 大ホール<br>
           <span style="color:var(--faint);font-size:12.5px">目黒区八雲1-1-1／東急東横線 都立大学駅 徒歩7分</span></dd>
+        <dt id="endDt" hidden>終演</dt>
+        <dd id="endTime" hidden></dd>
         <dt>ご観覧にあたって</dt>
-        <dd>お席は指定席です。再入場できます。</dd>
+        <dd id="viewNote">お席は指定席です。再入場できます。</dd>
       </dl>
     </div>
   </section>
@@ -315,6 +344,14 @@
   <div class="closing">
     <p>この公演は、到達点ではありません。</p>
     <p class="big">物語は、まだ続きます。</p>
+  </div>
+
+  <div class="after">
+    <p class="t">この続きは</p>
+    <a href="https://www.instagram.com/haribow.dd/" target="_blank" rel="noopener">
+      <span style="color:var(--ink)">Instagram <span>@haribow.dd</span></span><span class="go">フォローする →</span></a>
+    <a href="https://go-beyond.haribow.com" target="_blank" rel="noopener">
+      <span style="color:var(--ink)">公演の公式サイト</span><span class="go">開く →</span></a>
   </div>
 
   <footer>
@@ -341,6 +378,78 @@ var CAST = ['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤�
 document.getElementById('cast').innerHTML = CAST.map(function(n){
   return '<a href="oshi.html?p='+encodeURIComponent(n)+'">'+n+'<span class="ar">▸</span></a>';
 }).join('');
+
+/* ---------- 上演順（2026-09-10追加） ----------
+   正典は『構成台本』タブ＝構成エディタ(lineup.html)が書いている側。
+   このページは順番を持たない。演目カードのHTMLの並びは初期値でしかなく、
+   取得できたら並べ替える。ここに順番を書き写すと、台本を直したときに必ずズレる。
+
+   ★1つでも名前が突き合わせられなかったら、番号も並べ替えも一切やらない。
+     半分だけ番号が付いた表は、番号が無い表より悪い（違う順番を信じさせる）。
+     突き合わせはGAS側 PROGRAM_PUBLIC_ の label と、カードの見出し文字列で行う。
+   ★運営がブロック名を変えた場合はコンソールに出す。お客さんの画面には警告を出さない。 */
+(function(){
+  var acts = document.getElementById('acts');
+  if(!acts) return;
+
+  fetch(BASE + '?page=program&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok || !d.program || !d.program.length) return;
+
+      /* 見出しの文字列でカードを引く */
+      var byName = {};
+      [].forEach.call(acts.querySelectorAll('.act'), function(el){
+        var n = el.querySelector('.n');
+        if(n) byName[n.textContent.trim()] = el;
+      });
+
+      /* 先に全部引けるか確かめる。1枚でも欠けたら何もしない */
+      var miss = d.program.filter(function(x){ return !x.lead && !byName[x.label]; });
+      if(miss.length){
+        console.warn('[pamphlet] 構成台本の演目名がカードと合いません:',
+                     miss.map(function(x){ return x.label; }).join(' / '),
+                     '→ 上演順は出しません');
+        return;
+      }
+
+      var frag = document.createDocumentFragment();
+      d.program.forEach(function(x){
+        if(x.lead){
+          /* オープニング／エンディングはカードを持たないので細い行で並びだけ示す */
+          var row = document.createElement('div');
+          row.className = 'lead-row';
+          row.innerHTML = '<b>' + esc(x.label) + '</b><span class="zen">全員出演</span>';
+          frag.appendChild(row);
+          return;
+        }
+        var el = byName[x.label];
+        var no = document.createElement('span');
+        no.className = 'no';
+        no.textContent = ('0' + x.n).slice(-2);
+        el.insertBefore(no, el.firstChild);
+        frag.appendChild(el);           // appendChild は既存ノードを移動する＝並べ替えになる
+      });
+      acts.innerHTML = '';
+      acts.appendChild(frag);
+
+      var lead = document.getElementById('actsLead');
+      if(lead) lead.textContent =
+        '全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。番号は当日の上演順です。';
+
+      /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る */
+      if(d.end){
+        var dt = document.getElementById('endDt'), dd = document.getElementById('endTime');
+        dd.innerHTML = esc(d.end) + 'ごろの予定です'
+          + '<span style="color:var(--faint);font-size:12.5px"><br>進行により前後します。</span>';
+        dt.hidden = false; dd.hidden = false;
+      }
+      var vn = document.getElementById('viewNote');
+      if(vn) vn.innerHTML = 'お席は指定席です。再入場できます。<br>'
+        + (d.intermission ? '休憩があります。' : '<b>休憩はありません。</b>お手洗いは開演前にお済ませください。');
+    })
+    .catch(function(){ /* 出さないだけ。演目の並びは初期値のまま読める */ });
+})();
 
 /* 支援者のお名前は毎日変わるのでGASから取る（手で更新すると必ず古くなる） */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
