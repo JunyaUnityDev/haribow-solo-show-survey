@@ -54,12 +54,17 @@
      ★見切れ対策（2026-09-16）：表紙の枠はスマホだと縦長（375x431）で、横長の写真を
        枠いっぱいに cover すると左右が半分近く切れて、両端の人が見えなかった。
        枠の大きさは変えず、写真だけを「横幅いっぱい・縦は写真の比率のまま」で上に置き、
-       下端をマスクで背景色へ溶かしている。写真を差し替えたら aspect-ratio も直すこと */
+       下端をマスクで背景色へ溶かしている。写真を差し替えたら aspect-ratio も直すこと
+     ★文字との重なり（2026-09-16）：PC幅だと写真が高く(360px)、人の上半身がタイトルに被っていた。
+       写真の下端を「枠の上から250px」に揃え、上の空（写真の上3割は照明だけ）を枠の外へ逃がす。
+       スマホは写真が低いので上14pxのまま（min で小さい方）。足元が少し文字に掛かるのは許容。
+       250px は .hero の padding-top 190px（＝文字の始まり）と対。padding を変えたらここも直す */
   .hero{position:relative;margin:16px -16px 0;padding:190px 20px 30px;overflow:hidden}
-  .hero .ph{position:absolute;left:0;right:0;top:14px;aspect-ratio:1400/787;
+  .hero .ph{position:absolute;left:0;right:0;aspect-ratio:1400/787;
+    top:min(14px,calc(250px - min(100vw,640px)*.5621));   /* .5621 ＝ 787/1400 */
     background:url(assets/hero-stage.jpg) center/cover no-repeat;
-    -webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);
-    mask-image:linear-gradient(180deg,#000 72%,transparent);
+    -webkit-mask-image:linear-gradient(180deg,#000 62%,transparent);
+    mask-image:linear-gradient(180deg,#000 62%,transparent);
     filter:grayscale(.28) brightness(.66) contrast(1.06)}
   .hero .vg{position:absolute;inset:0;background:
     linear-gradient(180deg,rgba(7,13,16,.62) 0%,rgba(7,13,16,.06) 30%,rgba(7,13,16,.88) 78%,var(--bg) 100%)}
