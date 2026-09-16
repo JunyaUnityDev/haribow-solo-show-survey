@@ -25,6 +25,8 @@
       ・区切りは2本の細い罫＝ダブルダッチの2本の縄。これがこのページ唯一の装飾
       ・影は使わない。角丸は3pxで統一。派手さは写真1点に集中させる
       ・自動で動くものを作らない。動くのは「まばたき」だけ（押した時のみ）
+        → 2026-09-16 JUNYA判断で「スクロールで出てくる」だけは足した（下の .rv）。
+          出たあとは止まる。ループ・常時アニメは引き続き作らない
      ★色は公式サイト（go-beyond）と同じ teal / gold を維持。勝手に足さないこと
      ============================================================ */
   :root{
@@ -301,7 +303,8 @@
      結びの2行を、出演者が自分の手で書いた座右の銘で上下から挟む。
      素材は名鑑と同じ assets/cast/<ID>/motto.png（motto_clean の 05_glow＝白インク透過）。
      ★ここは「縄の罫だけが装飾」の例外。本人の手書きは装飾ではなく中身なので置いている
-     ★動かさない。傾き・濃さ・大きさは固定値でばらしているだけ（乱数を使わない＝毎回同じ）
+     ★常時は動かさない。スクロールで画面に入った時に1枚ずつ「書かれるように」出るだけ（.rv）
+     ★傾き・濃さ・大きさは固定値でばらしているだけ（乱数を使わない＝毎回同じ）
      ★グローは oshi.html の .motto img と同じ drop-shadow 3枚。光を変えるなら両方直す
      ★文字の上に重ねない。読めなくなる。上段・結び・下段の3段に分けている */
   .mw{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
@@ -314,6 +317,26 @@
   @media (min-width:560px){ .mw{gap:18px 26px} .mw img{height:calc(var(--h,38px)*1.25)}
     .mw img.tate{height:calc(var(--h,118px)*1.2)} }
   .mw-cap{margin:4px 0 0;text-align:center;font-size:11.5px;color:var(--faint)}
+
+  /* ---------- スクロールで出てくる（2026-09-16・JUNYA指示） ----------
+     画面に入った要素に .in を付けてふわっと出す。1回出たら二度と隠さない。
+     ★.rv は JS が付ける。JSが動かない／IntersectionObserver が無い／
+       「視差効果を減らす」設定の端末では .rv 自体が付かない＝最初から全部見えている。
+       CSSだけで最初から隠すと、スクリプトが落ちた人に空白のパンフレットを渡すことになる
+     ★同時に入ってきた要素は --d で少しずつずらす（JSが入れる） */
+  .rv{opacity:0;transform:translateY(18px);
+    transition:opacity .8s ease,transform .9s cubic-bezier(.2,.7,.2,1);
+    transition-delay:var(--d,0ms)}
+  .rv.in{opacity:1;transform:none}
+  /* 座右の銘は「書かれるように」出す。横書きは左から、縦書きは上から切り抜きを開く。
+     ★切り抜きの外側に -40px 余白を取っているのはグロー（drop-shadow 26px）を切らないため */
+  .mw img.rv{opacity:0;transform:rotate(var(--r,0deg)) translateY(8px);
+    clip-path:inset(-40px 100% -40px -40px);
+    transition:opacity .9s ease,transform 1.2s ease,clip-path 1.5s cubic-bezier(.45,.05,.25,1);
+    transition-delay:var(--d,0ms)}
+  .mw img.tate.rv{clip-path:inset(-40px -40px 100% -40px)}
+  .mw img.rv.in,.mw img.tate.rv.in{opacity:var(--o,.7);transform:rotate(var(--r,0deg));
+    clip-path:inset(-40px -40px -40px -40px)}
 
   footer{margin-top:30px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2.1}
   footer a{color:var(--main)}
@@ -779,6 +802,7 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
           /* オープニング／エンディングはカードを持たないので細い行で並びだけ示す */
           var row = document.createElement('div');
           row.className = 'lead-row';
+          if(window.REVEAL_) REVEAL_(row);   /* 後から作る行もスクロールで出す */
           row.innerHTML = '<b>' + esc(x.label) + '</b><span class="zen">全員出演</span>';
           frag.appendChild(row);
           return;
@@ -1078,6 +1102,51 @@ if (TOKEN) {
     })
     .catch(function(){ /* 出さないだけ。パンフレットは読める */ });
 }
+</script>
+<script>
+/* ---------- スクロールで出てくる（2026-09-16） ----------
+   CSS の .rv / .in と対。対象を足したいときは SEL に足すだけでいい。
+   ★表紙と当日の帯は対象にしない。開いた瞬間に見えているべきもの */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  try{ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
+
+  var SEL = [
+    'section h2', 'section .lead', '.greet p', '.vid', '.before',
+    '#acts .act', '#acts .lead-row', '.qa .b', '.oshi', '.cast', '.achv > div',
+    '.reads a', '.thanks', '.info-card', '.closing p', '.after', '.mw-cap'
+  ].join(',');
+
+  var io = new IntersectionObserver(function(entries){
+    var n = 0, m = 0;
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var el = e.target, isMotto = el.parentNode && el.parentNode.classList.contains('mw');
+      /* 同じタイミングで入ってきたものは順番に。座右の銘は1枚ずつ、ゆっくり */
+      el.style.setProperty('--d', isMotto ? (m++ * 140) + 'ms' : Math.min(n++ * 90, 450) + 'ms');
+      el.classList.add('in');
+      io.unobserve(el);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+
+  window.REVEAL_ = function(el){ el.classList.add('rv'); io.observe(el); };
+  [].forEach.call(document.querySelectorAll(SEL + ',.mw img'), window.REVEAL_);
+
+  /* 保険：監視が発火しない環境（アプリ内ブラウザ等）でも、画面に入った／通り過ぎたものは必ず出す。
+     ★ここが無いと「スクロールしても真っ黒」になりうる。消さないこと */
+  var t = 0;
+  function sweep(){
+    t = 0;
+    var vh = innerHeight || document.documentElement.clientHeight;
+    [].forEach.call(document.querySelectorAll('.rv:not(.in)'), function(el){
+      var r = el.getBoundingClientRect();
+      if(r.bottom < 0){ el.style.transition = 'none'; el.classList.add('in'); io.unobserve(el); }  /* 目次から飛んで通り過ぎた分 */
+      else if(r.top < vh){ el.classList.add('in'); io.unobserve(el); }
+    });
+  }
+  addEventListener('scroll', function(){ if(!t) t = setTimeout(sweep, 250); }, { passive: true });
+  addEventListener('load', sweep);
+})();
 </script>
 </body>
 </html>
