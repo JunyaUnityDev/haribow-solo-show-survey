@@ -49,10 +49,15 @@
   /* ---------- 表紙 ----------
      写真は go-beyond の assets/hero.jpg を縮小したもの。白い衣装が黒に抜けるので
      暗くしても人が残る。ここだけ画面幅いっぱいに出す（.wrap の左右16pxを打ち消す）
-     ★位置 30% 40%（2026-09-16 見切れ調整）。スマホは縦長の枠になり左右が切れる。
-       中央寄せだと手前左の1人が半分切れていたので左に寄せ、上の空席を少し削った */
+     ★見切れ対策（2026-09-16）：表紙の枠はスマホだと縦長（375x431）で、横長の写真を
+       枠いっぱいに cover すると左右が半分近く切れて、両端の人が見えなかった。
+       枠の大きさは変えず、写真だけを「横幅いっぱい・縦は写真の比率のまま」で上に置き、
+       下端をマスクで背景色へ溶かしている。写真を差し替えたら aspect-ratio も直すこと */
   .hero{position:relative;margin:16px -16px 0;padding:190px 20px 30px;overflow:hidden}
-  .hero .ph{position:absolute;inset:0;background:url(assets/hero-stage.jpg) 30% 40%/cover no-repeat;
+  .hero .ph{position:absolute;left:0;right:0;top:14px;aspect-ratio:1400/787;
+    background:url(assets/hero-stage.jpg) center/cover no-repeat;
+    -webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);
+    mask-image:linear-gradient(180deg,#000 72%,transparent);
     filter:grayscale(.28) brightness(.66) contrast(1.06)}
   .hero .vg{position:absolute;inset:0;background:
     linear-gradient(180deg,rgba(7,13,16,.62) 0%,rgba(7,13,16,.06) 30%,rgba(7,13,16,.88) 78%,var(--bg) 100%)}
@@ -139,15 +144,11 @@
      文字が読めなくなるのが一番まずいので、暗さ(brightness)とグラデは触らないこと。
      ★カードの高さは文章の量で決まっていたので、短い演目だと写真が90pxの帯になり、
        人の顔がまるごと切れていた。min-height で帯を広げ、文字は下に寄せている。
-     ★背景の位置は写真ごとに違う（--fy）。写真を差し替えたら --fy も付け直すこと。
-     ★2026-09-16 見切れ再調整：PC幅(608px)で帯が172pxのままだと 3.5:1 になり、
-       腕・頭・足がどこかで必ず切れていた。高さを幅に比例させ（スマホ≒1.6:1／PC≒2:1）、
-       --fy は写真ごとに付け直した。左右がずれる写真は --fx も使える（既定50%）。
-       確認はPILで cover の切り抜きを 358px／608px 幅で再現して目で見た */
-  .act.ph{border-color:rgba(242,239,230,.12);min-height:clamp(172px,56vw,300px);
+     ★背景の位置は写真ごとに違う（--fy）。写真を差し替えたら --fy も付け直すこと。 */
+  .act.ph{border-color:rgba(242,239,230,.12);min-height:172px;
     display:flex;flex-direction:column;justify-content:flex-end}
   .act.ph .bg{position:absolute;inset:0;background-size:cover;
-    background-position:var(--fx,50%) var(--fy,32%);
+    background-position:center var(--fy,32%);
     filter:grayscale(.3) brightness(.44) contrast(1.05);z-index:0}
   .act.ph::after{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(175deg,rgba(7,13,16,.4),rgba(7,13,16,.72) 55%,rgba(7,13,16,.93))}
@@ -249,10 +250,10 @@
   .reads{display:grid;gap:8px}
   .reads a{position:relative;display:block;overflow:hidden;text-decoration:none;
     background:var(--panel);border:1px solid rgba(242,239,230,.12);border-radius:3px;
-    padding:18px;min-height:clamp(200px,64vw,320px);display:flex;flex-direction:column;justify-content:flex-end;
+    padding:18px;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end;
     -webkit-tap-highlight-color:transparent}
   .reads a .bg{position:absolute;inset:0;background-size:cover;
-    background-position:var(--fx,50%) var(--fy,45%);
+    background-position:center var(--fy,45%);
     filter:grayscale(.42) brightness(.46) contrast(1.04);z-index:0}
   .reads a::after{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(175deg,rgba(7,13,16,.34),rgba(7,13,16,.74) 52%,rgba(7,13,16,.95))}
@@ -458,7 +459,7 @@
     <p class="lead" id="actsLead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
     <div id="acts">
 
-    <div class="act ph" style="--fy:45%">
+    <div class="act ph" style="--fy:35%">
       <div class="bg" style="background-image:url(assets/lineup/young-blood.jpg)"></div>
       <div class="tx">
         <span class="badge gold">世界王者</span>
@@ -482,7 +483,7 @@
         <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度は“空飛ぶスーツ集団”が、この舞台に立つ。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:40%">
+    <div class="act ph" style="--fy:22%">
       <div class="bg" style="background-image:url(assets/lineup/air-footworks.jpg)"></div>
       <div class="tx">
         <span class="badge teal">限定ゲスト</span>
@@ -490,7 +491,7 @@
         <p class="d">2018年結成、世界初のエアダンス（鉄棒ダンス）ユニット。America's Got Talent 2024 でゴールデンブザーを受け、グランドファイナルへ進出。一夜限りのゲスト出演。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:55%">
+    <div class="act ph" style="--fy:34%">
       <div class="bg" style="background-image:url(assets/lineup/roar.jpg)"></div>
       <div class="tx">
         <span class="badge teal">復活</span><span class="badge teal">完全新作</span>
@@ -498,14 +499,14 @@
         <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム『Roar』が、完全新作のパフォーマンスとして復活する。</p>
       </div>
     </div>
-    <div class="act ph dark" style="--fy:65%">
+    <div class="act ph dark" style="--fy:60%">
       <div class="bg" style="background-image:url(assets/lineup/cirque-du-soleil.jpg)"></div>
       <div class="tx">
         <p class="n">Cirque du Soleil オーディション演技</p>
         <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した、究極のスピード、ダブルダッチでの新たな表現を追求した作品。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:5%">
+    <div class="act ph" style="--fy:20%">
       <div class="bg" style="background-image:url(assets/lineup/homecoming.jpg)"></div>
       <div class="tx">
         <span class="badge teal">完全新作</span>
@@ -513,7 +514,7 @@
         <p class="d">一年中海外で活動しているメンバーが、この日のために帰ってくる。過去の実績ではなく、この夜のためだけに作られた完全新作。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:15%">
+    <div class="act ph" style="--fy:16%">
       <div class="bg" style="background-image:url(assets/lineup/ddc-japan-2023.jpg)"></div>
       <div class="tx">
         <span class="badge teal">原点</span>
@@ -635,7 +636,7 @@
     <h2 id="c09" data-ch="09">読みもの</h2>
     <p class="lead">今日ここに至るまでを、本人たちの言葉で書いた記事が2本あります。開演前や帰り道にどうぞ。</p>
     <div class="reads">
-      <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fx:20%;--fy:40%">
+      <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fy:42%">
         <div class="bg" style="background-image:url(assets/reads/bgt.jpg)"></div>
         <div class="tx">
         <p class="t">体育館だと思っていた</p>
@@ -643,7 +644,7 @@
         <span class="go">読む →</span>
         </div>
       </a>
-      <a href="https://go-beyond.haribow.com/takumi.html" target="_blank" rel="noopener" style="--fx:35%;--fy:55%">
+      <a href="https://go-beyond.haribow.com/takumi.html" target="_blank" rel="noopener" style="--fy:46%">
         <div class="bg" style="background-image:url(assets/reads/takumi.jpg)"></div>
         <div class="tx">
         <p class="t">100回、聞いた話</p>
