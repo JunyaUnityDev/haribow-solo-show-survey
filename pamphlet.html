@@ -62,6 +62,17 @@
     border-top:1px solid rgba(242,239,230,.28);
     box-shadow:0 -3px 0 -2px rgba(242,239,230,.28)}   /* 2本目の罫＝縄 */
 
+  /* ---------- 当日の帯（2026-09-16） ----------
+     時刻で文言が変わる唯一の場所。ページの他の部分は時刻で変えない。
+     ★上演中に画面を暗くしたり本文を隠したりしない。端末の時計がずれていた人に
+       壊れたページを渡すことになる。帯は足すだけで、何も引かない。 */
+  .today{margin:22px 0 0;padding:16px 18px;border-radius:3px;
+    border:1px solid rgba(201,162,75,.42);background:rgba(201,162,75,.05)}
+  .today .k{margin:0;font-size:12px;letter-spacing:.08em;color:var(--sup)}
+  .today .v{margin:4px 0 0;font-size:15px;color:var(--ink);line-height:1.7}
+  .today .v .n{font-family:var(--serif);font-size:40px;line-height:1;margin-right:6px}
+  .today .s{margin:7px 0 0;font-size:12.5px;color:var(--faint)}
+
   /* ---------- 目次 ---------- */
   .toc{margin:26px 0 8px;columns:2;column-gap:20px;font-size:13px}
   .toc a{display:block;text-decoration:none;color:var(--dim);padding:5px 0;
@@ -301,6 +312,14 @@
     </div>
   </div>
 
+  <!-- 当日の帯（2026-09-16）。公演前・開場中・上演中・終演後で文言が変わる。
+       終演時刻は構成台本から取れたら差し替える（取れなければ既定値のまま）。 -->
+  <div class="today" id="today" hidden>
+    <p class="k" id="todayK"></p>
+    <p class="v" id="todayV"></p>
+    <p class="s" id="todayS"></p>
+  </div>
+
   <!-- 目次（2026-09-16）。11章まで増えたので、読む前に全体が見えるようにする。
        番号は h2 の data-ch と対。章を足したら両方直すこと（自動では振っていない）。 -->
   <nav class="toc">
@@ -449,11 +468,11 @@
        ★「ずっとこの速さではない」の一文は誇張への歯止め。消さないこと。 -->
   <section>
     <h2 id="c04" data-ch="04">何が難しいのか</h2>
-    <p class="lead">大会の名前や順位は、誰かが「すごい」と言った記録です。ここには、その場で見て分かるほうを書いておきます。</p>
+    <p class="lead">大会の名前や順位は、結果の記録です。ここには、その場で目に見えるほうを書いておきます。</p>
     <div class="qa">
       <div class="b">
-        <p class="t">「スピード」は、速さのことではありません</p>
-        <p>ダブルダッチには規定・スピード・フリースタイル・フュージョンという4つの種目があります。スピードはそのうちの1つ、種目の名前です。今夜の舞台にも、随所に入っています。</p>
+        <p class="t">「スピード」は種目の名前です</p>
+        <p>ダブルダッチには規定・スピード・フリースタイル・フュージョンという4つの種目があります。スピードはそのうちの1つで、速さを表す言葉ではありません。今夜の舞台にも随所に入っています。</p>
       </div>
       <div class="b">
         <p class="t">まばたき1回のあいだに、縄が1本、足の下を通り抜けます</p>
@@ -461,9 +480,10 @@
           <span class="v">125</span><span class="u">ミリ秒 ／ 縄1回ぶん</span>
           <span class="vs">縄は1秒に約8回まわります。人のまばたき1回が、およそ100〜150ミリ秒です。</span>
         </div>
-        <p>ずっとこの速さで進むわけではありません。ただ、その場面は必ず来ます。来たら、足元を見てください。</p>
+        <p>ずっとこの速さで進むわけではありません。ただ、その場面は必ず来ます。足元が見どころです。</p>
         <!-- 1秒だけ実物の速さを見せる装置（2026-09-16）。
              上の帯＝縄が8回通る。下の帯＝まばたき1回で視界が閉じる。同じ1秒に重ねている。
+             ★文言は「〜だけ」「〜してください」を使わない（客席への指示・矮小化になるため）。
              ★125ms・8回・1000ms は org/profile.md の実数と対。ここを変えると説明が嘘になる
              ★自動再生しない。押した時だけ動く。 -->
         <div class="blink" id="blink">
@@ -471,13 +491,13 @@
             <div class="band"><div class="rope"></div></div></div>
           <div class="row"><span class="lb">まばたき</span>
             <div class="band"><div class="eye"></div><div class="lid"></div></div></div>
-          <button class="btn" type="button" id="blinkBtn">1秒だけ、その速さを見る</button>
-          <p class="out" id="blinkOut">押すと1秒だけ動きます。縄は8回、まばたきは1回です。</p>
+          <button class="btn" type="button" id="blinkBtn">縄を1秒、回す</button>
+          <p class="out" id="blinkOut">押すと1秒動きます。縄は8回、まばたきは1回です。</p>
         </div>
       </div>
       <div class="b">
         <p class="t">この数分のために、10年</p>
-        <p>今夜舞台に立つ31人のうち、半数以上が10年以上跳んできた選手です。数分の演技の後ろに、その時間があります。</p>
+        <p>今夜舞台に立つ31人のうち、半数以上が競技歴10年以上です。</p>
       </div>
     </div>
   </section>
@@ -510,11 +530,11 @@
        人数が変わったら数え直すこと。1つの版で固定した数字なので自動では動かない。 -->
   <section>
     <h2 id="c07" data-ch="07">はじめての方へ</h2>
-    <p class="lead">決まった作法はありません。知らなくても困らないことだけ、2つ書いておきます。</p>
+    <p class="lead">決まった作法はありません。知らなくても困らないことを、2つ書いておきます。</p>
     <div class="qa">
       <div class="b">
         <p class="t">拍手</p>
-        <p>「ここで拍手」という合図は出しません。すごいと思った瞬間に叩いてください。演技の途中でも構いません。舞台の上には、ちゃんと聞こえています。</p>
+        <p>「ここで拍手」という合図は出しません。演技の途中でも、すごいと思った瞬間に拍手が起きます。舞台の上まで聞こえています。</p>
       </div>
       <div class="b">
         <p class="t">声</p>
@@ -524,7 +544,7 @@
           <div><span>手を振ってくれたら振り返す</span><b>8人</b></div>
           <div><span>呼ばれたら嬉しいけど、恥ずかしい</span><b>2人</b></div>
         </div>
-        <p class="cap">だから一律の決まりにはしていません。誰が何と答えたかは、ひとりずつのページに「呼びかけについて」として書いてあります。</p>
+        <p class="cap">一律の決まりにはしていません。誰が何と答えたかは、ひとりずつのページに「呼びかけについて」として書いてあります。</p>
         <a class="lk" id="mannerLink" href="oshi.html">出演者のページを見る →</a>
       </div>
     </div>
@@ -692,6 +712,7 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
 
       /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る */
       if(d.end){
+        SHOW_END_ = d.end; renderToday_();   /* 帯の「上演中」の終わりも台本に合わせる */
         var dt = document.getElementById('endDt'), dd = document.getElementById('endTime');
         dd.innerHTML = esc(d.end) + 'ごろの予定です'
           + '<span style="color:var(--faint);font-size:12.5px"><br>進行により前後します。</span>';
@@ -703,6 +724,59 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
     })
     .catch(function(){ /* 出さないだけ。演目の並びは初期値のまま読める */ });
 })();
+
+/* ---------- 当日の帯（2026-09-16） ----------
+   デジタルのパンフレットにしかできないことは2つしかない。
+   人によって中身が違うこと（推し診断）と、時間で表情が変わること（ここ）。
+   ★端末の時計を信じて本文を隠したり暗くしたりはしない。帯を1枚足すだけにしてある。
+     時計がずれている人に、壊れたパンフレットを渡さないため。
+   ★上演中は何も足さない。客席でスクロールさせる文言を置かない。 */
+var SHOW_END_ = '20:44';   /* 既定値。構成台本から取れたら setEnd で上書きする */
+
+function jstNow_(){
+  var d = new Date();
+  return new Date(d.getTime() + d.getTimezoneOffset()*60000 + 9*3600000);
+}
+function jst_(mm, dd, hh, mi){ return new Date(2026, mm-1, dd, hh, mi, 0); }
+
+function renderToday_(){
+  var box = document.getElementById('today');
+  if(!box) return;
+  var now  = jstNow_(),
+      day0 = jst_(9,29,0,0),
+      open = jst_(9,29,18,0),
+      pre  = jst_(9,29,19,25),
+      endp = SHOW_END_.split(':'),
+      end  = jst_(9,29, Number(endp[0]), Number(endp[1]) + 15),
+      gone = jst_(9,30,6,0);
+
+  if(now >= gone){ box.hidden = true; return; }
+
+  var k='', v='', sub='';
+  if(now < day0){
+    k = '公演まで';
+    v = '<span class="n">' + Math.ceil((day0 - now) / 86400000) + '</span>日';
+    sub = '当日は、ここが当日の案内に変わります。';
+  } else if(now < open){
+    k = '本日です';
+    v = '開場 18:00 ／ 開演 19:30';
+    sub = 'めぐろパーシモンホール 大ホール';
+  } else if(now < pre){
+    k = '開場しています';
+    v = '19:25ごろから、開演の演出が始まります。';
+    sub = 'お席は指定席です。';
+  } else if(now < end){
+    k = '上演中です';                 /* ここでは何も足さない。客席で読ませない */
+  } else {
+    k = 'ありがとうございました';
+    v = 'お気をつけてお帰りください。';
+  }
+  document.getElementById('todayK').textContent = k;
+  var ve = document.getElementById('todayV'); ve.innerHTML = v; ve.hidden = !v;
+  var se = document.getElementById('todayS'); se.textContent = sub; se.hidden = !sub;
+  box.hidden = false;
+}
+renderToday_();
 
 /* ---------- まばたきの装置（2026-09-16） ----------
    125ms × 8回 = 1秒。この3つの数字はCSSのキーフレームと対になっている。
@@ -733,7 +807,7 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
       box.classList.remove('run');
       out.innerHTML = '<b>8</b> 回。いまの1秒です。まばたき1回のあいだに、縄が1本、通り抜けました。';
       btn.disabled = false;
-      btn.textContent = 'もう1秒、見る';
+      btn.textContent = 'もう1回';
     }, 1000);
   });
 })();
