@@ -367,19 +367,8 @@
     <a href="#c09"><b>09</b>読みもの</a>
     <a href="#c10"><b>10</b>支えてくださった皆さま</a>
     <a href="#c11"><b>11</b>公演情報</a>
+    <a href="#c12"><b>12</b>今日はどうでしたか</a>
   </nav>
-
-  <!-- 終演後アンケート（2026-09-16）。終演から15分あとに出る。?vote=1 で確認用に出せる。
-       ★選択肢をここに書かない。GAS の page=vote が『構成台本』から作って返すものをそのまま使う。
-         ここに演目名を書き写すと、台本を直したときに選択肢だけ古くなる。
-       ★公演前は丸ごと出ない。当日までは目次にも載せていない。 -->
-  <section id="voteSec" hidden>
-    <h2>今日はどうでしたか</h2>
-    <p class="lead" id="voteLead">いちばん記憶に残った演目を1つ選んでください。結果はその場で出ます。</p>
-    <div class="vote" id="voteList"></div>
-    <p class="note" id="voteNote"></p>
-    <a class="vlk" id="voteGo" href="oshi.html" hidden>出演者のページを見る →</a>
-  </section>
 
   <!-- 電子チケット（2026-09-07追加）。?t=トークン 付きで開いたときだけ出す。
        トークンが無ければ丸ごと隠れるので、公開URLのままでも普通のパンフレットとして成立する。
@@ -668,6 +657,19 @@
     </div>
   </section>
 
+  <!-- 投票「今日はどうでしたか」（2026-09-16 追加／同日 時刻の判定を外して常時公開）。
+       JUNYA判断：終演時刻に合わせて開く調整は運用が重いので、最初から押せるようにする。
+       ★公演前の票も入る。分けて見たいときはシートの「日時」列で 9/29 20:00 以降に絞る。
+       ★選択肢をここに書かない。GAS の page=vote が『構成台本』から作って返すものをそのまま使う。
+       ★取得に失敗したら section ごと出さない（hidden のまま）。 -->
+  <section id="voteSec" hidden>
+    <h2 id="c12" data-ch="12">今日はどうでしたか</h2>
+    <p class="lead" id="voteLead">いちばん記憶に残った演目を1つ選んでください。結果はその場で出ます。</p>
+    <div class="vote" id="voteList"></div>
+    <p class="note" id="voteNote"></p>
+    <a class="vlk" id="voteGo" href="oshi.html" hidden>出演者のページを見る →</a>
+  </section>
+
   <div class="closing">
     <p>この公演は、到達点ではありません。</p>
     <p class="big">物語は、まだ続きます。</p>
@@ -766,7 +768,7 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
 
       /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る */
       if(d.end){
-        SHOW_END_ = d.end; renderToday_(); initVote_();   /* 帯とアンケートの境目も台本に合わせる */
+        SHOW_END_ = d.end; renderToday_();   /* 帯の「上演中」の終わりも台本に合わせる */
         var dt = document.getElementById('endDt'), dd = document.getElementById('endTime');
         dd.innerHTML = esc(d.end) + 'ごろの予定です'
           + '<span style="color:var(--faint);font-size:12.5px"><br>進行により前後します。</span>';
@@ -837,7 +839,7 @@ renderToday_();
    1タップで1票入れて、その場で全体の集計が返る。
    ★選択肢はサーバー（page=vote）が『構成台本』から作って返すものをそのまま出す。
      ここに演目名を書き写すと、台本を直したときに選択肢だけ古くなる。
-   ★開くのは終演＋15分から。開演前・上演中は section ごと出さない。
+   ★時刻では開閉しない（2026-09-16 JUNYA判断）。ページを開けばいつでも押せる。
    ★押し直しはサーバー側で上書きになる（同じ識別子の票は行が増えない）。 */
 var voteReady_ = false;
 
@@ -846,11 +848,6 @@ function initVote_(){
   var sec = document.getElementById('voteSec');
   if(!sec) return;
 
-  var force = new URLSearchParams(location.search).get('vote') === '1';
-  if(!force){
-    var ep = SHOW_END_.split(':');
-    if(jstNow_() < jst_(9,29, Number(ep[0]), Number(ep[1]) + 15)) return;
-  }
   voteReady_ = true;
 
   var list = document.getElementById('voteList'),
@@ -920,7 +917,6 @@ function initVote_(){
     .catch(function(){ /* 出さない。アンケートが無くてもパンフレットは読める */ });
 }
 
-/* 台本の取得を待たずに一度試す。取れたら上の .then からもう一度呼ばれる（2回目は素通り） */
 initVote_();
 
 /* ---------- まばたきの装置（2026-09-16） ----------
