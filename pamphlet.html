@@ -48,9 +48,11 @@
 
   /* ---------- 表紙 ----------
      写真は go-beyond の assets/hero.jpg を縮小したもの。白い衣装が黒に抜けるので
-     暗くしても人が残る。ここだけ画面幅いっぱいに出す（.wrap の左右16pxを打ち消す） */
+     暗くしても人が残る。ここだけ画面幅いっぱいに出す（.wrap の左右16pxを打ち消す）
+     ★位置 30% 40%（2026-09-16 見切れ調整）。スマホは縦長の枠になり左右が切れる。
+       中央寄せだと手前左の1人が半分切れていたので左に寄せ、上の空席を少し削った */
   .hero{position:relative;margin:16px -16px 0;padding:190px 20px 30px;overflow:hidden}
-  .hero .ph{position:absolute;inset:0;background:url(assets/hero-stage.jpg) center 30%/cover no-repeat;
+  .hero .ph{position:absolute;inset:0;background:url(assets/hero-stage.jpg) 30% 40%/cover no-repeat;
     filter:grayscale(.28) brightness(.66) contrast(1.06)}
   .hero .vg{position:absolute;inset:0;background:
     linear-gradient(180deg,rgba(7,13,16,.62) 0%,rgba(7,13,16,.06) 30%,rgba(7,13,16,.88) 78%,var(--bg) 100%)}
@@ -137,11 +139,15 @@
      文字が読めなくなるのが一番まずいので、暗さ(brightness)とグラデは触らないこと。
      ★カードの高さは文章の量で決まっていたので、短い演目だと写真が90pxの帯になり、
        人の顔がまるごと切れていた。min-height で帯を広げ、文字は下に寄せている。
-     ★背景の位置は写真ごとに違う（--fy）。写真を差し替えたら --fy も付け直すこと。 */
-  .act.ph{border-color:rgba(242,239,230,.12);min-height:172px;
+     ★背景の位置は写真ごとに違う（--fy）。写真を差し替えたら --fy も付け直すこと。
+     ★2026-09-16 見切れ再調整：PC幅(608px)で帯が172pxのままだと 3.5:1 になり、
+       腕・頭・足がどこかで必ず切れていた。高さを幅に比例させ（スマホ≒1.6:1／PC≒2:1）、
+       --fy は写真ごとに付け直した。左右がずれる写真は --fx も使える（既定50%）。
+       確認はPILで cover の切り抜きを 358px／608px 幅で再現して目で見た */
+  .act.ph{border-color:rgba(242,239,230,.12);min-height:clamp(172px,56vw,300px);
     display:flex;flex-direction:column;justify-content:flex-end}
   .act.ph .bg{position:absolute;inset:0;background-size:cover;
-    background-position:center var(--fy,32%);
+    background-position:var(--fx,50%) var(--fy,32%);
     filter:grayscale(.3) brightness(.44) contrast(1.05);z-index:0}
   .act.ph::after{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(175deg,rgba(7,13,16,.4),rgba(7,13,16,.72) 55%,rgba(7,13,16,.93))}
@@ -243,10 +249,10 @@
   .reads{display:grid;gap:8px}
   .reads a{position:relative;display:block;overflow:hidden;text-decoration:none;
     background:var(--panel);border:1px solid rgba(242,239,230,.12);border-radius:3px;
-    padding:18px;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:18px;min-height:clamp(200px,64vw,320px);display:flex;flex-direction:column;justify-content:flex-end;
     -webkit-tap-highlight-color:transparent}
   .reads a .bg{position:absolute;inset:0;background-size:cover;
-    background-position:center var(--fy,45%);
+    background-position:var(--fx,50%) var(--fy,45%);
     filter:grayscale(.42) brightness(.46) contrast(1.04);z-index:0}
   .reads a::after{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(175deg,rgba(7,13,16,.34),rgba(7,13,16,.74) 52%,rgba(7,13,16,.95))}
@@ -288,6 +294,25 @@
   .after a:last-child{border-bottom:0}
   .after a span{color:var(--faint);font-size:12.5px}
   .after a .go{color:var(--main);font-size:13px}
+
+
+  /* ---------- 座右の銘の壁（2026-09-16・JUNYA指示「演出にみんなの座右の銘を」） ----------
+     結びの2行を、出演者が自分の手で書いた座右の銘で上下から挟む。
+     素材は名鑑と同じ assets/cast/<ID>/motto.png（motto_clean の 05_glow＝白インク透過）。
+     ★ここは「縄の罫だけが装飾」の例外。本人の手書きは装飾ではなく中身なので置いている
+     ★動かさない。傾き・濃さ・大きさは固定値でばらしているだけ（乱数を使わない＝毎回同じ）
+     ★グローは oshi.html の .motto img と同じ drop-shadow 3枚。光を変えるなら両方直す
+     ★文字の上に重ねない。読めなくなる。上段・結び・下段の3段に分けている */
+  .mw{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+    gap:14px 18px;padding:6px 0}
+  .mw img{display:block;height:var(--h,38px);width:auto;max-width:44%;object-fit:contain;
+    opacity:var(--o,.7);transform:rotate(var(--r,0deg));
+    filter:drop-shadow(0 0 1px rgba(255,255,255,.9)) drop-shadow(0 0 10px rgba(99,182,204,.4))
+      drop-shadow(0 0 26px rgba(99,182,204,.18))}
+  .mw img.tate{height:var(--h,118px);max-width:none}
+  @media (min-width:560px){ .mw{gap:18px 26px} .mw img{height:calc(var(--h,38px)*1.25)}
+    .mw img.tate{height:calc(var(--h,118px)*1.2)} }
+  .mw-cap{margin:4px 0 0;text-align:center;font-size:11.5px;color:var(--faint)}
 
   footer{margin-top:30px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2.1}
   footer a{color:var(--main)}
@@ -433,7 +458,7 @@
     <p class="lead" id="actsLead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
     <div id="acts">
 
-    <div class="act ph" style="--fy:35%">
+    <div class="act ph" style="--fy:45%">
       <div class="bg" style="background-image:url(assets/lineup/young-blood.jpg)"></div>
       <div class="tx">
         <span class="badge gold">世界王者</span>
@@ -441,7 +466,7 @@
         <p class="d">DOUBLE DUTCH CONTEST WORLD 2026 世界一。頂点に立った次世代チームの演技。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:33%">
+    <div class="act ph" style="--fy:20%">
       <div class="bg" style="background-image:url(assets/lineup/ijru-2025.jpg)"></div>
       <div class="tx">
         <span class="badge gold">世界王者</span>
@@ -457,7 +482,7 @@
         <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度は“空飛ぶスーツ集団”が、この舞台に立つ。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:22%">
+    <div class="act ph" style="--fy:40%">
       <div class="bg" style="background-image:url(assets/lineup/air-footworks.jpg)"></div>
       <div class="tx">
         <span class="badge teal">限定ゲスト</span>
@@ -465,7 +490,7 @@
         <p class="d">2018年結成、世界初のエアダンス（鉄棒ダンス）ユニット。America's Got Talent 2024 でゴールデンブザーを受け、グランドファイナルへ進出。一夜限りのゲスト出演。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:34%">
+    <div class="act ph" style="--fy:55%">
       <div class="bg" style="background-image:url(assets/lineup/roar.jpg)"></div>
       <div class="tx">
         <span class="badge teal">復活</span><span class="badge teal">完全新作</span>
@@ -473,14 +498,14 @@
         <p class="d">ニューヨーク・アポロシアターで開催された国際大会 National Double Dutch League 2021 で3位。チーム『Roar』が、完全新作のパフォーマンスとして復活する。</p>
       </div>
     </div>
-    <div class="act ph dark" style="--fy:60%">
+    <div class="act ph dark" style="--fy:65%">
       <div class="bg" style="background-image:url(assets/lineup/cirque-du-soleil.jpg)"></div>
       <div class="tx">
         <p class="n">Cirque du Soleil オーディション演技</p>
         <p class="d">世界最高峰のサーカス、シルク・ドゥ・ソレイユのオーディションで披露した、究極のスピード、ダブルダッチでの新たな表現を追求した作品。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:20%">
+    <div class="act ph" style="--fy:5%">
       <div class="bg" style="background-image:url(assets/lineup/homecoming.jpg)"></div>
       <div class="tx">
         <span class="badge teal">完全新作</span>
@@ -488,7 +513,7 @@
         <p class="d">一年中海外で活動しているメンバーが、この日のために帰ってくる。過去の実績ではなく、この夜のためだけに作られた完全新作。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:16%">
+    <div class="act ph" style="--fy:15%">
       <div class="bg" style="background-image:url(assets/lineup/ddc-japan-2023.jpg)"></div>
       <div class="tx">
         <span class="badge teal">原点</span>
@@ -610,7 +635,7 @@
     <h2 id="c09" data-ch="09">読みもの</h2>
     <p class="lead">今日ここに至るまでを、本人たちの言葉で書いた記事が2本あります。開演前や帰り道にどうぞ。</p>
     <div class="reads">
-      <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fy:42%">
+      <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fx:20%;--fy:40%">
         <div class="bg" style="background-image:url(assets/reads/bgt.jpg)"></div>
         <div class="tx">
         <p class="t">体育館だと思っていた</p>
@@ -618,7 +643,7 @@
         <span class="go">読む →</span>
         </div>
       </a>
-      <a href="https://go-beyond.haribow.com/takumi.html" target="_blank" rel="noopener" style="--fy:46%">
+      <a href="https://go-beyond.haribow.com/takumi.html" target="_blank" rel="noopener" style="--fx:35%;--fy:55%">
         <div class="bg" style="background-image:url(assets/reads/takumi.jpg)"></div>
         <div class="tx">
         <p class="t">100回、聞いた話</p>
@@ -670,10 +695,15 @@
     <a class="vlk" id="voteGo" href="oshi.html" hidden>出演者のページを見る →</a>
   </section>
 
+  <!-- 座右の銘の壁（2026-09-16）。上下の並びは下の MOTTO_WALL が作る。
+       ★ここに無い人は座右の銘が未提出（名鑑の a.m と同じ）。届いたら MOTTO_WALL に1行足す -->
+  <div class="mw" id="mwTop" aria-hidden="true"></div>
   <div class="closing">
     <p>この公演は、到達点ではありません。</p>
     <p class="big">物語は、まだ続きます。</p>
   </div>
+  <div class="mw" id="mwBot" aria-hidden="true"></div>
+  <p class="mw-cap">出演者が自分の手で書いた座右の銘です。</p>
 
   <div class="after">
     <p class="t">この続きは</p>
@@ -779,6 +809,36 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
         + (d.intermission ? '休憩があります。' : '<b>休憩はありません。</b>お手洗いは開演前にお済ませください。');
     })
     .catch(function(){ /* 出さないだけ。演目の並びは初期値のまま読める */ });
+})();
+
+
+/* ---------- 座右の銘の壁（2026-09-16） ----------
+   [ID, 縦書きか, 高さの倍率, 傾き(deg), 濃さ]。値は固定。見た目を変えるならここだけ触る。
+   高さは「1行ぶん38px×倍率」。2行の銘は1.4前後、3行は1.9前後にして字の大きさを揃えている。
+   縦書き(16・21・22・23)は上段と下段に2本ずつ散らして、横書きの行の間に柱として立てる。
+   ★並び順に意味は無い。上演順・名前順にすると「序列」に読めるので、わざと混ぜている */
+var MOTTO_WALL = {
+  top: [['02',0,1.45,-2,.85],['16',1,1,0,.7],['08',0,.9,1.5,.62],['13',0,1.45,-1,.75],
+        ['21',1,.85,1,.8],['17',0,1.85,2,.72],['03',0,.9,-1.5,.72],['26',0,.95,1,.6],
+        ['10',0,.9,-2,.78],['07',0,2,0,.74],['30',0,.8,2,.62]],
+  bot: [['12',0,1.45,1.5,.8],['22',1,1.05,0,.62],['19',0,1.4,-1,.74],['01',0,.85,2,.65],
+        ['28',0,1.4,-1.5,.95],['09',0,1.1,1,.78],['23',1,.95,-1,.7],['15',0,.9,-2,.66],
+        ['20',0,1.3,1,.7],['14',0,1.4,-1,.92],['04',0,1.1,1.5,.72],['31',0,.9,-1,.64]]
+};
+(function(){
+  function draw(id, rows){
+    var box = document.getElementById(id);
+    if(!box) return;
+    box.innerHTML = rows.map(function(m){
+      var h = m[1] ? Math.round(118*m[2]) : Math.round(38*m[2]);
+      return '<img src="assets/cast/'+m[0]+'/motto.png" alt="" loading="lazy" decoding="async"'
+        + (m[1] ? ' class="tate"' : '')
+        + ' style="--h:'+h+'px;--r:'+m[3]+'deg;--o:'+m[4]+'"'
+        + ' onerror="this.remove()">';
+    }).join('');
+  }
+  draw('mwTop', MOTTO_WALL.top);
+  draw('mwBot', MOTTO_WALL.bot);
 })();
 
 /* ---------- 当日の帯（2026-09-16） ----------
