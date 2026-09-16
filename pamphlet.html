@@ -38,6 +38,8 @@
     --serif:"Instrument Serif","Hiragino Mincho ProN",Georgia,serif;
   }
   *{box-sizing:border-box}
+  /* hidden 属性はクラスの display に負ける。.vlk[hidden] が出てしまったので全体で止める */
+  [hidden]{display:none!important}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--gothic);
     font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.85}
   .wrap{max-width:640px;margin:0 auto;padding:0 16px 80px}
@@ -61,6 +63,31 @@
   .hero .info{font-size:13px;color:#b8c6ca;line-height:1.95;margin-top:18px;padding-top:14px;
     border-top:1px solid rgba(242,239,230,.28);
     box-shadow:0 -3px 0 -2px rgba(242,239,230,.28)}   /* 2本目の罫＝縄 */
+
+  /* ---------- 終演後アンケート（2026-09-16） ----------
+     選ぶ前はボタン、選んだあとは同じ位置に棒が出る。画面の高さが変わらないので
+     「押したら別のものが出てきた」感じにならない。 */
+  .vote{display:grid;gap:7px}
+  .vote button{display:block;width:100%;text-align:left;background:none;color:var(--ink);
+    font-family:var(--gothic);font-size:14.5px;line-height:1.5;
+    border:1px solid var(--line);border-radius:2px;padding:13px 15px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent}
+  .vote button:hover,.vote button:active{border-color:rgba(99,182,204,.55);color:var(--main)}
+  .vote button[disabled]{opacity:.45;cursor:default}
+  .vote .bar{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:2px;
+    padding:13px 15px;font-size:14px}
+  .vote .bar .fill{position:absolute;left:0;top:0;bottom:0;z-index:0;
+    background:rgba(99,182,204,.14);transition:width .5s ease}
+  .vote .bar.mine{border-color:rgba(99,182,204,.6)}
+  .vote .bar.mine .fill{background:rgba(99,182,204,.28)}
+  .vote .bar .t{position:relative;z-index:1;display:flex;align-items:baseline;
+    justify-content:space-between;gap:12px}
+  .vote .bar .t em{font-style:normal;color:var(--dim)}
+  .vote .bar.mine .t em{color:var(--ink)}
+  .vote .bar .t b{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--main);
+    white-space:nowrap}
+  .vlk{display:inline-block;margin-top:14px;font-size:13.5px;color:var(--main);
+    text-decoration:none;border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
 
   /* ---------- ごあいさつ ----------
      ここだけ本文を明朝にする。手紙として読ませたいので行間も広く取る */
@@ -341,6 +368,18 @@
     <a href="#c10"><b>10</b>支えてくださった皆さま</a>
     <a href="#c11"><b>11</b>公演情報</a>
   </nav>
+
+  <!-- 終演後アンケート（2026-09-16）。終演から15分あとに出る。?vote=1 で確認用に出せる。
+       ★選択肢をここに書かない。GAS の page=vote が『構成台本』から作って返すものをそのまま使う。
+         ここに演目名を書き写すと、台本を直したときに選択肢だけ古くなる。
+       ★公演前は丸ごと出ない。当日までは目次にも載せていない。 -->
+  <section id="voteSec" hidden>
+    <h2>今日はどうでしたか</h2>
+    <p class="lead" id="voteLead">いちばん記憶に残った演目を1つ選んでください。結果はその場で出ます。</p>
+    <div class="vote" id="voteList"></div>
+    <p class="note" id="voteNote"></p>
+    <a class="vlk" id="voteGo" href="oshi.html" hidden>出演者のページを見る →</a>
+  </section>
 
   <!-- 電子チケット（2026-09-07追加）。?t=トークン 付きで開いたときだけ出す。
        トークンが無ければ丸ごと隠れるので、公開URLのままでも普通のパンフレットとして成立する。
@@ -727,7 +766,7 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
 
       /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る */
       if(d.end){
-        SHOW_END_ = d.end; renderToday_();   /* 帯の「上演中」の終わりも台本に合わせる */
+        SHOW_END_ = d.end; renderToday_(); initVote_();   /* 帯とアンケートの境目も台本に合わせる */
         var dt = document.getElementById('endDt'), dd = document.getElementById('endTime');
         dd.innerHTML = esc(d.end) + 'ごろの予定です'
           + '<span style="color:var(--faint);font-size:12.5px"><br>進行により前後します。</span>';
@@ -792,6 +831,97 @@ function renderToday_(){
   box.hidden = false;
 }
 renderToday_();
+
+/* ---------- 終演後アンケート（2026-09-16） ----------
+   拍手が鳴り止んだ直後がいちばん熱が高いのに、これまで観客の側から出せるものが無かった。
+   1タップで1票入れて、その場で全体の集計が返る。
+   ★選択肢はサーバー（page=vote）が『構成台本』から作って返すものをそのまま出す。
+     ここに演目名を書き写すと、台本を直したときに選択肢だけ古くなる。
+   ★開くのは終演＋15分から。開演前・上演中は section ごと出さない。
+   ★押し直しはサーバー側で上書きになる（同じ識別子の票は行が増えない）。 */
+var voteReady_ = false;
+
+function initVote_(){
+  if(voteReady_) return;
+  var sec = document.getElementById('voteSec');
+  if(!sec) return;
+
+  var force = new URLSearchParams(location.search).get('vote') === '1';
+  if(!force){
+    var ep = SHOW_END_.split(':');
+    if(jstNow_() < jst_(9,29, Number(ep[0]), Number(ep[1]) + 15)) return;
+  }
+  voteReady_ = true;
+
+  var list = document.getElementById('voteList'),
+      lead = document.getElementById('voteLead'),
+      note = document.getElementById('voteNote'),
+      go   = document.getElementById('voteGo');
+
+  /* 端末ごとの使い捨てID。チケットのトークンがあればそちらを鍵にする。
+     どちらもサーバー側でハッシュにしてから記録される（生の値はシートに残らない）。 */
+  function vid(){
+    var v = '';
+    try{ v = localStorage.getItem('hb_vote_id') || ''; }catch(err){}
+    if(!v){
+      v = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+      try{ localStorage.setItem('hb_vote_id', v); }catch(err){}
+    }
+    return v;
+  }
+
+  function showBars(d){
+    var items = (d.items||[]).slice().sort(function(a,b){ return b.n - a.n; });
+    list.innerHTML = items.map(function(x){
+      var me = (x.label === d.mine);
+      return '<div class="bar' + (me ? ' mine' : '') + '">'
+           +   '<span class="fill" style="width:' + (x.n ? Math.max(x.pct,2) : 0) + '%"></span>'
+           +   '<span class="t"><em>' + esc(x.label) + '</em><b>' + x.pct + '%</b></span>'
+           + '</div>';
+    }).join('');
+    lead.textContent = d.mine ? 'ありがとうございます。いまの結果です。' : 'いまの結果です。';
+    note.textContent = d.total + '票';
+    go.hidden = !d.mine;
+    if(TOKEN) go.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+  }
+
+  function showButtons(d){
+    list.innerHTML = (d.items||[]).map(function(x){
+      return '<button type="button" data-l="' + esc(x.label) + '">' + esc(x.label) + '</button>';
+    }).join('');
+    [].forEach.call(list.querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){
+        [].forEach.call(list.querySelectorAll('button'), function(o){ o.disabled = true; });
+        note.textContent = '送信しています…';
+        var body = { survey:'show_vote', label:b.getAttribute('data-l'), id:vid() };
+        if(TOKEN) body.t = TOKEN;
+        fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+                      body: JSON.stringify(body) })
+          .then(function(r){ return r.json(); })
+          .then(function(res){
+            if(res && res.ok) showBars(res);
+            else { showButtons(d); note.textContent = '送信できませんでした。もう一度お試しください。'; }
+          })
+          .catch(function(){
+            showButtons(d);
+            note.textContent = '送信できませんでした。電波の届くところでもう一度お試しください。';
+          });
+      });
+    });
+  }
+
+  fetch(BASE + '?page=vote&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok || !d.items || !d.items.length) return;   /* 出さないだけ */
+      sec.hidden = false;
+      showButtons(d);
+    })
+    .catch(function(){ /* 出さない。アンケートが無くてもパンフレットは読める */ });
+}
+
+/* 台本の取得を待たずに一度試す。取れたら上の .then からもう一度呼ばれる（2回目は素通り） */
+initVote_();
 
 /* ---------- まばたきの装置（2026-09-16） ----------
    125ms × 8回 = 1秒。この3つの数字はCSSのキーフレームと対になっている。
