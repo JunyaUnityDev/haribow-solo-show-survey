@@ -764,11 +764,22 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
       if(lead) lead.textContent =
         '全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。番号は当日の上演順です。';
 
-      /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る */
+      /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る
+         ★お客さんに見せる終演時刻は5分単位に切り上げる（2026-09-17 山本大方の依頼・坂田了承）。
+           20:44 のような半端な時刻だと押し巻きを勘繰られるうえ、見栄えもよくない。
+           切り上げ（0捨1入）なので、予定より早く終わることはあっても遅く見せることはない。
+           帯の「上演中→終演後」の切り替え（SHOW_END_）は実際の時刻のまま使う。
+           構成台本エディタ（lineup.html）は運営用なので分単位のまま */
+      function ceil5_(hhmm){
+        var p = String(hhmm).split(':'), t = Number(p[0])*60 + Number(p[1]);
+        if(!isFinite(t)) return hhmm;
+        t = Math.ceil(t/5)*5;
+        return Math.floor(t/60) + ':' + ('0' + t%60).slice(-2);
+      }
       if(d.end){
         SHOW_END_ = d.end; renderToday_();   /* 帯の「上演中」の終わりも台本に合わせる */
         var dt = document.getElementById('endDt'), dd = document.getElementById('endTime');
-        dd.innerHTML = esc(d.end) + 'ごろの予定です'
+        dd.innerHTML = esc(ceil5_(d.end)) + 'ごろの予定です'
           + '<span style="color:var(--faint);font-size:12.5px"><br>進行により前後します。</span>';
         dt.hidden = false; dd.hidden = false;
       }
