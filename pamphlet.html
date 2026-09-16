@@ -185,49 +185,11 @@
   .qa .b .cap{display:block;margin-top:10px;font-size:12px;color:var(--faint)}
   .qa .lk{display:inline-block;margin-top:12px;font-size:13.5px;color:var(--main);
     text-decoration:none;border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
-  /* 数字を主役にする。本文に混ぜず、独立した行にして大きく出す */
-  .fig{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:14px 0 10px}
-  .fig .v{font-family:var(--serif);font-size:clamp(36px,11vw,44px);line-height:.9;color:var(--ink)}
-  .fig .u{font-size:13px;color:var(--dim)}
-  .fig .vs{font-size:12.5px;color:var(--faint);width:100%;margin-top:2px}
   .voices{display:flex;flex-direction:column;gap:0;margin-top:12px}
   .voices div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
     font-size:13px;color:var(--dim);border-top:1px solid var(--line);padding:9px 0}
   .voices b{font-family:var(--serif);color:var(--rope);font-weight:400;
     font-size:19px;white-space:nowrap}
-
-  /* ---------- まばたきの装置（2026-09-16） ----------
-     「1秒に約8回」を文字で読ませず、1秒だけ実際に見せる。
-     ★自動では絶対に動かさない（押した時だけ）。勝手に動く帯は読む邪魔になる
-     ★縄は8回、まばたきは1回。両方を同じ1秒に重ねることが説明そのもの。
-       周期を変えると意味が壊れるので、125ms と 8 と 1000ms は触らないこと */
-  .blink{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
-  .blink .row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-  .blink .lb{font-size:12px;color:var(--faint);width:70px;flex:0 0 70px}
-  /* 帯は「入力欄」に見せない。枠線を持たせず、上下の細い線だけで通り道にする */
-  .blink .band{position:relative;flex:1;height:34px;overflow:hidden;border-radius:2px;
-    background:linear-gradient(180deg,#040809,#0a1114);
-    border-top:1px solid rgba(99,182,204,.16);border-bottom:1px solid rgba(99,182,204,.16)}
-  /* 止まっている時も縄は薄く見えている。どこを通るのかが分かってから動き出す */
-  .blink .rope{position:absolute;left:0;right:0;top:14px;height:5px;
-    border-top:1px solid var(--rope);border-bottom:1px solid var(--rope);opacity:.2}
-  .blink .eye{position:absolute;inset:0;background:
-    radial-gradient(120% 150% at 50% 50%,rgba(242,239,230,.22),rgba(242,239,230,.05) 68%,transparent)}
-  .blink .lid{position:absolute;inset:0;background:#040809;opacity:0}
-  .blink.run .rope{animation:ropepass 125ms linear 8}
-  .blink.run .lid{animation:eyeshut 1000ms linear 1}
-  @keyframes ropepass{from{transform:translateY(-22px);opacity:1}to{transform:translateY(24px);opacity:1}}
-  @keyframes eyeshut{0%,39%{opacity:0}42%,52%{opacity:1}55%,100%{opacity:0}}
-  .blink .btn{display:inline-block;margin-top:4px;background:none;color:var(--main);
-    border:1px solid rgba(99,182,204,.5);border-radius:2px;padding:9px 16px;
-    font-family:var(--gothic);font-size:13.5px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .blink .btn[disabled]{opacity:.45;cursor:default}
-  .blink .out{font-size:12.5px;color:var(--faint);margin:10px 0 0;min-height:1.6em}
-  .blink .out b{font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:400}
-  @media (prefers-reduced-motion:reduce){
-    .blink .btn,.blink .row{display:none}
-    .blink .out{color:var(--dim)}
-  }
 
   /* ---------- 出演者 ----------
      名前は押すとプロフィールが開く（2026-09-08）。中身は推し診断（oshi.html）の
@@ -403,20 +365,21 @@
   </div>
 
   <!-- 目次（2026-09-16）。11章まで増えたので、読む前に全体が見えるようにする。
-       番号は h2 の data-ch と対。章を足したら両方直すこと（自動では振っていない）。 -->
+       番号は h2 の data-ch と対。章を足したら両方直すこと（自動では振っていない）。
+       ★2026-09-16「何が難しいのか」（旧04）を削除（JUNYA：スピードだけに寄せるのはおかしい）。
+         表示の番号は詰めたが、id は c05〜c12 のまま（外から #c06 等でリンクされているため変えない）。 -->
   <nav class="toc">
     <a href="#c01"><b>01</b>ごあいさつ</a>
     <a href="#c02"><b>02</b>当日のご案内</a>
     <a href="#c03"><b>03</b>本日の演目</a>
-    <a href="#c04"><b>04</b>何が難しいのか</a>
-    <a href="#c05"><b>05</b>誰を見ればいいか</a>
-    <a href="#c06"><b>06</b>出演者</a>
-    <a href="#c07"><b>07</b>はじめての方へ</a>
-    <a href="#c08"><b>08</b>これまで</a>
-    <a href="#c09"><b>09</b>読みもの</a>
-    <a href="#c10"><b>10</b>支えてくださった皆さま</a>
-    <a href="#c11"><b>11</b>公演情報</a>
-    <a href="#c12"><b>12</b>今日はどうでしたか</a>
+    <a href="#c05"><b>04</b>誰を見ればいいか</a>
+    <a href="#c06"><b>05</b>出演者</a>
+    <a href="#c07"><b>06</b>はじめての方へ</a>
+    <a href="#c08"><b>07</b>これまで</a>
+    <a href="#c09"><b>08</b>読みもの</a>
+    <a href="#c10"><b>09</b>支えてくださった皆さま</a>
+    <a href="#c11"><b>10</b>公演情報</a>
+    <a href="#c12"><b>11</b>今日はどうでしたか</a>
   </nav>
 
   <!-- 電子チケット（2026-09-07追加）。?t=トークン 付きで開いたときだけ出す。
@@ -548,54 +511,10 @@
     </div>
   </section>
 
-  <!-- 難度翻訳（2026-09-16追加）。観客OS_設計 2-2「演目と、その難しさ」。
-       大会名・賞は社会的証明で、読む人の身体には届かない。自分の身体で「無理だ」と分かる
-       材料だけを置く。数字の正典は org/profile.md「難度翻訳の素材」（2026-08-11 JUNYA確認）。
-       ★書くと事故るもの（同ファイルに明記）：
-         ・「4分×8回＝約2,000回」… 8回/秒は局面の数字。常時この速さではない
-         ・「目では1本ずつ追えない」… ちらつき融合限界は50〜60Hzなので嘘になる
-         ・「8回跳ぶ」… 8回は縄の回転であって跳ぶ回数ではない
-       ★「ずっとこの速さではない」の一文は誇張への歯止め。消さないこと。 -->
-  <section>
-    <h2 id="c04" data-ch="04">何が難しいのか</h2>
-    <p class="lead">大会の名前や順位は結果の記録です。ここには目に見えるほうを書いておきます。</p>
-    <div class="qa">
-      <div class="b">
-        <p class="t">「スピード」は種目の名前です</p>
-        <p>ダブルダッチには規定・スピード・フリースタイル・フュージョンという4つの種目があります。スピードはそのうちの1つです。速さを表す言葉ではありません。今夜の舞台にも随所に入っています。</p>
-      </div>
-      <div class="b">
-        <p class="t">まばたき1回のあいだに縄が1本、足の下を通り抜けます</p>
-        <div class="fig">
-          <span class="v">125</span><span class="u">ミリ秒 ／ 縄1回ぶん</span>
-          <span class="vs">縄は1秒に約8回まわります。人のまばたき1回がおよそ100〜150ミリ秒です。</span>
-        </div>
-        <p>ずっとこの速さで進むわけではありません。ただしその場面は必ず来ます。足元が見どころです。</p>
-        <!-- 1秒だけ実物の速さを見せる装置（2026-09-16）。
-             上の帯＝縄が8回通る。下の帯＝まばたき1回で視界が閉じる。同じ1秒に重ねている。
-             ★文言は「〜だけ」「〜してください」を使わない（客席への指示・矮小化になるため）。
-             ★125ms・8回・1000ms は org/profile.md の実数と対。ここを変えると説明が嘘になる
-             ★自動再生しない。押した時だけ動く。 -->
-        <div class="blink" id="blink">
-          <div class="row"><span class="lb">縄</span>
-            <div class="band"><div class="rope"></div></div></div>
-          <div class="row"><span class="lb">まばたき</span>
-            <div class="band"><div class="eye"></div><div class="lid"></div></div></div>
-          <button class="btn" type="button" id="blinkBtn">縄を1秒まわす</button>
-          <p class="out" id="blinkOut">押すと1秒動きます。縄は8回。まばたきは1回です。</p>
-        </div>
-      </div>
-      <div class="b">
-        <p class="t">この数分のために、10年</p>
-        <p>今夜舞台に立つ31人のうち半数以上が競技歴10年以上です。</p>
-      </div>
-    </div>
-  </section>
-
   <!-- 推し診断への導線（2026-09-07追加）。出演者一覧の直前に置く：
        31名の名前を先に見せると覚えられずに流されるので、3人に絞る側を先に出す。 -->
   <section>
-    <h2 id="c05" data-ch="05">誰を見ればいいか</h2>
+    <h2 id="c05" data-ch="04">誰を見ればいいか</h2>
     <a class="oshi" id="oshiLink" href="oshi.html">
       <p class="t">31人は、多いですか？</p>
       <p class="d">4つの質問に答えると、今日あなたが見る3人と「何を探すか」が出ます。1分で終わります。</p>
@@ -604,7 +523,7 @@
   </section>
 
   <section>
-    <h2 id="c06" data-ch="06">出演者</h2>
+    <h2 id="c06" data-ch="05">出演者</h2>
     <p class="lead">お名前を押すとプロフィールが開きます。</p>
     <div class="cast" id="cast"></div>
     <p class="note">※ 出演者・演目は変更になる場合があります。</p>
@@ -620,7 +539,7 @@
        2026-09-16に西川世那の回答が入り、4つめの答え「静かに見ててほしい」が1人出た。
        人数が変わったら数え直すこと。1つの版で固定した数字なので自動では動かない。 -->
   <section>
-    <h2 id="c07" data-ch="07">はじめての方へ</h2>
+    <h2 id="c07" data-ch="06">はじめての方へ</h2>
     <p class="lead">決まった作法はありません。知らなくても困らないことを2つ書いておきます。</p>
     <div class="qa">
       <div class="b">
@@ -644,7 +563,7 @@
   </section>
 
   <section>
-    <h2 id="c08" data-ch="08">HARIBOWのこれまで</h2>
+    <h2 id="c08" data-ch="07">HARIBOWのこれまで</h2>
     <div class="achv">
       <div><b>ダブルダッチ、世界の頂点</b>2025 IJRU世界選手権 優勝（世界30カ国以上が集う舞台で世界一に）</div>
       <div><b>世界のタレントショー</b>Britain's Got Talent で史上初の“観客ゴールデンブザー”、決勝進出。イタリア・スペイン・フランスのタレントショーにも出演</div>
@@ -656,7 +575,7 @@
   </section>
 
   <section>
-    <h2 id="c09" data-ch="09">読みもの</h2>
+    <h2 id="c09" data-ch="08">読みもの</h2>
     <p class="lead">今日ここに至るまでを、本人たちの言葉で書いた記事が2本あります。開演前や帰り道にどうぞ。</p>
     <div class="reads">
       <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fy:42%">
@@ -679,7 +598,7 @@
   </section>
 
   <section>
-    <h2 id="c10" data-ch="10">支えてくださった皆さま</h2>
+    <h2 id="c10" data-ch="09">支えてくださった皆さま</h2>
     <div class="thanks">
       <p style="margin:0;font-size:13.5px;color:var(--dim)">サポーター券・応援金で背中を押してくださった皆さまです。</p>
       <div class="names" id="thanksNames"><span class="empty">読み込んでいます…</span></div>
@@ -687,7 +606,7 @@
   </section>
 
   <section>
-    <h2 id="c11" data-ch="11">公演情報</h2>
+    <h2 id="c11" data-ch="10">公演情報</h2>
     <div class="info-card">
       <dl style="margin:0">
         <dt>日時</dt>
@@ -712,7 +631,7 @@
        ★選択肢をここに書かない。GAS の page=vote が『構成台本』から作って返すものをそのまま使う。
        ★取得に失敗したら section ごと出さない（hidden のまま）。 -->
   <section id="voteSec" hidden>
-    <h2 id="c12" data-ch="12">今日はどうでしたか</h2>
+    <h2 id="c12" data-ch="11">今日はどうでしたか</h2>
     <p class="lead" id="voteLead">いちばん記憶に残った演目を1つ選んでください。結果はその場で出ます。</p>
     <div class="vote" id="voteList"></div>
     <p class="note" id="voteNote"></p>
@@ -1003,40 +922,6 @@ function initVote_(){
 }
 
 initVote_();
-
-/* ---------- まばたきの装置（2026-09-16） ----------
-   125ms × 8回 = 1秒。この3つの数字はCSSのキーフレームと対になっている。
-   片方だけ変えると、画面の動きと本文の説明が食い違う。
-   ★自動再生しない。読んでいる最中に勝手に動く帯は、ただの邪魔になる。 */
-(function(){
-  var box = document.getElementById('blink'),
-      btn = document.getElementById('blinkBtn'),
-      out = document.getElementById('blinkOut');
-  if(!box || !btn || !out) return;
-
-  /* 動きを減らす設定の人には、同じ内容を文章で出して装置ごと隠す（CSS側で row と btn を消す） */
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    out.textContent = '1秒のあいだに、縄は8回まわります。まばたきは、そのうちの1回ぶんです。';
-    return;
-  }
-
-  btn.addEventListener('click', function(){
-    if(box.classList.contains('run')) return;
-    btn.disabled = true;
-    out.innerHTML = '<b>0</b> 回';
-    box.classList.add('run');
-
-    var n = 0;
-    var tick = setInterval(function(){ n++; if(n<=8) out.innerHTML = '<b>'+n+'</b> 回'; }, 125);
-    setTimeout(function(){
-      clearInterval(tick);
-      box.classList.remove('run');
-      out.innerHTML = '<b>8</b> 回。いまの1秒です。まばたき1回のあいだに、縄が1本、通り抜けました。';
-      btn.disabled = false;
-      btn.textContent = 'もう1回';
-    }, 1000);
-  });
-})();
 
 /* 支援者のお名前は毎日変わるのでGASから取る（手で更新すると必ず古くなる） */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
