@@ -127,6 +127,26 @@
   .reads .d{font-size:13.5px;color:var(--dim);margin:0;line-height:1.85}
   .reads .go{display:inline-block;margin-top:10px;font-size:13.5px;font-weight:800;color:var(--main)}
 
+  /* 難度翻訳と作法の2章（2026-09-16）。どちらも「カード＋短文」で同じ骨格なので1つの型を共用する。
+     ★数字の出どころは org/profile.md「難度翻訳の素材」。ここで数字をいじらないこと。
+       とくに「1秒に約8回」は縄の回転であって跳ぶ回数ではなく、常時この速さでもない。 */
+  .qa{display:grid;gap:10px}
+  .qa .b{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:15px 17px;box-shadow:var(--shadow)}
+  .qa .b .t{font-size:15px;font-weight:800;margin:0 0 6px;color:var(--ink)}
+  .qa .b p{margin:0;font-size:13.5px;color:var(--dim)}
+  .qa .b p+p{margin-top:8px}
+  .qa .b .big{font-size:15.5px;font-weight:800;color:var(--ink);line-height:1.7}
+  .qa .b .cap{display:block;margin-top:9px;font-size:12px;color:var(--faint)}
+  .qa .lk{display:inline-block;margin-top:11px;font-size:13.5px;font-weight:800;
+    color:var(--main);text-decoration:none}
+  /* 本人の回答の内訳。31人に一律のルールを敷かないことが、この章の中身そのもの */
+  .voices{display:flex;flex-direction:column;gap:7px;margin-top:11px}
+  .voices div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    font-size:13px;color:var(--dim);border-bottom:1px dashed var(--line);padding-bottom:6px}
+  .voices div:last-child{border-bottom:0;padding-bottom:0}
+  .voices b{color:var(--main);font-weight:800;font-size:13.5px;white-space:nowrap}
+
   footer{margin-top:34px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2}
   footer a{color:var(--main)}
   .note{font-size:11.5px;color:var(--faint);margin-top:8px}
@@ -187,6 +207,11 @@
       画面が開けない場合も、受付でお名前をお伝えいただければご入場いただけます。</p>
   </section>
 
+  <!-- ★ごあいさつは本人の言葉に差し替える枠（2026-09-16）。
+       下の <p class="lead"> の中身だけを入れ替える。署名行とセクションの構造は触らなくていい。
+       目安は280〜380字（スマホで2スクロール以内）。改行は <br> で入る。
+       ※現行文は2026-07-27に置いた仮文。2026-08-23／08-27の監査で「AI仮文のまま」と
+         指摘され、そのまま残っている。差し替えるまでは公開面が欠けないようここに置いておく。 -->
   <section>
     <h2>ごあいさつ</h2>
     <p class="lead">
@@ -293,6 +318,34 @@
     </div>
   </section>
 
+  <!-- 難度翻訳（2026-09-16追加）。観客OS_設計 2-2「演目と、その難しさ」。
+       大会名・賞は社会的証明で、読む人の身体には届かない。自分の身体で「無理だ」と分かる
+       材料だけを置く。数字の正典は org/profile.md「難度翻訳の素材」（2026-08-11 JUNYA確認）。
+       ★書くと事故るもの（同ファイルに明記）：
+         ・「4分×8回＝約2,000回」… 8回/秒は局面の数字。常時この速さではない
+         ・「目では1本ずつ追えない」… ちらつき融合限界は50〜60Hzなので嘘になる
+         ・「8回跳ぶ」… 8回は縄の回転であって跳ぶ回数ではない
+       ★「ずっとこの速さではない」の一文は誇張への歯止め。消さないこと。 -->
+  <section>
+    <h2>何が難しいのか</h2>
+    <p class="lead">大会の名前や順位は、誰かが「すごい」と言った記録です。ここには、その場で見て分かるほうを書いておきます。</p>
+    <div class="qa">
+      <div class="b">
+        <p class="t">「スピード」は、速さのことではありません</p>
+        <p>ダブルダッチには規定・スピード・フリースタイル・フュージョンという4つの種目があります。スピードはそのうちの1つ、種目の名前です。今夜の舞台にも、随所に入っています。</p>
+      </div>
+      <div class="b">
+        <p class="t">まばたき1回のあいだに、縄が1本、足の下を通り抜けます</p>
+        <p class="big">縄は1秒に約8回まわります。1回あたり125ミリ秒。<br>人のまばたき1回が、およそ100〜150ミリ秒です。</p>
+        <p>ずっとこの速さで進むわけではありません。ただ、その場面は必ず来ます。来たら、足元を見てください。</p>
+      </div>
+      <div class="b">
+        <p class="t">この数分のために、10年</p>
+        <p>今夜舞台に立つ31人のうち、半数以上が10年以上跳んできた選手です。数分の演技の後ろに、その時間があります。</p>
+      </div>
+    </div>
+  </section>
+
   <!-- 推し診断への導線（2026-09-07追加）。出演者一覧の直前に置く：
        31名の名前を先に見せると覚えられずに流されるので、3人に絞る側を先に出す。 -->
   <section>
@@ -309,6 +362,37 @@
     <p class="lead">お名前を押すと、その人のプロフィールが開きます。</p>
     <div class="cast" id="cast"></div>
     <p class="note">※ 出演者・演目は変更になる場合があります。</p>
+  </section>
+
+  <!-- はじめての方へ（2026-09-16追加）。観客OS_設計 2-2「はじめての方へ」＝E-1 作法不明。
+       トーンの指定は設計にある通り「知らなくても大丈夫だが、知っていると段違い」で、
+       ★強制の匂いを出さない。「〜しましょう」「ぜひ〜してください」は使わない。
+       ★声の可否を会場ルールとして断定しない（めぐろパーシモンへの確認は未完了。
+         推し診断_設計 §5 の加藤周平 確認事項）。ここで書いているのは本人の回答であって、
+         会場の許可ではない。会場ルールが確定したら、その時に一段足す。
+       内訳の数字は cast_data.js の c フィールドの実数（回答27／未回答4）。
+       人数が変わったら数え直すこと。1つの版で固定した数字なので自動では動かない。 -->
+  <section>
+    <h2>はじめての方へ</h2>
+    <p class="lead">決まった作法はありません。知らなくても困らないことだけ、2つ書いておきます。</p>
+    <div class="qa">
+      <div class="b">
+        <p class="t">拍手</p>
+        <p>「ここで拍手」という合図は出しません。すごいと思った瞬間に叩いてください。演技の途中でも構いません。舞台の上には、ちゃんと聞こえています。</p>
+      </div>
+      <div class="b">
+        <p class="t">声</p>
+        <p>声を出していいかどうかは、出演者本人に聞いてあります。答えは人によって違いました。</p>
+        <div class="voices">
+          <div><span>名前、呼んでほしい</span><b>17人</b></div>
+          <div><span>手を振ってくれたら振り返す</span><b>8人</b></div>
+          <div><span>呼ばれたら嬉しいけど、恥ずかしい</span><b>2人</b></div>
+        </div>
+        <p class="cap">だから一律の決まりにはしていません。誰が何と答えたかは、ひとりずつのページに「呼びかけについて」として書いてあります。</p>
+        <a class="lk" id="mannerLink" href="oshi.html">出演者のページを見る →</a>
+      </div>
+    </div>
+    <p class="note">※ 撮影については「公演情報」に書いています。</p>
   </section>
 
   <section>
@@ -502,8 +586,10 @@ fetch(BASE+'?page=supporters')
    取れなかった時は黙って隠す：パンフレットとしては読めるので、赤いエラーで不安にさせない。 */
 if (TOKEN) {
   /* 推し診断へもトークンを渡す。どの注文の人が診断したか後で辿れる */
-  var ol = document.getElementById('oshiLink');
-  if (ol) ol.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+  ['oshiLink','mannerLink'].forEach(function(id){
+    var ol = document.getElementById(id);
+    if (ol) ol.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+  });
   /* 出演者一覧からのプロフィールにもトークンを渡す（診断への導線と揃える） */
   document.querySelectorAll('#cast a').forEach(function(a){
     a.href += '&t=' + encodeURIComponent(TOKEN);
