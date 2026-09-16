@@ -3,246 +3,321 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>推し診断 ｜ HARIBOW「Go BEYOND」</title>
+<title>出演者 ｜ HARIBOW単独公演「Go BEYOND」</title>
 <meta name="description" content="31人は多いですか？ あなたが今日見る3人と、その人の何を探すかを渡します。">
-<meta name="theme-color" content="#0a0b0e">
+<meta name="theme-color" content="#070d10">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
-/* 公式サイト（go-beyond.haribow.com）のトークンをそのまま継承する。
-   別の見た目を作らない。同じ公演の続きの画面だと分かることが優先。 */
+/* ==================================================================
+   出演者プロフィール／推し診断（2026-09-16 全面改稿）
+   ★見た目の言語はデジタルパンフレット（pamphlet.html）に合わせる。
+     パンフレットの出演者名から開く画面なので、別のサイトに飛んだように見せない。
+     トークンは pamphlet.html の :root と同じ値。片方だけ変えないこと。
+   ★iOS Safari は transform を持つ祖先の中の <video> を描画しないことがある。
+     動画が入りうる .por とその祖先には transform / will-change を付けない（出現アニメは opacity だけ）。
+   ================================================================== */
 :root{
-  --bg:#0a0b0e; --bg2:#101218; --bg3:#161a22;
-  --ink:#f3f1ea; --dim:#a7adba; --faint:#6b7280;
-  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.18);
-  --teal:#63b6cc; --teal-d:#1f5b6e; --teal-dd:#132f3a; --cream:#f0ece0;
-  --disp:"Clash Display","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
-  --jp:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
-  --body:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  --bg:#070d10; --panel:#0d1519; --panel2:#111c21; --line:#1d282d; --line2:#2a383e;
+  --ink:#f2efe6; --dim:#98a4a8; --faint:#66747a;
+  --main:#63b6cc; --rope:#63b6cc; --sup:#c9a24b; --stage:#06222b;
+  --mincho:"Hiragino Mincho ProN","HiraMinProN-W3","Yu Mincho",YuMincho,"Noto Serif JP",serif;
+  --gothic:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:"Instrument Serif","Hiragino Mincho ProN",Georgia,serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
-body{
-  margin:0; background:var(--bg); color:var(--ink);
-  font-family:var(--body); font-feature-settings:"palt"; -webkit-font-smoothing:antialiased;
-  line-height:1.7; word-break:keep-all; overflow-wrap:anywhere;
-}
-.wrap{max-width:560px;margin:0 auto;padding:22px 20px calc(72px + env(safe-area-inset-bottom))}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--gothic);
+  font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.8;
+  word-break:keep-all;overflow-wrap:anywhere}
 img,video{max-width:100%;display:block}
-button{font-family:inherit}
-:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--main);outline-offset:3px}
+.wrap{max-width:560px;margin:0 auto;padding:22px 16px calc(80px + env(safe-area-inset-bottom))}
+.hide{display:none!important}
 
-/* ---- 共通のことば ---- */
-.ey{font-family:var(--disp);font-weight:600;letter-spacing:.3em;text-transform:uppercase;
-    font-size:10.5px;color:var(--teal)}
-.rule{height:1px;background:var(--line);border:0;margin:0}
+/* ---- 共通：ラベル（章の番号と同じ Instrument Serif）と、2本の罫＝縄 ---- */
+.ey{font-family:var(--serif);font-size:14px;letter-spacing:.12em;color:var(--rope)}
+.rope2{height:3px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0}
+.sec{margin:34px 0 0}
+.sec > .lb{display:flex;align-items:baseline;gap:10px;margin:0 0 14px;
+  font-family:var(--mincho);font-size:15px;font-weight:600;letter-spacing:.04em;color:var(--ink)}
+.sec > .lb::before{content:"";flex:0 0 5px;height:.95em;align-self:center;
+  border-left:1px solid var(--rope);border-right:1px solid var(--rope)}
+.sec > .lb small{margin-left:auto;font-family:var(--gothic);font-weight:400;font-size:11.5px;
+  color:var(--faint);letter-spacing:.02em}
 
-/* ---- 導入 ---- */
-.brand{height:34px;width:auto;opacity:.92;margin-bottom:26px}
-h1{font-family:var(--jp);font-weight:900;font-size:clamp(27px,7.4vw,38px);line-height:1.3;
-   margin:10px 0 12px;letter-spacing:.01em;text-wrap:balance}
-.lead{color:var(--dim);font-size:14.5px;margin:0 0 30px;max-width:34em}
-.lead b{color:var(--ink);font-weight:700}
-
-/* ---- 進捗（点ではなく1本の線。まだ何問残っているかだけ伝える） ---- */
+/* ================= 診断（入口） ================= */
+.brand{height:34px;width:auto;opacity:.85;margin-bottom:28px}
+h1{font-family:var(--mincho);font-weight:600;font-size:clamp(28px,8vw,38px);line-height:1.4;
+  margin:8px 0 14px;letter-spacing:.02em;text-wrap:balance}
+.lead{color:var(--dim);font-size:14.5px;margin:0 0 28px;max-width:34em}
+.lead b{color:var(--ink);font-weight:600}
 .rail{position:sticky;top:0;z-index:9;background:linear-gradient(var(--bg) 70%,transparent);
-      padding:10px 0 14px;margin:0 0 4px}
-.rail .bar{height:2px;background:var(--line);position:relative;overflow:hidden}
-.rail .bar i{position:absolute;inset:0 auto 0 0;background:var(--teal);width:0;transition:width .45s cubic-bezier(.2,.7,.3,1)}
-.rail .n{font-family:var(--disp);font-size:10.5px;letter-spacing:.24em;color:var(--faint);
-         margin-top:8px;display:block;font-variant-numeric:tabular-nums}
-
-/* ---- 設問 ---- */
-.q{margin:0 0 34px}
-.q h2{font-family:var(--jp);font-weight:700;font-size:19px;line-height:1.5;margin:8px 0 16px;letter-spacing:.01em}
+  padding:12px 0 14px;margin:0 0 6px}
+.rail .bar{height:3px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.rail .bar i{position:absolute;inset:-1px auto -1px 0;border-top:1px solid var(--rope);border-bottom:1px solid var(--rope);
+  width:0;transition:width .45s cubic-bezier(.2,.7,.3,1)}
+.rail .n{font-family:var(--serif);font-size:14px;letter-spacing:.1em;color:var(--faint);
+  margin-top:6px;display:block;font-variant-numeric:tabular-nums}
+.q{margin:0 0 38px}
+.q h2{font-family:var(--mincho);font-weight:600;font-size:19px;line-height:1.6;margin:4px 0 16px;letter-spacing:.02em}
 .q .sub{color:var(--faint);font-size:12.5px;margin:-10px 0 16px}
-.opts{display:flex;flex-direction:column;gap:9px}
-.opt{
-  appearance:none;background:var(--bg2);border:1px solid var(--line);color:var(--ink);
-  border-radius:2px;padding:16px 17px;font-size:15.5px;text-align:left;cursor:pointer;
-  line-height:1.5;transition:border-color .18s,background .18s,transform .18s;
-}
-.opt:hover{border-color:var(--line2);background:var(--bg3)}
-.opt[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-dd);color:var(--cream)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{appearance:none;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  border-radius:3px;padding:15px 16px;font-size:15px;text-align:left;cursor:pointer;line-height:1.55;
+  transition:border-color .18s,background .18s}
+.opt:hover{border-color:var(--line2)}
+.opt[aria-pressed="true"]{border-color:rgba(99,182,204,.7);background:var(--stage)}
 .opt .s{display:block;color:var(--faint);font-size:12px;margin-top:3px}
-.opt[aria-pressed="true"] .s{color:var(--teal)}
-select{
-  width:100%;margin-top:10px;background:var(--bg2);color:var(--ink);
-  border:1px solid var(--line);border-radius:2px;padding:14px 15px;font-size:15.5px;font-family:inherit;
-}
-.hide{display:none !important}
-
-.go{
-  width:100%;margin-top:8px;background:var(--teal);color:#06222b;border:0;border-radius:2px;
-  padding:17px;font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.16em;
-  text-transform:uppercase;cursor:pointer;transition:opacity .2s;
-}
-.go:disabled{opacity:.28;cursor:default}
-.ghost{
-  width:100%;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:2px;
-  padding:15px;font-family:var(--disp);font-weight:500;font-size:12.5px;letter-spacing:.16em;
-  text-transform:uppercase;cursor:pointer;margin-top:12px;
-}
+.opt[aria-pressed="true"] .s{color:var(--main)}
+select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);
+  border-radius:3px;padding:14px 15px;font-size:15.5px;font-family:inherit;-webkit-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.go{width:100%;margin-top:8px;background:var(--main);color:#06222b;border:0;border-radius:3px;padding:17px;
+  font-family:var(--mincho);font-weight:600;font-size:16px;letter-spacing:.1em;cursor:pointer;transition:opacity .2s}
+.go:disabled{opacity:.25;cursor:default}
+.ghost{width:100%;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:3px;
+  padding:15px;font-size:13.5px;letter-spacing:.06em;cursor:pointer;margin-top:12px}
 .ghost:hover{border-color:var(--line2);color:var(--ink)}
-
-/* ---- 結果カード ---- */
-.card{margin:0 0 40px}
-.card .hd{display:flex;align-items:baseline;gap:9px;margin-bottom:11px}
-.card .hd .via{font-size:11px;color:var(--faint);letter-spacing:.02em}
-.card .hd .via b{color:var(--teal);font-family:var(--disp);font-weight:600;letter-spacing:.06em}
-
-/* 肖像。顔が分からないと客席で見つけられないので、暗く沈めず素直に見せる
-   （ラインナップ写真を背景テクスチャとして沈める公式サイトのルールとは意図的に変える） */
-.por{position:relative;background:var(--bg2);border:1px solid var(--line);overflow:hidden;aspect-ratio:4/5}
-.por>img,.por>video{width:100%;height:100%;object-fit:cover}
-.por .scrim{position:absolute;inset:auto 0 0 0;height:62%;pointer-events:none;
-  background:linear-gradient(to top,rgba(8,9,12,.94) 6%,rgba(8,9,12,.55) 42%,transparent)}
-/* 写真がまだ無い人。灰色の人型を出さず、名前そのものを絵にする */
-.por.none{display:grid;place-items:center;background:
-  radial-gradient(120% 90% at 50% 0%,var(--teal-dd),var(--bg2))}
-.por.none span{font-family:var(--disp);font-weight:700;font-size:clamp(30px,10vw,52px);
-  color:rgba(243,241,234,.16);letter-spacing:.02em;padding:0 18px;text-align:center;line-height:1.05}
-.por .cap{position:absolute;inset:auto 0 0 0;padding:18px 18px 16px}
-.pn{font-family:var(--disp);font-weight:600;font-size:clamp(30px,8.4vw,42px);line-height:1;
-    margin:0;letter-spacing:.005em;text-shadow:0 2px 18px rgba(0,0,0,.6)}
-.kn{font-size:12px;color:var(--dim);margin:5px 0 0;letter-spacing:.06em}
-/* 再生ボタン。絵文字を使わず三角形だけ置く */
-.play{position:absolute;right:14px;top:14px;width:46px;height:46px;border-radius:50%;
-  border:1px solid var(--line2);background:rgba(10,11,14,.5);backdrop-filter:blur(6px);
-  display:grid;place-items:center;cursor:pointer;transition:background .2s,border-color .2s}
-.play:hover{background:rgba(10,11,14,.78);border-color:var(--teal)}
-.play svg{width:13px;height:15px;fill:var(--cream);margin-left:2px}
-
-.meta{display:flex;gap:10px;align-items:baseline;margin:12px 0 0;font-size:12px;color:var(--faint)}
-.meta .real{color:var(--dim)}
-.brag{font-size:14px;color:var(--dim);margin:9px 0 0}
-
-/* 探すもの＝この画面の主役。公演中に手を動かす唯一の場所なので一番強く出す */
-.task{display:flex;gap:13px;align-items:flex-start;margin:20px 0 0;padding:17px 17px 17px 16px;
-  background:var(--bg2);border:1px solid var(--line);border-left:2px solid var(--teal);border-radius:2px;
-  cursor:pointer;transition:background .2s}
-.task:hover{background:var(--bg3)}
-.task .box{flex:0 0 auto;width:19px;height:19px;border:1px solid var(--teal);border-radius:1px;
-  margin-top:3px;display:grid;place-items:center;transition:background .2s}
-.task .box svg{width:12px;height:12px;stroke:#06222b;stroke-width:2.6;fill:none;opacity:0;transition:opacity .15s}
-.task[data-done="1"] .box{background:var(--teal)}
-.task[data-done="1"] .box svg{opacity:1}
-.task .t{margin:0}
-.task .t .lb{display:block;font-family:var(--disp);font-weight:600;font-size:10px;letter-spacing:.24em;
-  text-transform:uppercase;color:var(--teal);margin-bottom:5px}
-.task .t p{margin:0;font-size:15px;line-height:1.65}
-/* 注釈。業界の言葉や固有名詞をそのまま残したいときに、意味だけ足す欄。
-   言い換えると本人の言葉でなくなるので、原文は変えずにここで補う（2026-09-07 坂田）。 */
-.task .t .note{display:block;margin-top:8px;padding-left:11px;border-left:2px solid var(--line);
-  font-size:11.5px;line-height:1.6;color:var(--dim)}
-.task .t .src{display:block;margin-top:7px;font-size:11px;color:var(--faint);letter-spacing:.02em}
-.task[data-done="1"] .t p{color:var(--dim)}
-
-/* 生の一言。カードで最初に目に入る場所。ここだけ大きく、他を静かにする */
-.hook{margin:18px 0 0;padding:0}
-.hook p{margin:0;font-family:var(--jp);font-weight:700;font-size:clamp(19px,4.9vw,23px);
-  line-height:1.55;letter-spacing:.005em;color:var(--cream);text-wrap:balance}
-.hook cite{display:block;margin-top:10px;font-family:var(--disp);font-weight:600;font-style:normal;
-  font-size:11px;letter-spacing:.16em;color:var(--teal)}
-.hook cite::before{content:"— "}
-.hook.self cite{color:var(--faint)}
-.facts{margin:16px 0 0;font-size:12px;color:var(--faint);line-height:1.9;letter-spacing:.01em}
-
-.gloss{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
-.gloss .lb{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--faint);margin-bottom:8px}
-.gloss p{margin:0 0 8px;font-size:12.5px;line-height:1.85;color:var(--dim)}
-.gloss p:last-child{margin-bottom:0}
-.gloss b{display:block;color:var(--ink);font-weight:700;font-size:13px}
-.fav-set{background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:16px;margin:0 0 30px}
-.fav-set .q2{margin:0 0 4px;font-family:var(--jp);font-weight:700;font-size:14.5px}
+.fav-set{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin:0 0 30px}
+.fav-set .q2{margin:0 0 2px;font-family:var(--mincho);font-weight:600;font-size:15px}
 .fav-set .note2{margin:8px 0 0;font-size:11.5px;color:var(--faint)}
-/* 相性の内訳。数字だけ出すと占いになるので、何が効いたかを必ず並べる */
-.rate{margin:16px 0 0;padding:15px 16px;background:var(--bg2);border:1px solid var(--line);
-  border-left:2px solid var(--teal);border-radius:2px}
-.rate .big{font-family:var(--disp);font-weight:700;font-size:34px;line-height:1;color:var(--teal);
-  font-variant-numeric:tabular-nums}
-.rate .big small{font-size:15px;margin-left:2px}
-.rate .lb2{font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--faint);display:block;margin-bottom:8px}
-.rate table{width:100%;border-collapse:collapse;margin-top:13px;font-size:12.5px}
-.rate td{padding:5px 0;vertical-align:top;border-top:1px solid var(--line)}
+.all-link{display:block;width:100%;margin:-14px 0 30px;background:none;border:0;padding:6px 0;
+  color:var(--main);font-size:13.5px;text-align:left;cursor:pointer}
+.all-link span{border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
+
+/* ================= 1人分のカード ================= */
+.card{margin:0 0 56px;animation:rise .6s cubic-bezier(.2,.7,.3,1) both}
+.card .hd{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.card .hd .via{font-size:11.5px;color:var(--faint)}
+@keyframes rise{from{opacity:0}to{opacity:1}}
+
+/* ---- 肖像 ----
+   顔が分からないと客席で見つけられないので、暗く沈めずそのまま見せる。
+   スマホでは画面の端まで出す（.wrap の左右16pxを打ち消す）。 */
+.por{position:relative;margin:0 -16px;aspect-ratio:4/5;overflow:hidden;background:var(--panel)}
+@media (min-width:592px){.por{margin:0;border:1px solid var(--line);border-radius:3px}}
+.por > img,.por > video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.por .scrim{position:absolute;inset:auto 0 0 0;height:58%;pointer-events:none;
+  background:linear-gradient(to top,var(--bg) 0%,rgba(7,13,16,.82) 30%,rgba(7,13,16,.3) 68%,transparent)}
+/* 紙の粒子。写真がデジタルの板に見えないようにするだけの薄さ */
+.por .grain{position:absolute;inset:0;pointer-events:none;opacity:.14;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.por .cap{position:absolute;inset:auto 0 0 0;padding:0 20px 20px}
+.pn{font-family:var(--serif);font-weight:400;font-size:clamp(52px,17vw,76px);line-height:.92;margin:0;
+  letter-spacing:-.005em;text-shadow:0 2px 24px rgba(0,0,0,.55)}
+/* プレイヤーネームが漢字・かなの人は明朝で組む（Instrument Serif に和文が無いため） */
+.pn.jp{font-family:var(--mincho);font-weight:600;font-size:clamp(40px,12.5vw,56px);line-height:1.1;letter-spacing:.04em}
+.kn{font-family:var(--mincho);font-size:13.5px;color:#cfd8db;margin:8px 0 0;letter-spacing:.14em}
+
+/* 写真がまだ無い人。灰色の人型は出さない。名前そのものを縦に組んで肖像の代わりにする */
+.por.none{background:radial-gradient(120% 80% at 70% 10%,#0f2a33 0%,var(--panel) 55%,var(--bg) 100%)}
+.por.none .vert{position:absolute;top:26px;right:24px;writing-mode:vertical-rl;
+  font-family:var(--mincho);font-weight:600;font-size:clamp(64px,22vw,110px);line-height:1;letter-spacing:.08em;
+  color:rgba(242,239,230,.07)}
+.por.none .ropes{position:absolute;left:24px;top:0;bottom:0;width:5px;
+  border-left:1px solid rgba(99,182,204,.35);border-right:1px solid rgba(99,182,204,.35)}
+/* 写真は無いが自己紹介動画はある人：動画の1コマ目を肖像として見せる */
+.por video.still{opacity:0;transition:opacity .5s}
+.por video.still.ready{opacity:.92}
+
+/* 肖像の上の再生ボタン。小さな丸では本人の声が埋もれるので、長さ付きの札にする */
+.media{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:3}
+.pill{display:inline-flex;align-items:center;gap:9px;height:38px;padding:0 14px 0 12px;border-radius:19px;
+  border:1px solid rgba(242,239,230,.28);background:rgba(7,13,16,.55);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  color:var(--ink);font-size:12.5px;letter-spacing:.04em;cursor:pointer;transition:border-color .2s,background .2s}
+.pill:hover{border-color:var(--main);background:rgba(7,13,16,.75)}
+.pill svg{width:10px;height:12px;fill:var(--ink)}
+.pill .d{font-family:var(--serif);font-size:15px;color:var(--dim);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.pill.main{height:44px;padding:0 17px 0 15px;border-color:rgba(99,182,204,.6);font-size:13.5px}
+.pill.main svg{fill:var(--main)}
+.vclose{position:absolute;right:12px;top:12px;z-index:4;width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(242,239,230,.3);background:rgba(7,13,16,.6);color:var(--ink);font-size:18px;line-height:1;cursor:pointer}
+
+/* ---- 今日これを探す ＝ この画面の主役 ----
+   公演中に手を動かす唯一の場所。本文は明朝で大きく、押す場所は「判子」にする */
+.task{position:relative;margin:26px 0 0;padding:20px 18px 18px;background:var(--panel);
+  border:1px solid var(--line);border-radius:3px}
+.task::before{content:"";position:absolute;left:-1px;top:18px;bottom:18px;width:5px;
+  border-left:1px solid var(--rope);border-right:1px solid var(--rope)}
+.task .lb{display:block;font-size:11.5px;letter-spacing:.14em;color:var(--main);margin:0 0 8px 8px}
+.task .say{margin:0 0 0 8px;font-family:var(--mincho);font-weight:600;font-size:clamp(17.5px,4.7vw,21px);
+  line-height:1.7;letter-spacing:.01em;text-wrap:pretty;word-break:auto-phrase;line-break:strict}
+.task .note{display:block;margin:12px 0 0 8px;padding-left:11px;border-left:1px solid var(--line2);
+  font-size:12px;line-height:1.7;color:var(--dim)}
+.task .foot{display:flex;align-items:center;gap:12px;margin:16px 0 0 8px}
+.task .src{flex:1;font-size:12px;color:var(--faint)}
+.stamp{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;
+  border-radius:20px;border:1px solid rgba(99,182,204,.55);background:transparent;color:var(--main);
+  font-size:13.5px;letter-spacing:.06em;cursor:pointer;transition:background .25s,color .25s,border-color .25s}
+.stamp .ring{width:18px;height:18px;border-radius:50%;border:1px solid currentColor;display:grid;place-items:center}
+.stamp svg{width:11px;height:11px;stroke:#06222b;stroke-width:2.6;fill:none;opacity:0;transition:opacity .15s}
+.stamp[aria-pressed="true"]{background:var(--main);color:#06222b;border-color:var(--main)}
+.stamp[aria-pressed="true"] .ring{background:#06222b;border-color:#06222b}
+.stamp[aria-pressed="true"] svg{stroke:var(--main);opacity:1}
+.task.done .say{color:#c9d3d6}
+
+/* ---- 座右の銘 ----
+   本人の手書き。紙の白を抜いてあるので、暗い画面の上で光って見える（グローはCSSで作る） */
+.motto{margin:30px -16px 0;padding:30px 20px 26px;text-align:center;
+  background:radial-gradient(90% 70% at 50% 55%,rgba(99,182,204,.07),transparent 70%)}
+.motto .lb{display:block;font-size:11.5px;letter-spacing:.14em;color:var(--faint)}
+.motto figure{margin:18px auto 0;display:flex;justify-content:center}
+.motto img{width:auto;max-width:100%;max-height:230px;object-fit:contain;
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.9)) drop-shadow(0 0 10px rgba(255,255,255,.42)) drop-shadow(0 0 26px rgba(255,255,255,.18))}
+.motto .by{display:block;margin-top:14px;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+/* ---- 相性（診断から来た人だけ） ---- */
+.rate{margin:18px 0 0;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:3px}
+.rate .top{display:flex;align-items:baseline;gap:12px}
+.rate .lb2{font-size:11.5px;letter-spacing:.14em;color:var(--faint)}
+.rate .big{font-family:var(--serif);font-size:46px;line-height:1;color:var(--main);font-variant-numeric:tabular-nums}
+.rate .big small{font-size:20px;margin-left:2px}
+.rate table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+.rate td{padding:6px 0;vertical-align:top;border-top:1px solid var(--line)}
 .rate td:first-child{color:var(--faint);width:6.5em;white-space:nowrap}
-.rate td:last-child{text-align:right;color:var(--teal);white-space:nowrap;font-size:11.5px}
+.rate td:last-child{text-align:right;color:var(--main);white-space:nowrap;font-size:11.5px}
 .rate td.no:last-child{color:var(--faint)}
-/* 名前は押せる。押せるものだけ色を変える（未回答の人は押せない） */
-.nm{background:none;border:0;padding:0;font:inherit;color:var(--teal);cursor:pointer;
-  font-family:var(--disp);font-weight:600;letter-spacing:.06em;
+
+/* ---- 出る演目 ----
+   「誰を見るか」の次に要るのは「いつ見るか」。演目写真はパンフレットの演目カードと同じもの */
+.acts{display:grid;gap:8px}
+.act{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:3px;background:var(--panel);
+  padding:14px 16px;display:flex;flex-direction:column;justify-content:flex-end}
+.act.ph{min-height:96px}
+.act .bg{position:absolute;inset:0;background-size:cover;background-position:center var(--fy,35%);
+  filter:grayscale(.3) brightness(.42) contrast(1.05)}
+.act.dark .bg{filter:grayscale(.2) brightness(.95) contrast(1.12)}
+.act.ph::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(7,13,16,.88) 20%,rgba(7,13,16,.35))}
+.act .tx{position:relative;z-index:2}
+.act .n{margin:0;font-family:var(--mincho);font-weight:600;font-size:16px;line-height:1.45;letter-spacing:.02em}
+.act .d{margin:4px 0 0;font-size:12.5px;line-height:1.7;color:#c3ccd0}
+.allrow{display:flex;align-items:baseline;gap:10px;padding:12px 16px;border:1px solid var(--line);border-radius:3px;
+  font-size:13px;color:var(--dim)}
+.allrow b{font-family:var(--mincho);font-weight:600;font-size:14.5px;color:var(--ink)}
+.allrow span{margin-left:auto;font-size:11.5px;color:var(--faint)}
+.acts .also{margin:2px 0 0;font-size:12.5px;color:var(--faint);line-height:1.7}
+
+/* ---- 一緒に跳んでいる人から ---- */
+.voices{display:grid;gap:0}
+.voice{padding:14px 0 14px 2px;border-top:1px solid var(--line)}
+.voice:last-child{border-bottom:1px solid var(--line)}
+.voice p{margin:0;font-family:var(--mincho);font-size:16px;line-height:1.75;letter-spacing:.01em;color:#ece8dd}
+.voice p::before{content:"“";font-family:var(--serif);font-size:30px;line-height:0;color:var(--rope);
+  vertical-align:-.36em;margin-right:4px}
+.voice cite{display:block;margin-top:6px;font-style:normal;font-size:12px;color:var(--faint)}
+
+/* ---- 本人のこと ---- */
+.brag{margin:0 0 14px;padding:0 0 0 14px;border-left:1px solid var(--line2);font-family:var(--mincho);
+  font-size:16.5px;line-height:1.75;color:var(--ink)}
+.brag small{display:block;font-family:var(--gothic);font-size:11.5px;color:var(--faint);margin-bottom:2px;letter-spacing:.06em}
+.facts{margin:0;display:grid;grid-template-columns:auto 1fr;column-gap:18px}
+.facts dt,.facts dd{margin:0;padding:10px 0;border-top:1px solid var(--line);font-size:13.5px;line-height:1.6}
+.facts dt{color:var(--faint);font-size:12px;white-space:nowrap;padding-top:12px}
+.facts dd{color:var(--ink)}
+.facts dt:last-of-type,.facts dd:last-of-type{border-bottom:1px solid var(--line)}
+
+/* ---- 客席から（呼びかけ） ---- */
+.call{padding:18px;border-radius:3px;border:1px solid rgba(201,162,75,.4);background:rgba(201,162,75,.05)}
+.call .k{margin:0;font-size:11.5px;letter-spacing:.12em;color:var(--sup)}
+.call .v{margin:6px 0 0;font-family:var(--mincho);font-weight:600;font-size:20px;line-height:1.55;letter-spacing:.02em}
+.call .w{margin:10px 0 0;font-size:13.5px;color:var(--dim)}
+
+/* ---- 準備中（プロフィール未提出の人） ---- */
+.pending{margin:30px 0 0;padding:14px 16px;border:1px dashed var(--line2);border-radius:3px;font-size:13px;color:var(--dim)}
+
+/* ---- 用語 ---- */
+.gloss{margin:34px 0 0;padding-top:16px;border-top:1px solid var(--line)}
+.gloss .lb{display:block;font-size:11.5px;letter-spacing:.12em;color:var(--faint);margin-bottom:10px}
+.gloss p{margin:0 0 10px;font-size:12.5px;line-height:1.85;color:var(--dim)}
+.gloss p:last-child{margin-bottom:0}
+.gloss b{display:block;color:var(--ink);font-weight:600;font-size:13px}
+
+/* 名前は押せる。押せるものだけ色を変える */
+.nm{background:none;border:0;padding:0;font:inherit;color:var(--main);cursor:pointer;
   border-bottom:1px solid rgba(99,182,204,.35)}
-.nm:hover{border-bottom-color:var(--teal)}
-.nm.off{color:var(--dim)}
-/* 名前から開いたカードを重ねる */
-#sheet{position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;
-  display:none;-webkit-overflow-scrolling:touch}
-#sheet.on{display:block}
-.sheet-in{max-width:560px;margin:0 auto;padding:14px 20px calc(60px + env(safe-area-inset-bottom))}
-.sheet-x{position:sticky;top:0;z-index:2;width:100%;margin:0 0 14px;background:var(--bg2);
-  border:1px solid var(--line);color:var(--dim);border-radius:2px;padding:12px;
-  font-family:var(--disp);font-weight:500;font-size:11.5px;letter-spacing:.16em;
-  text-transform:uppercase;cursor:pointer}
-.sheet-x:hover{border-color:var(--line2);color:var(--ink)}
+.nm:hover{border-bottom-color:var(--main)}
+.nm.off{color:var(--dim);border:0;cursor:default}
+
+/* 診断の結果画面の補足 */
+.ach{margin:18px 0 0;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:3px}
+.ach .lb{display:block;font-size:11.5px;letter-spacing:.12em;color:var(--faint);margin-bottom:8px}
+.ach p{margin:0 0 6px;font-size:14px;line-height:1.75}
+.ach p:last-child{margin-bottom:0}
 .mbti-note{margin:30px 0 0;font-size:11.5px;color:var(--faint);line-height:1.9}
 
-/* 実績。演目から導いたもの。数字を主役にせず、事実として静かに置く */
-.ach{margin:16px 0 0;padding:14px 16px;background:var(--bg2);border:1px solid var(--line);border-radius:2px}
-.ach .lb{display:block;font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--faint);margin-bottom:8px}
-.ach p{margin:0 0 6px;font-size:14px;line-height:1.7;color:var(--ink)}
-.ach p:last-child{margin-bottom:0}
+/* ================= プロフィールを重ねる画面 ================= */
+#sheet{position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;display:none;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#sheet.on{display:block}
+.sheet-in{max-width:560px;margin:0 auto;padding:0 16px calc(60px + env(safe-area-inset-bottom))}
+/* 上の帯：戻る／何人目か／前後。スクロールしても消えない */
+.bar-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:6px;margin:0 -16px;
+  padding:calc(8px + env(safe-area-inset-top)) 10px 8px;
+  background:linear-gradient(var(--bg) 62%,rgba(7,13,16,0))}
+.bar-top .back{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 10px;background:none;border:0;
+  color:var(--dim);font-size:13px;cursor:pointer}
+.bar-top .back svg{width:8px;height:13px;stroke:currentColor;stroke-width:1.6;fill:none}
+.bar-top .back:hover{color:var(--ink)}
+.bar-top .idx{margin-left:auto;display:inline-flex;align-items:baseline;gap:6px;height:38px;padding:0 10px;
+  background:none;border:0;color:var(--dim);cursor:pointer;line-height:38px}
+.bar-top .idx b{font-family:var(--serif);font-weight:400;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
+.bar-top .idx span{font-size:11.5px}
+.arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:rgba(13,21,25,.6);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.arrow svg{width:8px;height:13px;stroke:currentColor;stroke-width:1.6;fill:none}
+.arrow:hover{border-color:var(--main)}
 
-/* 出演する演目。「誰を見るか」の次に要るのは「いつ見るか」 */
-.when{margin:15px 0 0;padding-left:15px;border-left:1px solid var(--line)}
-.when .lb{display:block;font-size:11px;color:var(--faint);margin-bottom:7px;letter-spacing:.04em}
-.when ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
-.when li{font-family:var(--jp);font-weight:700;font-size:14.5px;line-height:1.4;color:var(--ink);
-  padding-left:14px;position:relative}
-.when li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:1px;background:var(--teal)}
-.when .also{margin:8px 0 0;font-size:12px;color:var(--faint);line-height:1.6}
+/* 下の前後。次に誰がいるかを顔で見せる */
+.nextprev{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:40px 0 0}
+.np{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:132px;padding:12px;
+  overflow:hidden;border:1px solid var(--line);border-radius:3px;background:var(--panel);color:var(--ink);text-align:left;cursor:pointer}
+.np img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.55) grayscale(.2)}
+.np::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(7,13,16,.9),rgba(7,13,16,.1) 70%)}
+.np .t{position:relative;z-index:2;display:block;font-size:11px;letter-spacing:.1em;color:var(--dim)}
+.np .n{position:relative;z-index:2;display:block;font-family:var(--serif);font-size:25px;line-height:1.1;margin-top:2px}
+.np .n.jp{font-family:var(--mincho);font-weight:600;font-size:19px}
+.np.next{text-align:right}
+.np.none{background:radial-gradient(120% 100% at 70% 0%,#0f2a33,var(--panel))}
+.to-all{display:block;width:100%;margin:10px 0 0;padding:14px;background:none;border:1px solid var(--line);
+  border-radius:3px;color:var(--dim);font-size:13.5px;cursor:pointer}
+.to-all:hover{border-color:var(--line2);color:var(--ink)}
 
-/* なぜこの人なのかの内訳。診断が当てずっぽうに見えないための説明 */
-.why{margin:15px 0 0;padding:13px 15px;background:rgba(99,182,204,.055);
-  border:1px solid rgba(99,182,204,.2);border-radius:2px}
-.why .lb{display:block;font-family:var(--disp);font-weight:600;font-size:9.5px;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--teal);margin-bottom:8px}
-.why p{margin:0 0 7px;font-size:13.5px;line-height:1.75;color:var(--ink)}
-.why p:last-child{margin-bottom:0}
-.why p.you{color:var(--teal);font-size:12.5px;margin-bottom:9px}
-.why.plain p{margin:0;font-size:13px;color:var(--dim)}
-.why.plain p b{color:var(--teal);font-family:var(--disp);font-weight:600;letter-spacing:.06em}
+/* ================= 31人の一覧 ================= */
+#index{position:fixed;inset:0;z-index:80;background:rgba(7,13,16,.97);overflow-y:auto;display:none;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#index.on{display:block}
+.idx-in{max-width:560px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))}
+.idx-hd{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;margin:0 -16px 14px;padding:10px 16px;
+  background:linear-gradient(var(--bg) 70%,rgba(7,13,16,0))}
+.idx-hd h2{margin:0;font-family:var(--mincho);font-weight:600;font-size:18px;letter-spacing:.04em}
+.idx-hd .found{font-size:12px;color:var(--faint)}
+.idx-hd .found b{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--main)}
+.idx-hd .x{margin-left:auto;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line2);
+  background:none;color:var(--dim);font-size:13px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tile{position:relative;aspect-ratio:4/5;overflow:hidden;border:1px solid var(--line);border-radius:3px;background:var(--panel);
+  padding:0;cursor:pointer;color:var(--ink);text-align:left}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(7,13,16,.92) 0%,rgba(7,13,16,0) 55%)}
+.tile .n{position:absolute;left:8px;right:8px;bottom:7px;z-index:2;font-family:var(--serif);font-size:17px;line-height:1.05}
+.tile .n.jp{font-family:var(--mincho);font-weight:600;font-size:13.5px}
+.tile.none{background:radial-gradient(120% 90% at 70% 0%,#0f2a33,var(--panel))}
+.tile .v{position:absolute;top:8px;right:8px;z-index:2;writing-mode:vertical-rl;font-family:var(--mincho);
+  font-weight:600;font-size:28px;line-height:1;color:rgba(242,239,230,.08)}
+.tile.cur{border-color:var(--main)}
+.tile .ok{position:absolute;top:7px;left:7px;z-index:2;width:18px;height:18px;border-radius:50%;background:var(--main);
+  display:grid;place-items:center}
+.tile .ok svg{width:10px;height:10px;stroke:#06222b;stroke-width:2.8;fill:none}
 
-.blk{margin:16px 0 0;padding-left:15px;border-left:1px solid var(--line)}
-.blk .lb{display:block;font-size:11px;color:var(--faint);margin-bottom:4px;letter-spacing:.04em}
-.blk .lb b{color:var(--dim);font-family:var(--disp);font-weight:600;letter-spacing:.06em}
-.blk p{margin:0;font-size:14px;line-height:1.7}
-.blk .say{color:var(--cream)}
-
-/* 座右の銘。本人の手書きなので、74pxの正方形に切り縮めず現物として置く。
-   紙の白を抜いてあるので、暗い画面の上で光っているように見せる（グローはCSS側で作る。
-   焼き込むと強さを変えるたびに画像を作り直すことになる） */
-.motto{margin:16px 0 0;padding-left:15px;border-left:1px solid var(--line)}
-.motto .lb{display:block;font-size:11px;color:var(--faint);letter-spacing:.04em}
-.motto .lb b{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
-.motto figure{margin:13px 0 2px;display:flex;justify-content:center}
-.motto img{width:auto;max-width:100%;max-height:260px;object-fit:contain;
-  filter:drop-shadow(0 0 1px rgba(255,255,255,.9))
-         drop-shadow(0 0 10px rgba(255,255,255,.45))
-         drop-shadow(0 0 26px rgba(255,255,255,.2))}
-
-.foot{color:var(--faint);font-size:12px;line-height:1.8;margin:34px 0 0;padding-top:20px;border-top:1px solid var(--line)}
-.foot a{color:var(--dim)}
-
-@media (prefers-reduced-motion:reduce){
-  *{animation:none !important;transition:none !important}
-}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -252,27 +327,25 @@ select{
     <img class="brand" src="assets/go-beyond-logo.png" alt="HARIBOW 単独公演 Go BEYOND">
     <span class="ey">Oshi Finder</span>
     <h1>31人は、<br>多いですか？</h1>
-    <p class="lead">そんなあなたに。<br>
-    4つ質問するので、<b>あなたが今日見る3人</b>と、<b>その人の何を探すか</b>を持って入ってください。</p>
-    <hr class="rule">
+    <p class="lead">そんなあなたに。<br>4つ質問するので、<b>あなたが今日見る3人</b>と、<b>その人の何を探すか</b>を持って入ってください。</p>
+    <hr class="rope2">
   </header>
 
   <main id="quiz">
-  <div class="card fav-set" id="favSet">
-    <p class="q2">お目当ての人がいれば、先に選んでください。</p>
-    <select id="fav" aria-label="お目当ての出演者"><option value="">とくにいない</option></select>
-    <p class="note2">選ぶと、その人が必ず1人目に入ります。</p>
-  </div>
+    <div class="fav-set" id="favSet" style="margin-top:28px">
+      <p class="q2">お目当ての人がいれば、先に選んでください。</p>
+      <select id="fav" aria-label="お目当ての出演者"><option value="">とくにいない</option></select>
+      <p class="note2">選ぶと、その人が必ず1人目に入ります。</p>
+    </div>
+    <button type="button" class="all-link" id="allLink"><span>診断せずに、31人の一覧から選ぶ →</span></button>
 
     <div class="rail"><div class="bar"><i id="bar"></i></div><span class="n" id="cnt">0 / 4</span></div>
 
     <section class="q" data-k="mbti">
       <span class="ey">01</span>
       <h2>MBTI、分かりますか。</h2>
-      <p class="sub">分からなければ飛ばして大丈夫です。残りの3問だけで診断します。</p>
-      <select id="mbti" aria-label="あなたのMBTI">
-        <option value="">分からない／使わない</option>
-      </select>
+      <p class="sub">分からなければ飛ばして大丈夫です。残りの3問で診断します。</p>
+      <select id="mbti" aria-label="あなたのMBTI"><option value="">分からない／使わない</option></select>
     </section>
 
     <section class="q" data-k="bt">
@@ -313,10 +386,11 @@ select{
 </div>
 
 <div id="sheet" aria-live="polite"></div>
+<div id="index" role="dialog" aria-label="出演者の一覧"></div>
 
 <script src="cast_data.js"></script>
 <script>
-/* 推し診断 — 公開版
+/* 推し診断・出演者プロフィール — 公開版
    正典：performance/solo_show/推し診断_設計.md
 
    ★軸は全部「画面に出るもの」から作る。選択肢の一致を相性と呼ばない。
@@ -328,6 +402,15 @@ var BY={}; M.forEach(function(m){ BY[m.n]=m; });
    「お目当ての人」で名前を選んだときだけ出る。BY には入れてあるので選択は効く。 */
 var MP=M.filter(function(m){ return !m.ph; });
 var VOICE={}; V.forEach(function(v){ (VOICE[v[1]]=VOICE[v[1]]||[]).push({f:v[0],t:v[2]}); });
+
+/* 出演者の並び。★pamphlet.html の CAST と同じ順番にしてある（パンフレットの一覧から来た人が
+   「次の人」で進んだときに、見ていた一覧と同じ順に進むため）。
+   パンフレット側の並びを変えたら、ここも同じに直すこと。名簿にいてここに無い人は末尾に足す。 */
+var ORDER=['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤周平','前田航希','谷瑠奈','佐藤善平',
+ '城向葵','清水大佑','永井竜斗','黒岩基','岡澤礼','刀祢槙斗','坂上健太','新遥生','三輪卓海',
+ '勝山誠也','越智孔聖','竹中理貴','山口泰侑','西川世那','米田玲音','金箱秀亮','武山心','稲葉大空',
+ '大森優馬','飯島未来','高木美幸','福満翔','坂井奏'].filter(function(n){ return BY[n]; });
+M.forEach(function(m){ if(ORDER.indexOf(m.n)<0) ORDER.push(m.n); });
 
 var TYPES=["INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP",
            "ISTJ","ISFJ","ESTJ","ESFJ","ISTP","ISFP","ESTP","ESFP"];
@@ -388,68 +471,68 @@ function pick(){
   return out;
 }
 
+/* 演目ごとの一文（実績）。★2026-09-07 訂正（坂田）：Roarは2021年に解散していて、
+   この公演のために再集結する。「8年続いてきたチーム」ではない。 */
 var ACH={
  "2025 IJRU世界選手権 優勝演技":"2025年、世界選手権で優勝した演技。その時のメンバーです。",
  "YOUNG BLOOD":"2026年、世界一になったチームです。",
- /* ★2026-09-07 訂正（坂田）：旧文「8年続いてきたチームです」は事実と違う。
-    Roarは2021年に解散していて、この公演のために再集結する。続いていたわけではない。
-    元ネタは飯島未来のフォーム回答「8年目のRoar」だが、それは本人のRoarとの関わりの年数で、
-    チームが8年続いた意味ではなかった。 */
  "Roar（復活）":"2021年に国際大会で3位になり、その年に解散した『Roar』。この日のために再集結します。",
  "Cirque du Soleil オーディション演技":"シルク・ドゥ・ソレイユのオーディションで披露した作品に出ています。",
  "DOUBLE DUTCH CONTEST JAPAN 2023":"国内最大の大会に出た、HARIBOWの原点の演技に立ちます。"
 };
-function achievements(m){ var o=[]; (m.e||[]).forEach(function(x){ if(ACH[x]) o.push(ACH[x]); }); return o; }
-var START={"部活・サークル":"部活・サークルで","友達に誘われた":"友達に誘われて",
-           "テレビ・動画で見た":"テレビや動画を見て","家族の影響":"家族の影響で","その他":""};
-function facts(m){
-  var a=["歴 "+m.y];
-  if(START[m.t]) a.push(START[m.t]+"始めた");
-  if(m.h) a.push("最近は"+m.h);
-  return a;
-}
+/* 演目写真。★パンフレットの演目カード（pamphlet.html #acts）と同じ写真・同じ位置（--fy）。
+   写真を差し替えたら両方直すこと。載っていない演目は写真なしの枠で出す */
+var ACT_IMG={
+ "YOUNG BLOOD":["young-blood.jpg","35%"],
+ "2025 IJRU世界選手権 優勝演技":["ijru-2025.jpg","33%"],
+ "Cheer Re-Man's × HARIBOW":["cheer-remans.jpg","50%"],
+ "Roar（復活）":["roar.jpg","34%"],
+ "Cirque du Soleil オーディション演技":["cirque-du-soleil.jpg","60%","dark"],
+ "HOMECOMING":["homecoming.jpg","20%"],
+ "DOUBLE DUTCH CONTEST JAPAN 2023":["ddc-japan-2023.jpg","16%"]
+};
 
 function esc(s){ return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];}); }
 var CHECK='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.4 5.4 11 12 3.4"/></svg>';
-var TRI='<svg viewBox="0 0 13 15" aria-hidden="true"><path d="M0 0l13 7.5L0 15z"/></svg>';
+var TRI='<svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>';
+var LT='<svg viewBox="0 0 8 13" aria-hidden="true"><path d="M7 1 1.5 6.5 7 12"/></svg>';
+var GT='<svg viewBox="0 0 8 13" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12"/></svg>';
 
-/* 名前を押したら、その人のカードを開けるようにする。
-   データが無い人（未回答5名）は押せない普通の文字のまま。 */
+/* 表に出す名前。★対外はプレイヤーネーム。未提出でプレイヤーネームが空の人は、
+   本名ではなく呼び名（k）を出す（2026-09-16。以前は本名が見出しに出ていた） */
+function shown(m){ return m.p || m.k || m.n; }
+function isLatin(s){ return /^[\x20-\x7E]+$/.test(s); }
+
+/* 名前を押したら、その人のカードを開けるようにする */
 function nameLink(n){
   var m=BY[n];
   if(!m) return '<span class="nm off">'+esc(n)+'</span>';
-  return '<button type="button" class="nm" data-n="'+esc(n)+'">'+esc(m.p)+'</button>';
+  return '<button type="button" class="nm" data-n="'+esc(n)+'">'+esc(shown(m))+'</button>';
 }
+function isFound(id){ try{ return localStorage.getItem('oshi.found.'+id)==='1'; }catch(e){ return false; } }
 
 /* ------------------------------------------------------------------
    用語の注釈（2026-09-08）
    ★出どころを勝手に作らない：
      ・マックスの説明は 城向葵 が推し診断フォームに書いた注釈をそのまま使っている
-       （cast_data.js の note:"音楽の1拍のあいだに、足が3回入ります…"）
-     ・ステップ／アクロ／フロアの呼び分けは、オーディションの評価項目
-       「ベーシック(リズム)／ハリー(倍速/ステップ)／3倍(スピード/マックス)／フロア／アクロ」に合わせた
-       （audition/audition_line_gas/HARIBOW_GAS.js の AUDIT_COL）
+     ・ステップ／アクロ／フロアの呼び分けは、オーディションの評価項目に合わせた
    ★「抜け足」は社内でも定義が揃っていないので入れない。分からないものを説明しない。
    ★カードに実際に出た言葉だけ注釈する（出ていない言葉を並べると読む気が失せる）
    ------------------------------------------------------------------ */
 var GLOSS=[
  {t:"マックス（3倍・スピード）", k:["マックス","3倍","３倍"],
-  d:"音楽の1拍のあいだに、足が3回入る跳び方です。3倍、スピードとも言います。",
-  /* 城向葵の注釈がカードに出ている人（勝山誠也）は、同じ説明が2回並ぶので出さない */
-  dup:"足が3回入り"},
+  d:"音楽の1拍のあいだに、足が3回入る跳び方です。3倍、スピードとも言います。", dup:"足が3回入り"},
  {t:"ステップ（ハリー）", k:["ステップ","ハリー"],
   d:"縄が倍の速さで回るなかで踏む跳び方です。オーディションでは「ハリー（倍速／ステップ）」として見ています。"},
  {t:"アクロ", k:["アクロ"], d:"アクロバットのこと。バク転や宙返りです。"},
  {t:"フロア", k:["フロア"], d:"床を使う動きのことです。"},
- {t:"ターナー・縄さばき", k:["ターナー","縄さばき"],
-  d:"ターナーは縄を回す人のこと。縄さばきは、その回し方の技術です。"},
+ {t:"ターナー・縄さばき", k:["ターナー","縄さばき"], d:"ターナーは縄を回す人のこと。縄さばきは、その回し方の技術です。"},
  {t:"ジャンパー", k:["ジャンパー"], d:"縄の中で跳ぶ人のことです。"}
 ];
-/* カードのHTMLから、実際に画面に出た言葉だけ拾う */
 function glossBlock(html){
   var txt=String(html).replace(/<[^>]*>/g,' ');
   var hit=GLOSS.filter(function(g){
-    if(g.dup && txt.indexOf(g.dup)>=0) return false;   // カード内で既に説明済み
+    if(g.dup && txt.indexOf(g.dup)>=0) return false;
     return g.k.some(function(k){ return txt.indexOf(k)>=0; });
   });
   if(!hit.length) return '';
@@ -458,85 +541,122 @@ function glossBlock(html){
   return h+'</div>';
 }
 
+/* ------------------------------------------------------------------
+   1人分のカード。診断の結果（i=0,1,2）とプロフィール（i=-1）で同じものを使う。
+   並びの考え方：
+     顔と声 → 今日これを探す（公演中にやること）→ 本人の手書き → いつ見るか
+     → 仲間の言葉 → 本人のこと → 客席からどう反応していいか
+   ------------------------------------------------------------------ */
+function portrait(m){
+  var a=m.a||{}, base='assets/cast/'+m.id+'/', nm=shown(m), jp=!isLatin(nm);
+  var h='<div class="por'+(a.p?'':' none')+'" data-id="'+m.id+'">';
+  if(a.p) h+='<img src="'+base+'photo.jpg" alt="'+esc(nm)+'">';
+  else{
+    h+='<span class="ropes"></span><span class="vert" aria-hidden="true">'+esc(m.k||nm)+'</span>';
+    /* 写真は無いが自己紹介動画はある人：動画の1コマ目を肖像にする（本人が撮った自撮りなので） */
+    if(a.i) h+='<video class="still" src="'+base+'intro.mp4#t=0.8" muted playsinline preload="metadata" aria-hidden="true"></video>';
+  }
+  h+='<div class="grain"></div><div class="scrim"></div>';
+  var media='';
+  if(a.i) media+='<button class="pill main" type="button" data-v="intro.mp4" aria-label="'+esc(nm)+'さんの自己紹介を再生">'+TRI+'自己紹介<span class="d" data-dur></span></button>';
+  for(var k=1;k<=(a.v||0);k++)
+    media+='<button class="pill" type="button" data-v="play'+k+'.mp4" aria-label="'+esc(nm)+'さんのプレイ映像'+k+'を再生">'+TRI+'プレイ映像'+(a.v>1?' '+k:'')+'<span class="d" data-dur></span></button>';
+  if(media) h+='<div class="media">'+media+'</div>';
+  h+='<div class="cap"><p class="pn'+(jp?' jp':'')+'">'+esc(nm)+'</p>'+
+     (m.p && m.k && m.k!==m.p ? '<p class="kn">'+esc(m.k)+'</p>' : '')+'</div></div>';
+  return h;
+}
+
+function taskBlock(m,text,note,by){
+  var done=isFound(m.id);
+  return '<div class="task'+(done?' done':'')+'" data-key="'+m.id+'">'+
+    '<span class="lb">今日これを探す</span>'+
+    '<p class="say">'+esc(text)+'</p>'+
+    (note?'<span class="note">'+esc(note)+'</span>':'')+
+    '<div class="foot"><span class="src">'+(by?nameLink(by)+' さんが見つけたこと':'本人が書いたこと')+'</span>'+
+    '<button type="button" class="stamp" aria-pressed="'+(done?'true':'false')+'"><span class="ring">'+CHECK+'</span>見つけた</button></div>'+
+  '</div>';
+}
+
+function mottoBlock(m){
+  if(!(m.a||{}).m) return '';
+  return '<div class="motto"><span class="lb">座右の銘</span>'+
+    '<figure><img src="assets/cast/'+m.id+'/motto.png" alt="'+esc(shown(m))+'さんの座右の銘" loading="lazy"></figure>'+
+    '<span class="by">本人の手書きです</span></div>';
+}
+
+function actsBlock(m){
+  var e=m.e||[], h='<div class="sec"><span class="lb">出る演目</span><div class="acts">';
+  e.forEach(function(x){
+    var im=ACT_IMG[x];
+    h+='<div class="act'+(im?' ph':'')+(im&&im[2]?' '+im[2]:'')+'"'+(im?' style="--fy:'+im[1]+'"':'')+'>'+
+       (im?'<div class="bg" style="background-image:url(assets/lineup/'+im[0]+')"></div>':'')+
+       '<div class="tx"><p class="n">'+esc(x)+'</p>'+(ACH[x]?'<p class="d">'+esc(ACH[x])+'</p>':'')+'</div></div>';
+  });
+  h+='<div class="allrow"><b>オープニング・エンディング</b><span>全員出演</span></div>';
+  if(!e.length) h+='<p class="also">31人がそろうこの2つが、探せる場面です。</p>';
+  return h+'</div></div>';
+}
+
+function voicesBlock(list){
+  if(!list.length) return '';
+  var h='<div class="sec"><span class="lb">一緒に跳んでいる人から</span><div class="voices">';
+  list.forEach(function(v){ h+='<div class="voice"><p>'+esc(v.t)+'</p><cite>'+nameLink(v.f)+'</cite></div>'; });
+  return h+'</div></div>';
+}
+
 function card(o,i){
-  var m=o.m, a=m.a||{}, base='assets/cast/'+m.id+'/', vs=VOICE[m.n]||[], r=rate(m);
-  /* 「今日これを探す」に使った推薦文が、下の「◯◯さんいわく」にも出て二重になるのを避ける */
+  var m=o.m, a=m.a||{}, vs=(VOICE[m.n]||[]).slice(), r=rate(m);
+  /* 「今日これを探す」に使った推薦文が、下の仲間の言葉にも出て二重になるのを避ける */
   if(m.alt) vs=vs.filter(function(v){ return v.t!==m.alt.t; });
   var h='<article class="card">';
-  var ey = i<0 ? 'Profile' : (i===0?'Your Pick':'Chain '+(i+1));
-  h+='<div class="hd"><span class="ey">'+ey+'</span>';
-  var via = i<0 ? (FROMLINK?'出演者一覧から開いた人':'名前から開いた人')
-                : (o.via?nameLink(o.via.n)+' さんが「見てほしい」と言っていた人':'診断からの1人目');
-  h+='<span class="via">'+via+'</span></div>';
-
-  h+='<div class="por'+(a.p?'':' none')+'" data-id="'+m.id+'">';
-  h+= a.p ? '<img src="'+base+'photo.jpg" alt="'+esc(m.p)+'" loading="lazy">' : '<span>'+esc(m.p)+'</span>';
-  h+='<div class="scrim"></div>';
-  if(a.i) h+='<button class="play" type="button" aria-label="'+esc(m.p)+'さんの自己紹介を再生">'+TRI+'</button>';
-  h+='<div class="cap"><p class="pn">'+esc(m.p||m.n)+'</p><p class="kn">'+esc(m.k)+'</p></div></div>';
-
-  var motto = a.m ? '<div class="motto"><span class="lb">座右の銘<b>本人の手書きです</b></span>'+
-    '<figure><img src="'+base+'motto.png" alt="'+esc(m.p||m.k)+'さんの座右の銘" loading="lazy"></figure></div>' : '';
+  if(i>=0){
+    var ey = i===0?'Your Pick':'Chain '+(i+1);
+    var via = o.via?nameLink(o.via.n)+' さんが「見てほしい」と言っていた人':'診断からの1人目';
+    h+='<div class="hd"><span class="ey">'+ey+'</span><span class="via">'+via+'</span></div>';
+  }
+  h+=portrait(m);
 
   /* プロフィール未提出の人。フォームの回答が無いので、相性度も自己申告の欄も出さない。
-     出せるのは他のメンバーが書いた推薦文と、届いていれば本人の手書きの座右の銘だけ。無いものを埋めない。
-     ★座右の銘は本人の言葉なので ph:1 でも出す（2026-09-16・井端真秀04 が先に座右の銘だけ提出していた） */
+     出せるのは他のメンバーが書いた推薦文と、届いていれば本人の手書きの座右の銘。無いものを埋めない。
+     ★座右の銘は本人の言葉なので ph:1 でも出す（2026-09-16・井端真秀04） */
   if(m.ph){
-    h+='<div class="task" data-key="'+m.id+'" role="button" tabindex="0" aria-pressed="false" data-done="0">'+
-       '<span class="box">'+CHECK+'</span>'+
-       '<span class="t"><span class="lb">今日これを探す</span><p>'+esc(m.alt.t)+'</p>'+
-       '<span class="src">'+nameLink(m.alt.by)+' さんが見つけたこと</span></span></div>';
-    if(vs.length){ var v0=vs[Math.floor(Math.random()*vs.length)];
-      h+='<div class="blk"><span class="lb">'+nameLink(v0.f)+' さんいわく</span><p class="say">'+esc(v0.t)+'</p></div>'; }
-    h+='<div class="when"><span class="lb">この人が出る演目</span>'+
-       '<p class="also">オープニングとエンディングに出ます。31人が揃うこの2つが、探せる場面です。</p></div>';
-    h+='<div class="blk"><span class="lb">この人について</span>'+
-       '<p style="color:var(--dim)">本人のプロフィールは準備中です。'+
-       (a.m ? 'いまお見せできるのは、一緒に跳んでいるメンバーが書いた言葉と、本人が書いた座右の銘です。'
-            : 'いまお見せできるのは、一緒に跳んでいるメンバーが書いた言葉だけです。')+'</p></div>';
-    h+=motto;
+    h+=taskBlock(m,m.alt.t,m.alt.note,m.alt.by);
+    h+=mottoBlock(m);
+    h+=actsBlock(m);
+    h+=voicesBlock(vs);
+    h+='<p class="pending">本人のプロフィールは準備中です。いまは'+
+       (a.m?'一緒に跳んでいるメンバーの言葉と、本人が書いた座右の銘を載せています。':'一緒に跳んでいるメンバーの言葉を載せています。')+'</p>';
     return h+glossBlock(h)+'</article>';
   }
 
-  /* 相性度。数字の下に必ず内訳を出す（何が効いたか分からないと占いになる）。
-     ★診断を1問も答えていない人（パンフレットの出演者一覧から直接来た人）には出さない。
-       内訳が空なので「Match 0%」とだけ出て、相性が悪いという意味に読めてしまう。 */
+  /* 相性度。★診断を1問も答えていない人（パンフレットの一覧から来た人）には出さない。
+     内訳が空なので「0%」とだけ出て、相性が悪いという意味に読めてしまう。 */
   if(r.rows.length){
-    h+='<div class="rate"><span class="lb2">Match</span>'+
-       '<span class="big">'+r.pct+'<small>%</small></span><table>';
+    h+='<div class="rate"><div class="top"><span class="big">'+r.pct+'<small>%</small></span><span class="lb2">あなたとの相性</span></div><table>';
     r.rows.forEach(function(x){
       h+='<tr><td>'+esc(x.k)+'</td><td>'+esc(x.v)+'</td><td'+(x.hit?'':' class="no"')+'>'+esc(x.note)+'</td></tr>';
     });
     h+='</table></div>';
   }
 
-  var task = m.alt ? m.alt.t : m.o;
-  var taskBy = m.alt ? ((BY[m.alt.by]||{}).p || m.alt.by) : null;
-  h+='<div class="task" data-key="'+m.id+'" role="button" tabindex="0" aria-pressed="false" data-done="0">'+
-     '<span class="box">'+CHECK+'</span>'+
-     '<span class="t"><span class="lb">今日これを探す</span><p>'+esc(task)+'</p>'+
-     /* 注釈は alt でも自己申告でも出す。業界の言葉は書いた人によらず出てくる */
-     ((m.alt&&m.alt.note)||m.note?'<span class="note">'+esc((m.alt&&m.alt.note)||m.note)+'</span>':'')+
-     (m.alt?'<span class="src">'+nameLink(m.alt.by)+' さんが見つけたこと</span>':'')+'</span></div>';
+  h+= m.alt ? taskBlock(m,m.alt.t,m.alt.note||m.note,m.alt.by) : taskBlock(m,m.o,m.note,null);
+  h+=mottoBlock(m);
+  h+=actsBlock(m);
+  h+=voicesBlock(vs);
 
-  var e=m.e||[];
-  h+='<div class="when"><span class="lb">この人が出る演目</span>';
-  if(e.length){ h+='<ul>'; e.forEach(function(x){ h+='<li>'+esc(x)+'</li>'; }); h+='</ul>';
-    h+='<p class="also">＋ オープニングとエンディング（全員出演）</p>'; }
-  else h+='<p class="also">オープニングとエンディングに出ます。31人が揃うこの2つが、探せる場面です。</p>';
-  h+='</div>';
+  /* 本人のこと。★「苦手」は出さない（本人の弱みを客席に並べる場所ではない） */
+  var rows=[["ダブルダッチ歴",m.y],["始めたきっかけ",m.t==="その他"?"":m.t],
+            ["得意",m.g],["本番の直前",m.b],["最近ハマっていること",m.h]]
+    .filter(function(x){ return x[1]; });
+  h+='<div class="sec"><span class="lb">本人のこと</span>';
+  if(m.br) h+='<p class="brag"><small>自慢</small>'+esc(m.br)+'</p>';
+  h+='<dl class="facts">'; rows.forEach(function(x){ h+='<dt>'+esc(x[0])+'</dt><dd>'+esc(x[1])+'</dd>'; }); h+='</dl></div>';
 
-  var ach=achievements(m);
-  if(ach.length){ h+='<div class="ach"><span class="lb">この人が通ってきたもの</span>';
-    ach.forEach(function(t){ h+='<p>'+esc(t)+'</p>'; }); h+='</div>'; }
+  /* 客席からどう反応していいか。本人の答え（§5）。一律の決まりにしない */
+  if(m.c) h+='<div class="sec"><div class="call"><p class="k">客席からの声援について、本人の答え</p>'+
+     '<p class="v">'+esc(m.c)+'</p>'+(m.w?'<p class="w">「'+esc(m.w)+'」</p>':'')+'</div></div>';
 
-  if(vs.length){ var v=vs[Math.floor(Math.random()*vs.length)];
-    h+='<div class="blk"><span class="lb">'+nameLink(v.f)+' さんいわく</span><p class="say">'+esc(v.t)+'</p></div>'; }
-  if(m.br) h+='<div class="blk"><span class="lb">本人が挙げた自慢</span><p>'+esc(m.br)+'</p></div>';
-  h+='<p class="facts">'+facts(m).map(esc).join(' ／ ')+'</p>';
-  h+='<div class="blk"><span class="lb">呼びかけについて</span><p>'+esc(m.c)+
-     (m.w?'<br><span style="color:var(--dim)">「'+esc(m.w)+'」</span>':'')+'</p></div>';
-  h+=motto;
   return h+glossBlock(h)+'</article>';
 }
 
@@ -544,7 +664,7 @@ function show(list){
   var h='<span class="ey">Your Three</span>'+
     '<h1>この3人を、<br>見てください。</h1>'+
     '<p class="lead">覚えるのは名前だけで大丈夫です。<br><b>「今日これを探す」は、見つけたら押してください。</b></p>'+
-    '<hr class="rule" style="margin-bottom:30px">';
+    '<hr class="rope2" style="margin-bottom:30px">';
   list.forEach(function(o,i){ h+=card(o,i); });
 
   if(A.mbti){
@@ -564,91 +684,189 @@ function show(list){
        '当たっていたら喜んでください。外れていたら、その人のことは4文字では分かりません。'+
        'どちらにしても、見てもらえれば分かります。</p>';
   }
-
+  h+='<button class="ghost" type="button" id="toAll">31人の一覧を見る</button>';
   h+='<button class="ghost" type="button" id="again">もう一度診断する</button>';
   var r=document.getElementById('result');
   r.innerHTML=h; r.classList.remove('hide');
   document.getElementById('quiz').classList.add('hide');
   document.getElementById('intro').classList.add('hide');
   window.scrollTo(0,0);
-  bindResult();
+  bindCard(r);
+  document.getElementById('again').addEventListener('click',function(){ location.reload(); });
+  document.getElementById('toAll').addEventListener('click',function(){ openIndex(null); });
 }
 
-/* 名前から開いた人を重ねて表示する。閉じると元の位置に戻る。
-   開いた先でも名前を押せるので、推薦をたどって回遊できる。 */
-var SHEET=[];
-/* ?p=名前 で開いたとき（パンフレットの出演者一覧から来た人）だけ立つ。
-   この人は診断をしに来たのではないので、「閉じる」は診断のトップではなく
-   元のページ（パンフレット）に戻す。 */
-var FROMLINK=false;
-function openPerson(n){
+/* ------------------------------------------------------------------
+   プロフィールを重ねる画面
+   ・上の帯：戻る／何人目か（押すと31人の一覧）／前後
+   ・下：前の人・次の人を顔で見せる
+   ・左右スワイプでも前後に進む
+   ・?p= で来た人（パンフレットの一覧から）は、前後に進んでも URL を置き換えるだけ。
+     「戻る」は1回でパンフレットに帰る（履歴を積まない）
+   ------------------------------------------------------------------ */
+var SHEET=[];          // 名前から重ねて開いたときの、下の画面のスクロール位置
+var CUR=null;          // いま開いている人の本名
+var FROMLINK=false;    // ?p= で開いた（パンフレットから来た）
+function thumb(m){ return (m.a||{}).p ? '<img src="assets/cast/'+m.id+'/photo.jpg" alt="" loading="lazy">' : ''; }
+function npCls(m){ return (m.a||{}).p ? '' : ' none'; }
+function renderPerson(n){
   var m=BY[n]; if(!m) return;
-  SHEET.push(window.scrollY);
+  CUR=n;
+  var pos=ORDER.indexOf(n), prev=BY[ORDER[(pos-1+ORDER.length)%ORDER.length]], next=BY[ORDER[(pos+1)%ORDER.length]];
   var el=document.getElementById('sheet');
-  el.innerHTML='<div class="sheet-in">'+
-    '<button type="button" class="sheet-x" id="sheetX" aria-label="閉じる">閉じる</button>'+
-    card({m:m,via:null},-1)+'</div>';
+  var backLabel = FROMLINK || !SHEET.length ? 'パンフレット' : '戻る';
+  if(!FROMLINK && SHEET.length && document.getElementById('result').classList.contains('hide')===false) backLabel='3人に戻る';
+  var h='<div class="sheet-in">'+
+    '<div class="bar-top">'+
+      '<button type="button" class="back" id="sheetX">'+LT+esc(backLabel)+'</button>'+
+      '<button type="button" class="idx" id="toIdx" aria-label="31人の一覧を開く"><b>'+(pos+1)+'</b><span>/ '+ORDER.length+'</span></button>'+
+      '<button type="button" class="arrow" data-go="'+esc(prev.n)+'" aria-label="前の人（'+esc(shown(prev))+'）">'+LT+'</button>'+
+      '<button type="button" class="arrow" data-go="'+esc(next.n)+'" aria-label="次の人（'+esc(shown(next))+'）">'+GT+'</button>'+
+    '</div>'+
+    card({m:m,via:null},-1)+
+    '<div class="nextprev">'+
+      '<button type="button" class="np prev'+npCls(prev)+'" data-go="'+esc(prev.n)+'">'+thumb(prev)+'<span class="t">‹ 前の人</span><span class="n'+(isLatin(shown(prev))?'':' jp')+'">'+esc(shown(prev))+'</span></button>'+
+      '<button type="button" class="np next'+npCls(next)+'" data-go="'+esc(next.n)+'">'+thumb(next)+'<span class="t">次の人 ›</span><span class="n'+(isLatin(shown(next))?'':' jp')+'">'+esc(shown(next))+'</span></button>'+
+    '</div>'+
+    '<button type="button" class="to-all" id="toIdx2">31人の一覧</button>'+
+  '</div>';
+  el.innerHTML=h; el.scrollTop=0;
+  bindCard(el);
+  document.getElementById('sheetX').addEventListener('click',closePerson);
+  document.getElementById('toIdx').addEventListener('click',function(){ openIndex(CUR); });
+  document.getElementById('toIdx2').addEventListener('click',function(){ openIndex(CUR); });
+  el.querySelectorAll('[data-go]').forEach(function(b){ b.addEventListener('click',function(){ goPerson(b.dataset.go); }); });
+  if(FROMLINK){
+    var q=new URLSearchParams(location.search); q.set('p',n);
+    try{ history.replaceState(null,'','?'+q.toString()); }catch(e){}
+    document.title=shown(m)+' ｜ 出演者 ｜ HARIBOW「Go BEYOND」';
+  }
+}
+function openPerson(n){
+  if(!BY[n]) return;
+  var el=document.getElementById('sheet');
+  if(el.classList.contains('on')){ goPerson(n); return; }
+  SHEET.push(window.scrollY);
   el.classList.add('on');
   document.body.style.overflow='hidden';
-  el.scrollTop=0;
-  bindCard(el);
-  var x=document.getElementById('sheetX');
-  if(FROMLINK) x.textContent='パンフレットに戻る';
-  x.addEventListener('click',closePerson);
+  renderPerson(n);
 }
+function goPerson(n){ stopVideos(document.getElementById('sheet')); renderPerson(n); }
 function closePerson(){
-  /* ?p= で直接開いた1枚目を閉じる場合は、来たページへ戻す。
-     戻り先が無い（URLを直接開かれた等）ときだけパンフレットへ送る。 */
+  /* ?p= で直接開いた場合は、来たページへ戻す。戻り先が無いときだけパンフレットへ送る */
   if(FROMLINK){
-    if(history.length>1){ history.back(); }
-    else{ location.href='pamphlet.html'+(TK?'?t='+encodeURIComponent(TK):''); }
+    if(history.length>1 && document.referrer){ history.back(); }
+    else{ location.href='pamphlet.html'+(TK?'?t='+encodeURIComponent(TK):'')+'#c06'; }
     return;
   }
   var el=document.getElementById('sheet');
+  stopVideos(el);
   el.classList.remove('on'); el.innerHTML='';
   document.body.style.overflow='';
   var y=SHEET.pop(); if(y!=null) window.scrollTo(0,y);
 }
+function stopVideos(root){ root.querySelectorAll('video').forEach(function(v){ try{ v.pause(); }catch(e){} }); }
+
+/* 左右スワイプで前後へ。縦スクロールや動画の操作とぶつからないよう、横の動きが明らかなときだけ */
+(function(){
+  var el=document.getElementById('sheet'), sx=0, sy=0, t0=0, ok=false;
+  el.addEventListener('touchstart',function(e){
+    if(e.touches.length!==1 || e.target.closest('video,.media,.vclose')){ ok=false; return; }
+    ok=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; t0=Date.now();
+  },{passive:true});
+  el.addEventListener('touchend',function(e){
+    if(!ok || !CUR) return; ok=false;
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*2 && Date.now()-t0<700){
+      var pos=ORDER.indexOf(CUR), n=ORDER[(pos+(dx<0?1:-1)+ORDER.length)%ORDER.length];
+      goPerson(n);
+    }
+  },{passive:true});
+})();
+
+/* ---- 31人の一覧 ---- */
+function openIndex(cur){
+  var el=document.getElementById('index');
+  var found=ORDER.filter(function(n){ return isFound(BY[n].id); }).length;
+  var h='<div class="idx-in"><div class="idx-hd"><h2>出演者 '+ORDER.length+'人</h2>'+
+    (found?'<span class="found">見つけた <b>'+found+'</b></span>':'')+
+    '<button type="button" class="x" id="idxX">閉じる</button></div><div class="grid">';
+  ORDER.forEach(function(n){
+    var m=BY[n], nm=shown(m), a=m.a||{};
+    h+='<button type="button" class="tile'+(a.p?'':' none')+(n===cur?' cur':'')+'" data-n="'+esc(n)+'">'+
+       (a.p?'<img src="assets/cast/'+m.id+'/photo.jpg" alt="" loading="lazy">':'<span class="v" aria-hidden="true">'+esc(m.k||nm)+'</span>')+
+       (isFound(m.id)?'<span class="ok" aria-label="見つけた">'+CHECK+'</span>':'')+
+       '<span class="n'+(isLatin(nm)?'':' jp')+'">'+esc(nm)+'</span></button>';
+  });
+  el.innerHTML=h+'</div></div>';
+  el.classList.add('on'); el.scrollTop=0;
+  document.body.style.overflow='hidden';
+  document.getElementById('idxX').addEventListener('click',closeIndex);
+  el.querySelectorAll('.tile').forEach(function(t){
+    t.addEventListener('click',function(){ closeIndex(); openPerson(t.dataset.n); });
+  });
+}
+function closeIndex(){
+  var el=document.getElementById('index'); el.classList.remove('on'); el.innerHTML='';
+  if(!document.getElementById('sheet').classList.contains('on')) document.body.style.overflow='';
+}
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'&&document.getElementById('sheet').classList.contains('on')) closePerson();
+  if(e.key==='Escape'){
+    if(document.getElementById('index').classList.contains('on')) closeIndex();
+    else if(document.getElementById('sheet').classList.contains('on')) closePerson();
+  }
+  if(CUR && document.getElementById('sheet').classList.contains('on') && !document.getElementById('index').classList.contains('on')){
+    var pos=ORDER.indexOf(CUR);
+    if(e.key==='ArrowRight') goPerson(ORDER[(pos+1)%ORDER.length]);
+    if(e.key==='ArrowLeft')  goPerson(ORDER[(pos-1+ORDER.length)%ORDER.length]);
+  }
 });
 
 /* カード内の操作をまとめて張る（結果画面でもシート内でも同じものを使う） */
+function fmt(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+s%60).slice(-2); }
 function bindCard(root){
   root.querySelectorAll('.nm').forEach(function(b){
     b.addEventListener('click',function(){ openPerson(b.dataset.n); });
   });
-  root.querySelectorAll('.task').forEach(function(t){
-    var k='oshi.found.'+t.dataset.key;
-    if(localStorage.getItem(k)==='1'){ t.dataset.done='1'; t.setAttribute('aria-pressed','true'); }
-    var flip=function(){ var on=t.dataset.done==='1'?'0':'1';
-      t.dataset.done=on; t.setAttribute('aria-pressed',on==='1');
-      try{ localStorage.setItem(k,on); }catch(e){} };
-    t.addEventListener('click',flip);
-    t.addEventListener('keydown',function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); flip(); } });
+  root.querySelectorAll('video.still').forEach(function(v){
+    var on=function(){ v.classList.add('ready'); };
+    if(v.readyState>=2) on(); else v.addEventListener('loadeddata',on);
   });
-  root.querySelectorAll('.play').forEach(function(b){
+  /* 見つけた。★localStorage のキーは旧版と同じ（oshi.found.<id>）。押した記録を引き継ぐため */
+  root.querySelectorAll('.task').forEach(function(t){
+    var k='oshi.found.'+t.dataset.key, b=t.querySelector('.stamp');
     b.addEventListener('click',function(){
-      var por=b.closest('.por'), id=por.dataset.id, v=document.createElement('video');
-      v.src='assets/cast/'+id+'/intro.mp4'; v.controls=true; v.autoplay=true;
-      v.playsInline=true; v.setAttribute('playsinline',''); v.preload='auto';
-      var img=por.querySelector('img'); if(img) img.replaceWith(v); else por.prepend(v);
-      b.remove();
-      var sc=por.querySelector('.scrim'); if(sc) sc.remove();
-      var cp=por.querySelector('.cap'); if(cp) cp.remove();
+      var on=b.getAttribute('aria-pressed')!=='true';
+      b.setAttribute('aria-pressed',on?'true':'false'); t.classList.toggle('done',on);
+      try{ localStorage.setItem(k,on?'1':'0'); }catch(e){}
     });
   });
+  /* 動画の長さ。メタデータだけ読む（本体は押すまで落とさない） */
+  root.querySelectorAll('.pill').forEach(function(b){
+    var por=b.closest('.por'), src='assets/cast/'+por.dataset.id+'/'+b.dataset.v, d=b.querySelector('[data-dur]');
+    var probe=document.createElement('video'); probe.preload='metadata'; probe.muted=true; probe.src=src;
+    probe.addEventListener('loadedmetadata',function(){ if(isFinite(probe.duration)) d.textContent=fmt(probe.duration); probe.removeAttribute('src'); probe.load(); });
+    b.addEventListener('click',function(){ playIn(por,src); });
+  });
+}
+/* 肖像の枠の中でそのまま再生する。閉じるか再生が終わったら元の肖像に戻す */
+function playIn(por,src){
+  stopVideos(por);
+  var keep=[].slice.call(por.children);
+  keep.forEach(function(c){ c.hidden=true; });
+  var v=document.createElement('video');
+  v.src=src; v.controls=true; v.autoplay=true; v.playsInline=true; v.setAttribute('playsinline',''); v.preload='auto';
+  var x=document.createElement('button'); x.type='button'; x.className='vclose'; x.setAttribute('aria-label','動画を閉じる'); x.textContent='×';
+  var back=function(){ try{ v.pause(); }catch(e){} v.remove(); x.remove(); keep.forEach(function(c){ c.hidden=false; }); };
+  x.addEventListener('click',back); v.addEventListener('ended',back);
+  por.appendChild(v); por.appendChild(x);
+  var p=v.play(); if(p&&p.catch) p.catch(function(){});
 }
 
-function bindResult(){
-  bindCard(document.getElementById('result'));
-  document.getElementById('again').addEventListener('click',function(){ location.reload(); });
-}
-
-/* ---- 操作 ---- */
+/* ---- 診断の操作 ---- */
 var sel=document.getElementById('fav');
-M.slice().sort(function(a,b){return a.n.localeCompare(b.n,'ja');})
- .forEach(function(m){ sel.appendChild(new Option(m.p?m.p+'（'+m.n+'）':m.n, m.n)); });
+M.slice().sort(function(a,b){return shown(a).localeCompare(shown(b),'ja');})
+ .forEach(function(m){ sel.appendChild(new Option(m.p?m.p+'（'+m.n+'）':(m.k||m.n), m.n)); });
 sel.addEventListener('change',function(){ A.fav=sel.value; });
 
 var msel=document.getElementById('mbti');
@@ -671,17 +889,14 @@ function sync(){
   document.getElementById('go').disabled=!(A.bt&&A.ky&&A.ouen);
 }
 document.getElementById('go').addEventListener('click',function(){ show(pick()); });
+document.getElementById('allLink').addEventListener('click',function(){ openIndex(null); });
 
-/* ---- ?p=名前 で1人のプロフィールを直接開く（2026-09-08） ----
-   パンフレット（pamphlet.html）の出演者一覧から来る導線。
+/* ---- ?p=名前 で1人のプロフィールを直接開く（パンフレットの出演者一覧から来る導線） ----
    名前が名簿に無い／打ち間違いのときは何もしない＝普通に診断のトップが出る。 */
 var QS=new URLSearchParams(location.search);
 var TK=QS.get('t')||'';
 var QP=QS.get('p')||'';
-if(QP && BY[QP]){
-  FROMLINK=true;
-  openPerson(QP);
-}
+if(QP && BY[QP]){ FROMLINK=true; openPerson(QP); }
 </script>
 </body>
 </html>
