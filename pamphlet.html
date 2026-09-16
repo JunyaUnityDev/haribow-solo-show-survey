@@ -88,6 +88,10 @@
     -webkit-tap-highlight-color:transparent}
   .vote button:hover,.vote button:active{border-color:rgba(99,182,204,.55);color:var(--main)}
   .vote button[disabled]{opacity:.45;cursor:default}
+  /* 入れた演目の印（2026-09-16）。結果は出さないので、ここが押した後の唯一の変化 */
+  .vote button.on{border-color:rgba(99,182,204,.6);background:rgba(99,182,204,.1);color:var(--ink);
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .vote button .ck{font-size:12px;color:var(--main);white-space:nowrap}
   .vote .bar{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:2px;
     padding:13px 15px;font-size:14px}
   .vote .bar .fill{position:absolute;left:0;top:0;bottom:0;z-index:0;
@@ -393,7 +397,7 @@
     <a href="#c09"><b>08</b>読みもの</a>
     <a href="#c10"><b>09</b>支えてくださった皆さま</a>
     <a href="#c11"><b>10</b>公演情報</a>
-    <a href="#c12"><b>11</b>今日はどうでしたか</a>
+    <a href="#c12" id="tocVote" hidden><b>11</b>今日はどうでしたか</a>
   </nav>
 
   <!-- 電子チケット（2026-09-07追加）。?t=トークン 付きで開いたときだけ出す。
@@ -642,14 +646,17 @@
     </div>
   </section>
 
-  <!-- 投票「今日はどうでしたか」（2026-09-16 追加／同日 時刻の判定を外して常時公開）。
-       JUNYA判断：終演時刻に合わせて開く調整は運用が重いので、最初から押せるようにする。
-       ★公演前の票も入る。分けて見たいときはシートの「日時」列で 9/29 20:00 以降に絞る。
+  <!-- 投票「今日はどうでしたか」（2026-09-16 追加）。
+       ★開演の瞬間（CD_TARGET_＝カウントダウンが0になる時刻）から出す（2026-09-16 JUNYA判断で常時公開をやめた）。
+         それより前は section も目次の行も出ない。判定は端末の時計。
+       ★結果（何%・何票）はお客さんに見せない（2026-09-16 JUNYA判断）。押した後は「どれに入れたか」だけ出る。
+         集計は運営がシート『終演後アンケート』で見る。
+         ※ GAS の page=vote は今も票数を返している（ブラウザで直接叩けば見える）。完全に隠すならGAS側も直す
        ★選択肢をここに書かない。GAS の page=vote が『構成台本』から作って返すものをそのまま使う。
        ★取得に失敗したら section ごと出さない（hidden のまま）。 -->
   <section id="voteSec" hidden>
     <h2 id="c12" data-ch="11">今日はどうでしたか</h2>
-    <p class="lead" id="voteLead">いちばん記憶に残った演目を1つ選んでください。結果はその場で出ます。</p>
+    <p class="lead" id="voteLead">いちばん記憶に残った演目を1つ選んでください。</p>
     <div class="vote" id="voteList"></div>
     <p class="note" id="voteNote"></p>
     <a class="vlk" id="voteGo" href="oshi.html" hidden>出演者のページを見る →</a>
@@ -844,6 +851,9 @@ function renderToday_(){
       end  = jst_(9,29, Number(endp[0]), Number(endp[1]) + 15),
       gone = jst_(9,30,6,0);
 
+  /* 投票は開演の瞬間から（帯の表示とは独立。9/30以降も出し続ける） */
+  if(now >= start && window.initVote_) initVote_();
+
   if(now >= gone){ box.hidden = true; return; }
 
   var k='', v='', sub='';
@@ -877,7 +887,7 @@ renderToday_();
      ここに演目名を書き写すと、台本を直したときに選択肢だけ古くなる。
    ★時刻では開閉しない（2026-09-16 JUNYA判断）。ページを開けばいつでも押せる。
    ★押し直しはサーバー側で上書きになる（同じ識別子の票は行が増えない）。 */
-var voteReady_ = false;
+var voteReady_;   /* 初期化しない：renderToday_ が先に initVote_ を呼ぶので、ここで false に戻すと二重に読む */
 
 function initVote_(){
   if(voteReady_) return;
@@ -903,36 +913,42 @@ function initVote_(){
     return v;
   }
 
-  function showBars(d){
-    var items = (d.items||[]).slice().sort(function(a,b){ return b.n - a.n; });
-    list.innerHTML = items.map(function(x){
-      var me = (x.label === d.mine);
-      return '<div class="bar' + (me ? ' mine' : '') + '">'
-           +   '<span class="fill" style="width:' + (x.n ? Math.max(x.pct,2) : 0) + '%"></span>'
-           +   '<span class="t"><em>' + esc(x.label) + '</em><b>' + x.pct + '%</b></span>'
-           + '</div>';
-    }).join('');
-    lead.textContent = d.mine ? 'ありがとうございます。いまの結果です。' : 'いまの結果です。';
-    note.textContent = d.total + '票';
-    go.hidden = !d.mine;
-    if(TOKEN) go.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+  /* 自分が入れた演目は端末に覚えておく（サーバーは結果を返すが、ここでは使わない） */
+  function mine(v){
+    try{
+      if(v === undefined) return localStorage.getItem('hb_vote_mine') || '';
+      localStorage.setItem('hb_vote_mine', v);
+    }catch(err){}
+    return v || '';
   }
 
+  /* ★何%・何票は出さない。押したボタンに印を付けて、お礼を言うだけ */
   function showButtons(d){
+    var cur = mine();
     list.innerHTML = (d.items||[]).map(function(x){
-      return '<button type="button" data-l="' + esc(x.label) + '">' + esc(x.label) + '</button>';
+      var on = (x.label === cur);
+      return '<button type="button" class="' + (on ? 'on' : '') + '" data-l="' + esc(x.label) + '">'
+           + esc(x.label) + (on ? '<span class="ck">入れました</span>' : '') + '</button>';
     }).join('');
+    if(cur){
+      lead.textContent = 'ありがとうございます。';
+      note.textContent = '選び直すこともできます。';
+    }
+    go.hidden = !cur;
+    if(TOKEN) go.href = 'oshi.html?t=' + encodeURIComponent(TOKEN);
+
     [].forEach.call(list.querySelectorAll('button'), function(b){
       b.addEventListener('click', function(){
+        var label = b.getAttribute('data-l');
         [].forEach.call(list.querySelectorAll('button'), function(o){ o.disabled = true; });
         note.textContent = '送信しています…';
-        var body = { survey:'show_vote', label:b.getAttribute('data-l'), id:vid() };
+        var body = { survey:'show_vote', label:label, id:vid() };
         if(TOKEN) body.t = TOKEN;
         fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
                       body: JSON.stringify(body) })
           .then(function(r){ return r.json(); })
           .then(function(res){
-            if(res && res.ok) showBars(res);
+            if(res && res.ok){ mine(label); showButtons(d); }
             else { showButtons(d); note.textContent = '送信できませんでした。もう一度お試しください。'; }
           })
           .catch(function(){
@@ -948,12 +964,13 @@ function initVote_(){
     .then(function(d){
       if(!d || !d.ok || !d.items || !d.items.length) return;   /* 出さないだけ */
       sec.hidden = false;
+      var toc = document.getElementById('tocVote'); if(toc) toc.hidden = false;
       showButtons(d);
     })
     .catch(function(){ /* 出さない。アンケートが無くてもパンフレットは読める */ });
 }
 
-initVote_();
+/* initVote_ は renderToday_ が開演の瞬間に呼ぶ（ここでは呼ばない） */
 
 /* 支援者のお名前は毎日変わるのでGASから取る（手で更新すると必ず古くなる） */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
