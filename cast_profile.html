@@ -34,6 +34,11 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
 .done h2{font-size:20px;margin:12px 0 6px}
 .media{border-left:3px solid var(--blue);padding-left:14px}
 .media li{font-size:13.5px;color:var(--dim);margin-bottom:8px}
+/* DJ版（?role=dj・2026-09-16）。舞台の演目に出ない出演者用に、演目前提の言い回しだけ差し替える。
+   質問・送信先・列は通常版と同じ（推し診断_回答 に同じ形で入る） */
+.djonly{display:none}
+body.dj .djonly{display:inline}
+body.dj .nodj{display:none}
 .media b{color:var(--ink)}
 </style>
 </head>
@@ -44,8 +49,8 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
   <p class="lead">お客さんは、32人のことを何も知らない状態で客席に座ります。<br>
   「誰を見ればいいか」がわかると、その人のことを目で追ってくれます。そのための材料を集めています。</p>
   <div class="card" style="border-color:var(--blue);background:rgba(37,99,235,.04)">
-    <p class="q" style="margin:0 0 4px">締切：8月10日(月)</p>
-    <p class="note" style="margin:0 0 10px">写真・動画も同じ日までにお願いします。</p>
+    <p class="q nodj" style="margin:0 0 4px">締切：8月10日(月)</p>
+    <p class="note nodj" style="margin:0 0 10px">写真・動画も同じ日までにお願いします。</p>
     <p class="q" style="margin:0 0 4px">（任意）以外は全部埋めてください</p>
     <p class="note" style="margin:0">1人でも欠けると、その人だけお客さんに紹介できなくなります。<br>
     <b>送信したあとでも、何度でも直せます</b>（同じURLを開いて送り直すと上書きされます）。</p>
@@ -127,7 +132,7 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       <p class="q">推薦：この3人を見てほしい</p>
       <p class="note">お客さんに「この人が推してるなら見てみよう」と思ってもらう仕掛けです。<br>
       <b>うまい人ではなく、たぶん誰も気づかないけど実はとんでもない人</b>を。<br>
-      できれば1人は自分と同じ演目、あとの2人は別の演目だと嬉しいです（必須ではありません）。</p>
+      <span class="nodj">できれば1人は自分と同じ演目、あとの2人は別の演目だと嬉しいです（必須ではありません）。</span></p>
       <p class="note" style="border-left:2px solid var(--blue);padding-left:11px">
       見どころは <b>「いつ」＋「何をする」</b> で書くと書きやすいです。<br>
       <b>いつ</b>：出てくるとき／技の前／決まったあと／ミスしたとき／待っているとき<br>
@@ -149,9 +154,9 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
     </div>
 
     <div class="card">
-      <p class="q">自分が、本番中にやってしまうこと</p>
+      <p class="q"><span class="nodj">自分が、本番中にやってしまうこと</span><span class="djonly">自分が、DJ中にやってしまうこと</span></p>
       <p class="note">自分では気づきにくいので、思い当たるものだけで大丈夫です。<br>
-      こちらも <b>「いつ」＋「何をする」</b> で。できれば客席から見えるもので、後ろの席の人も探せるように。</p>
+      こちらも <b>「いつ」＋「何をする」</b> で。<span class="nodj">できれば客席から見えるもので、後ろの席の人も探せるように。</span><span class="djonly">ホワイエに来たお客さんが見つけられるもので。</span></p>
       <textarea id="ownQuirk" placeholder="例：技が決まったとき、必ず片手を上げる"></textarea>
     </div>
 
@@ -173,9 +178,9 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
       <p class="q">写真と動画は、内部LINEに送ってください</p>
       <ul class="media">
         <li><b>顔写真 1枚</b>／<b>アー写でも大丈夫です</b></li>
-        <li><b>自己紹介動画 30秒</b>／<b>縦</b>で自撮り。上の「最近ハマってるもの」と「本番中にやってしまうこと」を喋るだけでOK。<b>15秒でもいい・1テイクでいい・撮り直さなくていい</b></li>
+        <li><b>自己紹介動画 30秒</b>／<b>縦</b>で自撮り。上の「最近ハマってるもの」と「<span class="nodj">本番中</span><span class="djonly">DJ中</span>にやってしまうこと」を喋るだけでOK。<b>15秒でもいい・1テイクでいい・撮り直さなくていい</b></li>
         <li><b>座右の銘</b>／紙に手書きして、その写真を送ってください</li>
-        <li><b>過去の活躍動画</b>（任意）／<b>長い動画は60秒以内に切って</b>送ってください</li>
+        <li><b>過去の活躍動画</b>（任意<span class="djonly">・DJでもダブルダッチでも</span>）／<b>長い動画は60秒以内に切って</b>送ってください</li>
       </ul>
     </div>
 
@@ -192,6 +197,9 @@ select:last-child,input:last-child,textarea:last-child{margin-bottom:0}
 </div>
 
 <script>
+/* DJ版（?role=dj）。対象は1人なので名前は固定で出す（名簿シート『演目順・稼働』に演目の行が無いため） */
+var DJ_ = /[?&]role=dj\b/.test(location.search) ? { name:'三好廉太郎', role:'ホワイエDJ' } : null;
+if(DJ_) document.body.classList.add('dj');
 var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var MEMBERS = [], pick = {};
 
@@ -294,7 +302,7 @@ var REQUIRED_ = [
   { k:'rec1',  label:'推薦1人目' },  { k:'quirk1', label:'推薦1人目の見どころ' },
   { k:'rec2',  label:'推薦2人目' },  { k:'quirk2', label:'推薦2人目の見どころ' },
   { k:'rec3',  label:'推薦3人目' },  { k:'quirk3', label:'推薦3人目の見どころ' },
-  { k:'ownQuirk', label:'自分が本番中にやってしまうこと' },
+  { k:'ownQuirk', label: DJ_ ? '自分がDJ中にやってしまうこと' : '自分が本番中にやってしまうこと' },
   { p:'callMe',   label:'お客さんにどうしてほしい' }
 ];
 function sync(){
@@ -346,6 +354,14 @@ function loadMembers(retry){
       MEMBERS = d.members || [];
       var s = el('who');
       s.innerHTML = '';
+      if(DJ_){
+        /* 推薦の候補は通常どおり全員。名前の欄だけ本人に固定する */
+        s.appendChild(new Option(DJ_.name, DJ_.name));
+        s.value = DJ_.name;
+        onWho();
+        el('whoNote').textContent = '担当：' + DJ_.role;
+        return;
+      }
       s.appendChild(new Option('選択してください',''));
       MEMBERS.forEach(function(m){ s.appendChild(new Option(m.name, m.name)); });
       s.disabled = false;
