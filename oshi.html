@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>出演者 ｜ HARIBOW単独公演「Go BEYOND」</title>
-<meta name="description" content="31人は多いですか？ あなたが今日見る3人と、その人の何を探すかを渡します。">
+<meta name="description" content="32人は多いですか？ あなたが今日見る3人と、その人の何を探すかを渡します。">
 <meta name="theme-color" content="#070d10">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -236,6 +236,9 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 .call .w{margin:10px 0 0;font-size:13.5px;color:var(--dim)}
 
 /* ---- 準備中（プロフィール未提出の人） ---- */
+/* 舞台の演目に出ない出演者の担当（2026-09-16・ホワイエDJ） */
+.role .rl{margin:8px 0 4px;font-family:var(--mincho);font-weight:600;font-size:clamp(19px,5vw,22px);color:var(--ink)}
+.role .rd{margin:0;font-size:13.5px;color:var(--dim);line-height:1.8}
 .pending{margin:30px 0 0;padding:14px 16px;border:1px dashed var(--line2);border-radius:3px;font-size:13px;color:var(--dim)}
 
 /* ---- 用語 ---- */
@@ -295,7 +298,7 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
   border-radius:3px;color:var(--dim);font-size:13.5px;cursor:pointer}
 .to-all:hover{border-color:var(--line2);color:var(--ink)}
 
-/* ================= 31人の一覧 ================= */
+/* ================= 32人の一覧 ================= */
 #index{position:fixed;inset:0;z-index:80;background:rgba(7,13,16,.97);overflow-y:auto;display:none;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #index.on{display:block}
@@ -307,18 +310,36 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 .idx-hd .found b{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--main)}
 .idx-hd .x{margin-left:auto;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line2);
   background:none;color:var(--dim);font-size:13px;cursor:pointer}
+/* 一覧のタイル（2026-09-16 JUNYA案 A＋B）
+   ★31人の写真は撮った場所も光も距離もバラバラ。写真そのものは加工せず、上に重ねるだけで揃える：
+     A トーン統一＝一覧ではモノクロ＋縄の色（青緑）を薄く重ねる。押して開いたプロフィールはカラーのまま
+     B 縄の額縁と番号＝2本の罫の額縁と、パンフの一覧と同じ並びの番号
+   ★AIで写真を作り直すのはやらない（顔が変わると本人の写真ではなくなる）*/
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.tile{position:relative;aspect-ratio:4/5;overflow:hidden;border:1px solid var(--line);border-radius:3px;background:var(--panel);
+.tile{position:relative;aspect-ratio:4/5;overflow:hidden;border:0;border-radius:0;background:var(--panel);
   padding:0;cursor:pointer;color:var(--ink);text-align:left}
-.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.tile::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(7,13,16,.92) 0%,rgba(7,13,16,0) 55%)}
-.tile .n{position:absolute;left:8px;right:8px;bottom:7px;z-index:2;font-family:var(--serif);font-size:17px;line-height:1.05}
+.tile img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:cover;
+  filter:grayscale(1) contrast(1.12) brightness(.9);transition:filter .35s}
+.tile .tone{position:absolute;inset:6px;z-index:1;pointer-events:none;mix-blend-mode:multiply;
+  background:linear-gradient(160deg,rgba(99,182,204,.42),rgba(7,13,16,.5))}
+.tile::after{content:"";position:absolute;inset:6px;z-index:1;pointer-events:none;
+  background:linear-gradient(to top,rgba(7,13,16,.95) 0%,rgba(7,13,16,.25) 42%,rgba(7,13,16,0) 62%)}
+/* 2本の罫＝縄。外側の線と内側の線のあいだに台紙の色が1本通る */
+.tile::before{content:"";position:absolute;inset:2px;z-index:3;pointer-events:none;
+  border:1px solid rgba(99,182,204,.42);box-shadow:inset 0 0 0 2px var(--panel),inset 0 0 0 3px rgba(99,182,204,.42)}
+.tile .no{position:absolute;top:10px;right:11px;z-index:4;font-family:var(--serif);font-size:20px;line-height:1;
+  color:var(--ink);font-variant-numeric:tabular-nums;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.tile .n{position:absolute;left:12px;right:10px;bottom:10px;z-index:4;font-family:var(--serif);font-size:18px;line-height:1.05}
 .tile .n.jp{font-family:var(--mincho);font-weight:600;font-size:13.5px}
 .tile.none{background:radial-gradient(120% 90% at 70% 0%,#0f2a33,var(--panel))}
-.tile .v{position:absolute;top:8px;right:8px;z-index:2;writing-mode:vertical-rl;font-family:var(--mincho);
-  font-weight:600;font-size:28px;line-height:1;color:rgba(242,239,230,.08)}
-.tile.cur{border-color:var(--main)}
-.tile .ok{position:absolute;top:7px;left:7px;z-index:2;width:18px;height:18px;border-radius:50%;background:var(--main);
+.tile .v{position:absolute;top:34px;right:12px;z-index:2;writing-mode:vertical-rl;font-family:var(--mincho);
+  font-weight:600;font-size:28px;line-height:1;color:rgba(242,239,230,.09)}
+.tile.cur::before{border-color:var(--main);box-shadow:inset 0 0 0 2px var(--panel),inset 0 0 0 3px var(--main)}
+/* 触れた人だけ色が戻る（押すとカラーのプロフィールが開く、の予告） */
+@media (hover:hover){.tile:hover img{filter:none}.tile:hover .tone{opacity:0}}
+.tile:active img{filter:none}
+.tile .tone{transition:opacity .35s}
+.tile .ok{position:absolute;top:10px;left:10px;z-index:4;width:18px;height:18px;border-radius:50%;background:var(--main);
   display:grid;place-items:center}
 .tile .ok svg{width:10px;height:10px;stroke:#06222b;stroke-width:2.8;fill:none}
 
@@ -331,7 +352,7 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
   <header id="intro">
     <img class="brand" src="assets/go-beyond-logo.png" alt="HARIBOW 単独公演 Go BEYOND">
     <span class="ey">Oshi Finder</span>
-    <h1>31人は、<br>多いですか？</h1>
+    <h1>32人は、<br>多いですか？</h1>
     <p class="lead">そんなあなたに。<br>4つ質問するので、<b>あなたが今日見る3人</b>と、<b>その人の何を探すか</b>を持って入ってください。</p>
     <hr class="rope2">
   </header>
@@ -342,7 +363,7 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
       <select id="fav" aria-label="お目当ての出演者"><option value="">とくにいない</option></select>
       <p class="note2">選ぶと、その人が必ず1人目に入ります。</p>
     </div>
-    <button type="button" class="all-link" id="allLink"><span>診断せずに、31人の一覧から選ぶ →</span></button>
+    <button type="button" class="all-link" id="allLink"><span>診断せずに、32人の一覧から選ぶ →</span></button>
 
     <div class="rail"><div class="bar"><i id="bar"></i></div><span class="n" id="cnt">0 / 4</span></div>
 
@@ -414,7 +435,7 @@ var VOICE={}; V.forEach(function(v){ (VOICE[v[1]]=VOICE[v[1]]||[]).push({f:v[0],
 var ORDER=['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤周平','前田航希','谷瑠奈','佐藤善平',
  '城向葵','清水大佑','永井竜斗','黒岩基','岡澤礼','刀祢槙斗','坂上健太','新遥生','三輪卓海',
  '勝山誠也','越智孔聖','竹中理貴','山口泰侑','西川世那','米田玲音','金箱秀亮','武山心','稲葉大空',
- '大森優馬','飯島未来','高木美幸','福満翔','坂井奏'].filter(function(n){ return BY[n]; });
+ '大森優馬','飯島未来','高木美幸','福満翔','坂井奏','三好廉太郎'].filter(function(n){ return BY[n]; });
 M.forEach(function(m){ if(ORDER.indexOf(m.n)<0) ORDER.push(m.n); });
 
 var TYPES=["INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP",
@@ -599,7 +620,7 @@ function actsBlock(m){
        '<div class="tx"><p class="n">'+esc(x)+'</p>'+(ACH[x]?'<p class="d">'+esc(ACH[x])+'</p>':'')+'</div></div>';
   });
   h+='<div class="allrow"><b>オープニング・エンディング</b><span>全員出演</span></div>';
-  if(!e.length) h+='<p class="also">31人がそろうこの2つが、探せる場面です。</p>';
+  if(!e.length) h+='<p class="also">出演者がそろうこの2つが、探せる場面です。</p>';
   return h+'</div></div>';
 }
 
@@ -621,6 +642,18 @@ function card(o,i){
     h+='<div class="hd"><span class="ey">'+ey+'</span><span class="via">'+via+'</span></div>';
   }
   h+=portrait(m);
+
+  /* 舞台の演目に出ない出演者（2026-09-16・三好廉太郎＝ホワイエDJ）。
+     演目・OP/ED・「今日これを探す」は持たないので、担当だけを出す。無いものを埋めない */
+  if(m.role){
+    h+='<div class="sec role"><span class="lb">担当</span>'+
+       '<p class="rl">'+esc(m.role)+'</p>'+
+       '<p class="rd">客席の外のホワイエ（ロビー）で音楽を流します。</p></div>';
+    h+=mottoBlock(m);
+    h+=voicesBlock(vs);
+    h+='<p class="pending">本人のプロフィールは準備中です。</p>';
+    return h+glossBlock(h)+'</article>';
+  }
 
   /* プロフィール未提出の人。フォームの回答が無いので、相性度も自己申告の欄も出さない。
      出せるのは他のメンバーが書いた推薦文と、届いていれば本人の手書きの座右の銘。無いものを埋めない。
@@ -689,7 +722,7 @@ function show(list){
        '当たっていたら喜んでください。外れていたら、その人のことは4文字では分かりません。'+
        'どちらにしても、見てもらえれば分かります。</p>';
   }
-  h+='<button class="ghost" type="button" id="toAll">31人の一覧を見る</button>';
+  h+='<button class="ghost" type="button" id="toAll">32人の一覧を見る</button>';
   h+='<button class="ghost" type="button" id="again">もう一度診断する</button>';
   var r=document.getElementById('result');
   r.innerHTML=h; r.classList.remove('hide');
@@ -703,7 +736,7 @@ function show(list){
 
 /* ------------------------------------------------------------------
    プロフィールを重ねる画面
-   ・上の帯：戻る／何人目か（押すと31人の一覧）／前後
+   ・上の帯：戻る／何人目か（押すと32人の一覧）／前後
    ・下：前の人・次の人を顔で見せる
    ・左右スワイプでも前後に進む
    ・?p= で来た人（パンフレットの一覧から）は、前後に進んでも URL を置き換えるだけ。
@@ -724,7 +757,7 @@ function renderPerson(n){
   var h='<div class="sheet-in">'+
     '<div class="bar-top">'+
       '<button type="button" class="back" id="sheetX">'+LT+esc(backLabel)+'</button>'+
-      '<button type="button" class="idx" id="toIdx" aria-label="31人の一覧を開く"><b>'+(pos+1)+'</b><span>/ '+ORDER.length+'</span></button>'+
+      '<button type="button" class="idx" id="toIdx" aria-label="32人の一覧を開く"><b>'+(pos+1)+'</b><span>/ '+ORDER.length+'</span></button>'+
       '<button type="button" class="arrow" data-go="'+esc(prev.n)+'" aria-label="前の人（'+esc(shown(prev))+'）">'+LT+'</button>'+
       '<button type="button" class="arrow" data-go="'+esc(next.n)+'" aria-label="次の人（'+esc(shown(next))+'）">'+GT+'</button>'+
     '</div>'+
@@ -733,7 +766,7 @@ function renderPerson(n){
       '<button type="button" class="np prev'+npCls(prev)+'" data-go="'+esc(prev.n)+'">'+thumb(prev)+'<span class="t">‹ 前の人</span><span class="n'+(isLatin(shown(prev))?'':' jp')+'">'+esc(shown(prev))+'</span></button>'+
       '<button type="button" class="np next'+npCls(next)+'" data-go="'+esc(next.n)+'">'+thumb(next)+'<span class="t">次の人 ›</span><span class="n'+(isLatin(shown(next))?'':' jp')+'">'+esc(shown(next))+'</span></button>'+
     '</div>'+
-    '<button type="button" class="to-all" id="toIdx2">31人の一覧</button>'+
+    '<button type="button" class="to-all" id="toIdx2">32人の一覧</button>'+
   '</div>';
   el.innerHTML=h; el.scrollTop=0;
   bindCard(el);
@@ -789,7 +822,7 @@ function stopVideos(root){ root.querySelectorAll('video').forEach(function(v){ t
   },{passive:true});
 })();
 
-/* ---- 31人の一覧 ---- */
+/* ---- 32人の一覧 ---- */
 function openIndex(cur){
   var el=document.getElementById('index');
   var found=ORDER.filter(function(n){ return isFound(BY[n].id); }).length;
@@ -799,7 +832,8 @@ function openIndex(cur){
   ORDER.forEach(function(n){
     var m=BY[n], nm=shown(m), a=m.a||{};
     h+='<button type="button" class="tile'+(a.p?'':' none')+(n===cur?' cur':'')+'" data-n="'+esc(n)+'">'+
-       (a.p?'<img src="assets/cast/'+m.id+'/photo.jpg" alt="" loading="lazy">':'<span class="v" aria-hidden="true">'+esc(m.k||nm)+'</span>')+
+       (a.p?'<img src="assets/cast/'+m.id+'/photo.jpg" alt="" loading="lazy"><span class="tone"></span>':'<span class="v" aria-hidden="true">'+esc(m.k||nm)+'</span>')+
+       '<span class="no">'+('0'+(ORDER.indexOf(n)+1)).slice(-2)+'</span>'+
        (isFound(m.id)?'<span class="ok" aria-label="見つけた">'+CHECK+'</span>':'')+
        '<span class="n'+(isLatin(nm)?'':' jp')+'">'+esc(nm)+'</span></button>';
   });
