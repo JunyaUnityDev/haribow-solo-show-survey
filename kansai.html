@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>HARIBOW単独公演 Go Beyond｜お席のご案内</title>
+<style>
+  :root{
+    --bg:#f4f1ec; --panel:#fffdfa; --line:#ddd6cb; --ink:#2e2a24; --dim:#7d7466;
+    --accent:#6b5f4e; --accent-ink:#fffdfa; --ok:#4e6b57; --warn:#8a5a48; --seat:#e6e0d5;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#1c1a17; --panel:#252220; --line:#3b3631; --ink:#ece7de; --dim:#9a9184;
+      --accent:#a9997f; --accent-ink:#1c1a17; --ok:#8fb59b; --warn:#c99078; --seat:#332f2a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1c1a17; --panel:#252220; --line:#3b3631; --ink:#ece7de; --dim:#9a9184;
+    --accent:#a9997f; --accent-ink:#1c1a17; --ok:#8fb59b; --warn:#c99078; --seat:#332f2a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+       line-height:1.75;-webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto;padding:24px 18px 64px}
+  header{display:flex;align-items:center;gap:12px;padding-block:8px 20px}
+  header img{height:26px;width:auto}
+  h1{font-size:19px;margin:18px 0 4px;letter-spacing:.02em}
+  .lead{color:var(--dim);font-size:14px;margin:0 0 22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:14px;margin:0 0 12px;letter-spacing:.06em;color:var(--dim);font-weight:700}
+  label{display:block;font-size:13px;font-weight:700;margin:14px 0 5px}
+  label .req{color:var(--warn);font-weight:400;font-size:11px;margin-left:5px}
+  input[type=text],input[type=email]{width:100%;padding:11px 12px;font-size:16px;
+       border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit}
+  input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .hint{font-size:12px;color:var(--dim);margin:5px 0 0}
+  .rows{display:flex;flex-direction:column;gap:7px}
+  .seatrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .rowlabel{font-size:11px;color:var(--dim);width:74px;flex:none;font-weight:700}
+  .seats{display:flex;gap:5px;flex-wrap:wrap}
+  .seat{width:30px;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--seat);
+        color:var(--ink);font-size:11px;cursor:pointer;font-family:inherit;padding:0}
+  .seat[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+  .seat:disabled{opacity:.28;cursor:not-allowed}
+  .picked{font-size:14px;font-weight:700;margin:14px 0 0}
+  .total{font-size:22px;font-weight:700;letter-spacing:.01em}
+  .pay{display:flex;gap:9px;flex-wrap:wrap;margin-top:7px}
+  .pay button{flex:1 1 130px;padding:11px;border:1px solid var(--line);border-radius:8px;
+       background:var(--bg);color:var(--ink);font-size:14px;font-family:inherit;cursor:pointer}
+  .pay button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+  .go{width:100%;margin-top:20px;padding:15px;border:0;border-radius:9px;background:var(--accent);
+      color:var(--accent-ink);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+  .go:disabled{opacity:.4;cursor:not-allowed}
+  .note{font-size:12px;color:var(--dim);margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .err{color:var(--warn);font-size:13px;font-weight:700;margin-top:10px}
+  .done h2{font-size:17px;color:var(--ok);letter-spacing:0}
+  .resid{font-size:20px;font-weight:700;letter-spacing:.04em}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
+  </header>
+
+  <div id="gate" hidden>
+    <h1>このページは個別にご案内した方専用です</h1>
+    <p class="lead">お手元のご案内メッセージのURLを、そのまま開いてください。<br>
+      一般のチケットは <a href="https://ticket.haribow.com/seats.html">こちら</a> からお求めいただけます。</p>
+  </div>
+
+  <div id="app" hidden>
+    <h1>HARIBOW単独公演「Go Beyond」お席のご案内</h1>
+    <p class="lead">2026年9月29日（火）19:30開演／めぐろパーシモンホール 大ホール<br>
+      代表の方おひとりが、ご来場される<b>2名分</b>をまとめてご入力ください。</p>
+
+    <div class="card">
+      <h2>1. お席を選ぶ（最大2席）</h2>
+      <div id="rows" class="rows"><p class="hint">お席の空き状況を読み込んでいます…</p></div>
+      <p class="picked">選択中：<span id="pickTxt">まだ選ばれていません</span></p>
+      <p class="total" id="total">¥0</p>
+      <p class="hint">おひとり ¥2,000（学生団体のお席）。当日、代表の方の学生証等をご提示ください。</p>
+    </div>
+
+    <div class="card">
+      <h2>2. ご来場される方</h2>
+      <label>代表の方のお名前<span class="req">必須</span></label>
+      <input type="text" id="rep" placeholder="例：山田太郎" autocomplete="name">
+      <label>ご一緒される方のお名前<span class="req">必須</span></label>
+      <input type="text" id="mate" placeholder="例：鈴木花子">
+      <p class="hint">当日の受付でお名前を照合します。1席のみのお申し込みのときは空欄で構いません。</p>
+      <label>ご所属<span class="req">必須</span></label>
+      <input type="text" id="gname" placeholder="例：〇〇大学ダブルダッチサークル">
+      <label>ご連絡先メールアドレス<span class="req">必須</span></label>
+      <input type="email" id="contact" placeholder="例：example@mail.com" autocomplete="email">
+      <p class="hint">お支払いのご案内と、当日ご提示いただく電子チケットをこのアドレスにお送りします。</p>
+    </div>
+
+    <div class="card">
+      <h2>3. お支払い方法</h2>
+      <div class="pay">
+        <button type="button" id="mCard" aria-pressed="false" onclick="setMethod('square')">クレジットカード</button>
+        <button type="button" id="mBank" aria-pressed="false" onclick="setMethod('bank')">銀行振込</button>
+      </div>
+      <div id="payerBox" hidden>
+        <label>お振込みされるお名前（カナ）<span class="req">必須</span></label>
+        <input type="text" id="payer" placeholder="例：ヤマダタロウ">
+        <p class="hint">銀行の明細と照合します。ご所属名ではなく、実際に振り込まれる方のお名前をご記入ください。</p>
+      </div>
+      <button class="go" id="go" disabled onclick="submit()">お申し込みを送信</button>
+      <p class="err" id="err" hidden></p>
+      <p class="note">お席はこの時点で確保されます。お支払いの期限はお申し込み後のメールでご案内します。
+        期限までにご入金が確認できない場合、お席は自動的に解放されます。</p>
+    </div>
+  </div>
+
+  <div id="done" class="card done" hidden>
+    <h2>お申し込みを受け付けました</h2>
+    <p>予約番号：<span class="resid" id="dResid"></span></p>
+    <p id="dBody"></p>
+    <p class="note">ご案内のメールをお送りしました。数分経っても届かない場合は、迷惑メールフォルダをご確認ください。</p>
+  </div>
+</div>
+
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var UNIT=2000, MAXSEATS=2;
+var qs=new URLSearchParams(location.search), XKEY=(qs.get('k')||'').trim();
+var ROWS=[], TAKEN={}, picked={}, method='';
+
+if(!XKEY){ document.getElementById('gate').hidden=false; }
+else { document.getElementById('app').hidden=false; load(); }
+
+function label(r,n){ return (r.label||(r.row+'列'))+n+'番'; }
+
+function load(){
+  Promise.all([
+    fetch(BASE+'?page=seat_layout').then(function(r){return r.json();}),
+    fetch(BASE+'?page=seat_avail').then(function(r){return r.json();})
+  ]).then(function(a){
+    var lay=a[0], av=a[1];
+    if(!lay||!lay.ok||!lay.rows){ return fail('お席の情報を読み込めませんでした。時間をおいてもう一度お試しください。'); }
+    (av&&av.takenGroup||[]).forEach(function(id){ TAKEN[id]=1; });
+    ROWS=lay.rows; render();
+  }).catch(function(){ fail('通信に失敗しました。電波の良い場所でもう一度お試しください。'); });
+}
+function fail(m){ var e=document.getElementById('rows'); e.innerHTML='<p class="err">'+m+'</p>'; }
+
+function render(){
+  var box=document.getElementById('rows'); box.innerHTML='';
+  var any=false;
+  ROWS.forEach(function(r){
+    /* 団体区分の席だけを出す。'x:' で始まるエリアは運営枠なので売り物ではない（seats.html と同じ規則）。 */
+    var free=[];
+    (r.runs||[]).forEach(function(run){
+      if(run[2]!=='group') return;
+      for(var n=run[0]; n<=run[1]; n++){ if(!TAKEN[r.row+'-'+n]) free.push(n); }
+    });
+    if(!free.length) return;
+    any=true;
+    var div=document.createElement('div'); div.className='seatrow';
+    var lb=document.createElement('span'); lb.className='rowlabel'; lb.textContent=(r.label||(r.row+'列'));
+    var sb=document.createElement('span'); sb.className='seats';
+    free.forEach(function(n){
+      var id=r.row+'-'+n;
+      var b=document.createElement('button');
+      b.type='button'; b.className='seat'; b.textContent=n; b.setAttribute('aria-pressed','false');
+      b.setAttribute('aria-label', label(r,n));
+      b.onclick=function(){ toggle(id, label(r,n), b); };
+      sb.appendChild(b);
+    });
+    div.appendChild(lb); div.appendChild(sb); box.appendChild(div);
+  });
+  if(!any) fail('申し訳ありません。ご案内できるお席が残っておりませんでした。運営までご連絡ください。');
+}
+
+function toggle(id,txt,btn){
+  if(picked[id]){ delete picked[id]; btn.setAttribute('aria-pressed','false'); }
+  else{
+    if(Object.keys(picked).length>=MAXSEATS){ return; }
+    picked[id]=txt; btn.setAttribute('aria-pressed','true');
+  }
+  calc();
+}
+function setMethod(m){
+  method=m;
+  document.getElementById('mCard').setAttribute('aria-pressed', m==='square');
+  document.getElementById('mBank').setAttribute('aria-pressed', m==='bank');
+  document.getElementById('payerBox').hidden = (m!=='bank');
+  calc();
+}
+function val(id){ return (document.getElementById(id).value||'').trim(); }
+function calc(){
+  var n=Object.keys(picked).length;
+  document.getElementById('pickTxt').textContent = n ? Object.keys(picked).map(function(k){return picked[k];}).join('・') : 'まだ選ばれていません';
+  document.getElementById('total').textContent = '¥'+(UNIT*n).toLocaleString();
+  var payerOk = (method!=='bank') || val('payer');
+  document.getElementById('go').disabled =
+    !(n>=1 && n<=MAXSEATS && method && val('rep') && val('gname') && val('contact') && payerOk);
+}
+['rep','mate','gname','contact','payer'].forEach(function(id){
+  var el=document.getElementById(id); if(el) el.addEventListener('input',calc);
+});
+
+function submit(){
+  var btn=document.getElementById('go'), err=document.getElementById('err');
+  btn.disabled=true; btn.textContent='送信中…'; err.hidden=true;
+  var ids=Object.keys(picked);
+  var mates=[val('rep'), val('mate')].filter(Boolean).join('・');
+  fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      survey:'team_reserve',
+      xkey:XKEY,
+      seatIds:ids,
+      groupName:val('gname'),
+      groupType:'大学DDサークル',   /* シート上の既存表記に揃える（seats.html と同じ） */
+      teamTypeId:'circle',           /* 単価はサーバーが TEAM_PRICE_ から決める。ここでは値段を送らない */
+      attendees:mates,
+      commonality:'',
+      rep:val('rep'),
+      contact:val('contact'),
+      method:method,
+      payerName:val('payer')
+    })})
+  .then(function(r){return r.json();}).then(function(res){
+    if(!res.ok){
+      var m={x_range:'お席は1〜2席でお選びください。',
+             min5:'お申し込みを受け付けられませんでした。運営までご連絡ください。',
+             team_closed:'受付期間が終了しています。運営までご連絡ください。',
+             bad_email:'メールアドレスの形式をご確認ください。',
+             need_payer:'お振込みされるお名前（カナ）をご記入ください。',
+             bank_closed:'銀行振込の受付は終了しました。クレジットカードをお選びください。',
+             invalid_team_type:'お申し込みを受け付けられませんでした。運営までご連絡ください。'
+            }[res.error];
+      if(!m && res.conflict){ m='選んでいる間に他の方のお申し込みが入りました。お手数ですが選び直してください。'; picked={}; TAKEN={}; load(); }
+      err.textContent = m || 'お申し込みを受け付けられませんでした。時間をおいてもう一度お試しください。';
+      err.hidden=false; btn.textContent='お申し込みを送信'; calc(); return;
+    }
+    document.getElementById('app').hidden=true;
+    document.getElementById('done').hidden=false;
+    document.getElementById('dResid').textContent=res.resId;
+    var seats=ids.map(function(k){return picked[k];}).join('・');
+    var body='お席：'+seats+'（'+ids.length+'席・¥'+(UNIT*ids.length).toLocaleString()+'）<br>';
+    if(res.method==='振込'){ body+='お支払い：銀行振込<br>お振込み期限：'+(res.dueText||'メールに記載')+'<br>振込先はメールに記載しています。'; }
+    else if(res.payLink){ body+='お支払い：クレジットカード<br><a href="'+res.payLink+'">こちらからお支払いに進む</a><br>期限：'+(res.dueText||'メールに記載'); }
+    else { body+='お支払い方法は追ってご案内します。'; }
+    document.getElementById('dBody').innerHTML=body;
+    window.scrollTo(0,0);
+  }).catch(function(){
+    err.textContent='通信に失敗しました。電波の良い場所でもう一度お試しください。';
+    err.hidden=false; btn.textContent='お申し込みを送信'; calc();
+  });
+}
+</script>
+</body>
+</html>
