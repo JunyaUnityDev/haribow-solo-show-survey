@@ -13,172 +13,270 @@
     変えたら両方直すこと（券種名を content.js だけ直し忘れた事故が2026-07-26にあった）。
   ※支援者のお名前だけはGASから取得している（日々増えるため手更新にしない）。
 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap" rel="stylesheet">
 <style>
+  /* ============================================================
+     デザイン（2026-09-16 全面改稿）
+     方針＝「暗い劇場で配られる印刷プログラム」。装飾でなく構造で作る。
+      ・見出しは端末内蔵の明朝（Webフォントを読まない＝会場の電波で落ちない）
+      ・数字とラテンだけ Instrument Serif。数字がこのページの署名
+      ・区切りは2本の細い罫＝ダブルダッチの2本の縄。これがこのページ唯一の装飾
+      ・影は使わない。角丸は3pxで統一。派手さは写真1点に集中させる
+      ・自動で動くものを作らない。動くのは「まばたき」だけ（押した時のみ）
+     ★色は公式サイト（go-beyond）と同じ teal / gold を維持。勝手に足さないこと
+     ============================================================ */
   :root{
-    --bg:#0a0b0e; --panel:#14161c; --line:#262a33; --ink:#f3f1ea; --dim:#a7adba;
-    --faint:#6b7280; --main:#63b6cc; --sup:#c9a24b; --stage:#06222b;
-    --shadow:0 8px 28px rgba(0,0,0,.55);
+    --bg:#070d10;        /* 劇場の黒。#111 系の「黒の置き換え」にしない（青緑に寄せた黒） */
+    --panel:#0d1519; --line:#1d282d; --ink:#f2efe6; --dim:#98a4a8; --faint:#66747a;
+    --main:#63b6cc; --sup:#c9a24b; --stage:#06222b;
+    --rope:#63b6cc;      /* --main の別名。縄＝アクセントという意味で使う側 */
+    --shadow:none;       /* 影は廃止。旧ルールが参照しても効かないようにここで殺す */
+    --mincho:"Hiragino Mincho ProN","HiraMinProN-W3","Yu Mincho",YuMincho,"Noto Serif JP",serif;
+    --gothic:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+    --serif:"Instrument Serif","Hiragino Mincho ProN",Georgia,serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
-    font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.75}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--gothic);
+    font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.85}
   .wrap{max-width:640px;margin:0 auto;padding:0 16px 80px}
-  .logo{height:40px;width:auto;display:block;margin:22px auto 0;opacity:.9}
+  /* 団体のマーク。公演タイトルは表紙のタイポが持つので、ここは小さく置くだけ */
+  .logo{height:40px;width:auto;display:block;margin:22px 0 0;opacity:.8}
 
-  .hero{margin:22px 0 30px;padding:34px 22px;border-radius:18px;text-align:center;
-    background:linear-gradient(180deg,#0d3947,var(--stage));box-shadow:0 0 60px rgba(99,182,204,.18)}
-  .hero .tag{font-size:11px;letter-spacing:.24em;color:var(--main);margin:0 0 12px}
-  .hero h1{font-size:30px;font-weight:800;margin:0 0 6px;letter-spacing:.02em}
-  .hero .sub{font-size:13.5px;color:#cfeaf2;margin:0 0 18px}
-  .hero .info{font-size:13.5px;color:#cfeaf2;border-top:1px solid rgba(255,255,255,.18);padding-top:14px;opacity:.95}
+  /* ---------- 表紙 ----------
+     写真は go-beyond の assets/hero.jpg を縮小したもの。白い衣装が黒に抜けるので
+     暗くしても人が残る。ここだけ画面幅いっぱいに出す（.wrap の左右16pxを打ち消す） */
+  .hero{position:relative;margin:16px -16px 0;padding:190px 20px 30px;overflow:hidden}
+  .hero .ph{position:absolute;inset:0;background:url(assets/hero-stage.jpg) center 30%/cover no-repeat;
+    filter:grayscale(.28) brightness(.66) contrast(1.06)}
+  .hero .vg{position:absolute;inset:0;background:
+    linear-gradient(180deg,rgba(7,13,16,.62) 0%,rgba(7,13,16,.06) 30%,rgba(7,13,16,.88) 78%,var(--bg) 100%)}
+  .hero > .in{position:relative;z-index:2}
+  .hero .tag{font-family:var(--serif);font-size:14px;letter-spacing:.14em;
+    color:var(--rope);margin:0 0 6px}
+  .hero h1{font-family:var(--serif);font-size:clamp(46px,15.5vw,62px);font-weight:400;
+    line-height:.98;letter-spacing:.005em;margin:0 0 10px}
+  .hero .sub{font-family:var(--mincho);font-size:15.5px;color:#d7e3e6;margin:0}
+  .hero .info{font-size:13px;color:#b8c6ca;line-height:1.95;margin-top:18px;padding-top:14px;
+    border-top:1px solid rgba(242,239,230,.28);
+    box-shadow:0 -3px 0 -2px rgba(242,239,230,.28)}   /* 2本目の罫＝縄 */
 
-  h2{font-size:13px;letter-spacing:.14em;color:var(--main);font-weight:800;margin:34px 0 12px;
-    padding-bottom:8px;border-bottom:1px solid var(--line)}
-  .lead{font-size:14.5px;color:var(--dim);margin:0 0 14px}
+  /* ---------- 目次 ---------- */
+  .toc{margin:26px 0 8px;columns:2;column-gap:20px;font-size:13px}
+  .toc a{display:block;text-decoration:none;color:var(--dim);padding:5px 0;
+    break-inside:avoid;-webkit-tap-highlight-color:transparent}
+  .toc a b{font-family:var(--serif);font-size:12.5px;color:var(--rope);
+    font-weight:400;margin-right:7px}
+  .toc a:hover,.toc a:active{color:var(--ink)}
 
+  /* ---------- 章 ----------
+     章と章のあいだの2本の罫がこのページの背骨。ここを1本にすると普通のページになる */
+  section{position:relative;padding:0 0 34px;margin:0 0 34px}
+  section::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  section:last-of-type{margin-bottom:22px}
+  h2{position:relative;font-family:var(--mincho);font-size:20px;font-weight:600;
+    letter-spacing:.03em;line-height:1.5;color:var(--ink);margin:0 0 14px;padding:0 44px 0 20px}
+  h2::before{content:"";position:absolute;left:0;top:.3em;bottom:.24em;width:5px;
+    border-left:1px solid var(--rope);border-right:1px solid var(--rope)}
+  h2::after{content:attr(data-ch);position:absolute;right:0;top:.5em;
+    font-family:var(--serif);font-size:14px;color:var(--faint);letter-spacing:.08em}
+  .lead{font-size:14.5px;color:var(--dim);margin:0 0 16px}
+
+  /* ---------- 演目 ---------- */
   .act{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);
-    border-radius:14px;padding:15px 17px;margin-bottom:10px;box-shadow:var(--shadow)}
-  .act .n{font-size:16px;font-weight:800;margin:0 0 4px}
-  .act .d{font-size:13px;color:var(--dim);margin:0}
+    border-radius:3px;padding:15px 17px;margin-bottom:8px}
+  .act .n{font-size:16.5px;font-weight:700;margin:0 0 4px;letter-spacing:.01em}
+  .act .d{font-size:13px;color:var(--dim);margin:0;line-height:1.8}
   /* 演目写真を薄く敷く（2026-09-08 ／ 2026-09-08 見切れ修正）。
      文字が読めなくなるのが一番まずいので、暗さ(brightness)とグラデは触らないこと。
      ★カードの高さは文章の量で決まっていたので、短い演目だと写真が90pxの帯になり、
        人の顔がまるごと切れていた。min-height で帯を広げ、文字は下に寄せている。
-     ★背景の位置は写真ごとに違う（--fy）。人が下に写っている写真（チアリーマンズ）や
-       全身が縦に散る写真（シルク）は 28% では顔が入らない。数字は実物を見て決めたもの。
-       写真を差し替えたら --fy も付け直すこと。 */
-  .act.ph{border-color:rgba(255,255,255,.14);min-height:168px;
+     ★背景の位置は写真ごとに違う（--fy）。写真を差し替えたら --fy も付け直すこと。 */
+  .act.ph{border-color:rgba(242,239,230,.12);min-height:172px;
     display:flex;flex-direction:column;justify-content:flex-end}
   .act.ph .bg{position:absolute;inset:0;background-size:cover;
     background-position:center var(--fy,32%);
-    filter:grayscale(.22) brightness(.44) contrast(1.05);z-index:0}
+    filter:grayscale(.3) brightness(.44) contrast(1.05);z-index:0}
   .act.ph::after{content:"";position:absolute;inset:0;z-index:1;
-    background:linear-gradient(175deg,rgba(10,11,14,.42),rgba(10,11,14,.7) 55%,rgba(10,11,14,.9))}
+    background:linear-gradient(175deg,rgba(7,13,16,.4),rgba(7,13,16,.72) 55%,rgba(7,13,16,.93))}
   /* シルクの1枚だけ元の写真が暗すぎて、brightness(.44) だと何も見えない。
-     この写真は文字の後ろが黒い床なので、明るくしても可読性は落ちない。
      ★他の写真に .dark を付けないこと（明るい写真だと文字が読めなくなる） */
-  .act.ph.dark .bg{filter:grayscale(.18) brightness(1) contrast(1.12)}
+  .act.ph.dark .bg{filter:grayscale(.2) brightness(1) contrast(1.12)}
   .act.ph .tx{position:relative;z-index:2}
+  .act.ph .d{color:#c6cfd3}
   /* 上演順（2026-09-10）。番号は『構成台本』タブから取る。ここには順番を持たない。
      取得に失敗したら番号は出ない＝静的な並びのまま。黙って違う順番を出さないため。 */
-  .act .no{position:absolute;top:12px;right:14px;z-index:2;
-    font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--main);
-    border:1px solid rgba(99,182,204,.45);border-radius:20px;padding:2px 9px;
-    background:rgba(10,11,14,.55)}
-  /* オープニング／エンディングは番号を振らない枠。カードを作らず細い行で並びだけ示す */
-  .lead-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:11px 17px;
-    background:rgba(20,22,28,.6);border:1px solid var(--line);border-radius:14px;
-    font-size:13.5px;color:var(--dim)}
-  .lead-row b{color:var(--ink);font-weight:700;font-size:14.5px}
-  .lead-row .zen{font-size:11px;color:var(--faint)}
-  .act.ph .d{color:#cdd3dd}
-  .badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;
-    padding:2px 8px;border-radius:20px;margin:0 6px 6px 0;vertical-align:middle}
-  .badge.gold{background:rgba(201,162,75,.16);color:var(--sup);border:1px solid rgba(201,162,75,.5)}
-  .badge.teal{background:rgba(99,182,204,.14);color:var(--main);border:1px solid rgba(99,182,204,.45)}
+  .act .no{position:absolute;top:11px;right:15px;z-index:2;font-family:var(--serif);
+    font-size:20px;font-weight:400;letter-spacing:.04em;color:var(--rope);opacity:.9}
+  /* オープニング／エンディングは番号を振らない枠 */
+  .lead-row{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding:12px 17px;
+    border:1px solid var(--line);border-radius:3px;font-size:13.5px;color:var(--dim)}
+  .lead-row b{color:var(--ink);font-family:var(--mincho);font-weight:600;font-size:15px}
+  .lead-row .zen{font-size:11.5px;color:var(--faint);margin-left:auto}
+  .badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;
+    padding:1px 7px;border-radius:2px;margin:0 6px 7px 0;vertical-align:middle}
+  .badge.gold{color:var(--sup);border:1px solid rgba(201,162,75,.55)}
+  .badge.teal{color:var(--main);border:1px solid rgba(99,182,204,.5)}
 
-  /* 出演者。名前は押すとプロフィールが開く（2026-09-08）。
-     中身は推し診断（oshi.html）のカードをそのまま使う。ここで書き直すと必ずズレる。 */
-  .cast{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 6px}
-  .cast a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  /* ---------- 難度・作法の共通型 ----------
+     ★数字の出どころは org/profile.md「難度翻訳の素材」。ここで数字をいじらないこと。
+       とくに「1秒に約8回」は縄の回転であって跳ぶ回数ではなく、常時この速さでもない。 */
+  .qa{display:grid;gap:8px}
+  .qa .b{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 17px}
+  .qa .b .t{font-family:var(--mincho);font-size:16.5px;font-weight:600;
+    margin:0 0 8px;color:var(--ink);line-height:1.6}
+  .qa .b p{margin:0;font-size:13.5px;color:var(--dim)}
+  .qa .b p+p{margin-top:9px}
+  .qa .b .cap{display:block;margin-top:10px;font-size:12px;color:var(--faint)}
+  .qa .lk{display:inline-block;margin-top:12px;font-size:13.5px;color:var(--main);
+    text-decoration:none;border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
+  /* 数字を主役にする。本文に混ぜず、独立した行にして大きく出す */
+  .fig{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:14px 0 10px}
+  .fig .v{font-family:var(--serif);font-size:clamp(36px,11vw,44px);line-height:.9;color:var(--ink)}
+  .fig .u{font-size:13px;color:var(--dim)}
+  .fig .vs{font-size:12.5px;color:var(--faint);width:100%;margin-top:2px}
+  .voices{display:flex;flex-direction:column;gap:0;margin-top:12px}
+  .voices div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    font-size:13px;color:var(--dim);border-top:1px solid var(--line);padding:9px 0}
+  .voices b{font-family:var(--serif);color:var(--rope);font-weight:400;
+    font-size:19px;white-space:nowrap}
+
+  /* ---------- まばたきの装置（2026-09-16） ----------
+     「1秒に約8回」を文字で読ませず、1秒だけ実際に見せる。
+     ★自動では絶対に動かさない（押した時だけ）。勝手に動く帯は読む邪魔になる
+     ★縄は8回、まばたきは1回。両方を同じ1秒に重ねることが説明そのもの。
+       周期を変えると意味が壊れるので、125ms と 8 と 1000ms は触らないこと */
+  .blink{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .blink .row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .blink .lb{font-size:12px;color:var(--faint);width:70px;flex:0 0 70px}
+  /* 帯は「入力欄」に見せない。枠線を持たせず、上下の細い線だけで通り道にする */
+  .blink .band{position:relative;flex:1;height:34px;overflow:hidden;border-radius:2px;
+    background:linear-gradient(180deg,#040809,#0a1114);
+    border-top:1px solid rgba(99,182,204,.16);border-bottom:1px solid rgba(99,182,204,.16)}
+  /* 止まっている時も縄は薄く見えている。どこを通るのかが分かってから動き出す */
+  .blink .rope{position:absolute;left:0;right:0;top:14px;height:5px;
+    border-top:1px solid var(--rope);border-bottom:1px solid var(--rope);opacity:.2}
+  .blink .eye{position:absolute;inset:0;background:
+    radial-gradient(120% 150% at 50% 50%,rgba(242,239,230,.22),rgba(242,239,230,.05) 68%,transparent)}
+  .blink .lid{position:absolute;inset:0;background:#040809;opacity:0}
+  .blink.run .rope{animation:ropepass 125ms linear 8}
+  .blink.run .lid{animation:eyeshut 1000ms linear 1}
+  @keyframes ropepass{from{transform:translateY(-22px);opacity:1}to{transform:translateY(24px);opacity:1}}
+  @keyframes eyeshut{0%,39%{opacity:0}42%,52%{opacity:1}55%,100%{opacity:0}}
+  .blink .btn{display:inline-block;margin-top:4px;background:none;color:var(--main);
+    border:1px solid rgba(99,182,204,.5);border-radius:2px;padding:9px 16px;
+    font-family:var(--gothic);font-size:13.5px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .blink .btn[disabled]{opacity:.45;cursor:default}
+  .blink .out{font-size:12.5px;color:var(--faint);margin:10px 0 0;min-height:1.6em}
+  .blink .out b{font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:400}
+  @media (prefers-reduced-motion:reduce){
+    .blink .btn,.blink .row{display:none}
+    .blink .out{color:var(--dim)}
+  }
+
+  /* ---------- 出演者 ----------
+     名前は押すとプロフィールが開く（2026-09-08）。中身は推し診断（oshi.html）の
+     カードをそのまま使う。ここで書き直すと必ずズレる。 */
+  .cast{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+  .cast a{display:block;border:1px solid var(--line);border-radius:2px;
     padding:7px 11px;font-size:13.5px;color:var(--ink);text-decoration:none;
     -webkit-tap-highlight-color:transparent}
   .cast a:hover,.cast a:active{border-color:rgba(99,182,204,.55);color:var(--main)}
-  .cast a .ar{color:var(--main);font-size:11px;margin-left:5px;opacity:.85}
+  .cast a .ar{color:var(--faint);font-size:10px;margin-left:6px}
 
-  .achv{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 17px;box-shadow:var(--shadow)}
-  .achv div{padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-  .achv div:last-child{border-bottom:0}
-  .achv b{color:var(--main)}
+  /* ---------- 実績 ---------- */
+  .achv div{padding:13px 0;border-top:1px solid var(--line);font-size:13.5px;color:var(--dim)}
+  .achv div:first-child{border-top:0;padding-top:0}
+  .achv b{display:block;font-family:var(--mincho);font-size:15px;font-weight:600;
+    color:var(--ink);margin-bottom:3px}
 
-  .info-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
-  .info-card dt{font-size:10.5px;letter-spacing:.1em;color:var(--faint);font-weight:800;margin-top:12px}
+  /* ---------- 読みもの（記事の写真を敷く・2026-09-16） ----------
+     演目カードと同じ作りにして、ページの中で浮かないようにしている。
+     写真は go-beyond の記事ヒーローを縮小したもの（assets/reads/）。
+     ★記事側の写真を差し替えたら、ここも入れ替える。参照ではなく複製している */
+  .reads{display:grid;gap:8px}
+  .reads a{position:relative;display:block;overflow:hidden;text-decoration:none;
+    background:var(--panel);border:1px solid rgba(242,239,230,.12);border-radius:3px;
+    padding:18px;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end;
+    -webkit-tap-highlight-color:transparent}
+  .reads a .bg{position:absolute;inset:0;background-size:cover;
+    background-position:center var(--fy,45%);
+    filter:grayscale(.42) brightness(.46) contrast(1.04);z-index:0}
+  .reads a::after{content:"";position:absolute;inset:0;z-index:1;
+    background:linear-gradient(175deg,rgba(7,13,16,.34),rgba(7,13,16,.74) 52%,rgba(7,13,16,.95))}
+  .reads a .tx{position:relative;z-index:2}
+  .reads .t{font-family:var(--mincho);font-size:19px;font-weight:600;color:var(--ink);
+    margin:0 0 7px;line-height:1.5}
+  .reads .d{font-size:13px;color:#c6cfd3;margin:0;line-height:1.85}
+  .reads .go{display:inline-block;margin-top:11px;font-size:13px;color:var(--main);
+    border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
+
+  /* ---------- 公演情報 ---------- */
+  .info-card dt{font-family:var(--mincho);font-size:12.5px;color:var(--faint);
+    font-weight:600;margin-top:16px;letter-spacing:.06em}
   .info-card dt:first-child{margin-top:0}
-  .info-card dd{margin:2px 0 0;font-size:14.5px}
+  .info-card dd{margin:3px 0 0;font-size:14.5px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .info-card dd:last-child{border-bottom:0;padding-bottom:0}
 
-  .thanks{background:linear-gradient(180deg,rgba(201,162,75,.10),var(--panel));
-    border:1px solid rgba(201,162,75,.45);border-radius:14px;padding:18px;text-align:center}
-  .thanks .names{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
-  .thanks .names span{font-size:14px;font-weight:700}
-  .thanks .empty{color:var(--faint);font-size:13px}
+  /* ---------- 支援者 ---------- */
+  .thanks{border:1px solid rgba(201,162,75,.4);border-radius:3px;padding:20px 18px;text-align:center}
+  .thanks .names{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:14px}
+  .thanks .names span{font-family:var(--mincho);font-size:15px;color:var(--ink)}
+  .thanks .empty{color:var(--faint);font-size:13px;font-family:var(--gothic)}
 
-  .closing{margin-top:34px;padding:24px 20px;border-radius:16px;text-align:center;
-    background:var(--panel);border:1px solid var(--line)}
-  .closing p{margin:0 0 10px;font-size:14.5px;color:var(--dim)}
-  .closing .big{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:.04em}
+  /* ---------- 結び ---------- */
+  .closing{margin-top:8px;padding:34px 20px;text-align:center}
+  .closing p{margin:0 0 12px;font-family:var(--mincho);font-size:15.5px;color:var(--dim)}
+  /* 日本語なので明朝を明示する。var(--serif) はラテン用でフォールバック頼みになる */
+  .closing .big{font-family:var(--mincho);font-weight:600;font-size:clamp(21px,6.4vw,27px);
+    color:var(--ink);letter-spacing:.04em;margin:0}
 
   /* 終演後の導線（2026-09-10）。拍手が鳴り止んだ直後がいちばん熱が高いのに、
      これまで次にやることが何も無かった。リンク先は org/web-presence.md が一次ソース。 */
-  .after{margin-top:12px;background:var(--panel);border:1px solid var(--line);
-    border-radius:14px;padding:18px;box-shadow:var(--shadow)}
-  .after .t{font-size:13px;letter-spacing:.1em;color:var(--main);font-weight:800;margin:0 0 10px}
+  .after{margin-top:8px;border-top:1px solid var(--line);
+    box-shadow:0 -3px 0 -2px var(--line);padding-top:18px}
+  .after .t{font-family:var(--mincho);font-size:14px;color:var(--faint);margin:0 0 6px}
   .after a{display:flex;align-items:center;justify-content:space-between;gap:10px;
     text-decoration:none;color:var(--ink);font-size:14.5px;
-    padding:12px 2px;border-bottom:1px solid var(--line)}
+    padding:13px 2px;border-bottom:1px solid var(--line)}
   .after a:last-child{border-bottom:0}
   .after a span{color:var(--faint);font-size:12.5px}
-  .after a .go{color:var(--main);font-weight:800}
+  .after a .go{color:var(--main);font-size:13px}
 
-  .reads{display:grid;gap:12px}
-  .reads a{display:block;text-decoration:none;background:var(--panel);
-    border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
-  .reads .t{font-size:16px;font-weight:800;color:var(--ink);margin:0 0 5px}
-  .reads .d{font-size:13.5px;color:var(--dim);margin:0;line-height:1.85}
-  .reads .go{display:inline-block;margin-top:10px;font-size:13.5px;font-weight:800;color:var(--main)}
-
-  /* 難度翻訳と作法の2章（2026-09-16）。どちらも「カード＋短文」で同じ骨格なので1つの型を共用する。
-     ★数字の出どころは org/profile.md「難度翻訳の素材」。ここで数字をいじらないこと。
-       とくに「1秒に約8回」は縄の回転であって跳ぶ回数ではなく、常時この速さでもない。 */
-  .qa{display:grid;gap:10px}
-  .qa .b{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    padding:15px 17px;box-shadow:var(--shadow)}
-  .qa .b .t{font-size:15px;font-weight:800;margin:0 0 6px;color:var(--ink)}
-  .qa .b p{margin:0;font-size:13.5px;color:var(--dim)}
-  .qa .b p+p{margin-top:8px}
-  .qa .b .big{font-size:15.5px;font-weight:800;color:var(--ink);line-height:1.7}
-  .qa .b .cap{display:block;margin-top:9px;font-size:12px;color:var(--faint)}
-  .qa .lk{display:inline-block;margin-top:11px;font-size:13.5px;font-weight:800;
-    color:var(--main);text-decoration:none}
-  /* 本人の回答の内訳。31人に一律のルールを敷かないことが、この章の中身そのもの */
-  .voices{display:flex;flex-direction:column;gap:7px;margin-top:11px}
-  .voices div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-    font-size:13px;color:var(--dim);border-bottom:1px dashed var(--line);padding-bottom:6px}
-  .voices div:last-child{border-bottom:0;padding-bottom:0}
-  .voices b{color:var(--main);font-weight:800;font-size:13.5px;white-space:nowrap}
-
-  footer{margin-top:34px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2}
+  footer{margin-top:30px;font-size:12.5px;color:var(--faint);text-align:center;line-height:2.1}
   footer a{color:var(--main)}
-  .note{font-size:11.5px;color:var(--faint);margin-top:8px}
+  .note{font-size:11.5px;color:var(--faint);margin-top:10px}
 
   /* ウェルカム動画（縦型・2026-09-07追加）。横幅を絞らないと9:16がPCで縦に伸びすぎる */
-  .vid{max-width:330px;margin:0 auto;border-radius:14px;overflow:hidden;
-    border:1px solid var(--line);box-shadow:var(--shadow);background:#000}
+  .vid{max-width:320px;margin:0 auto;border-radius:3px;overflow:hidden;
+    border:1px solid var(--line);background:#000}
   .vid video{width:100%;display:block}
-  .before{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    padding:14px 17px;margin-top:12px;box-shadow:var(--shadow)}
+  .before{border:1px solid var(--line);border-radius:3px;padding:15px 17px;margin-top:14px}
   .before b{color:var(--main)}
 
-  /* 電子チケット（?t=トークン のときだけ出る・2026-09-07追加） */
-  .tk{background:var(--panel);border:1px solid rgba(99,182,204,.45);border-radius:16px;
-    overflow:hidden;box-shadow:var(--shadow)}
-  .tk .hd{background:linear-gradient(180deg,#0d3947,var(--stage));padding:16px 18px;text-align:center}
-  .tk .hd .ev{font-size:10.5px;letter-spacing:.22em;color:var(--main);margin:0 0 8px}
-  .tk .hd .nm{font-size:20px;font-weight:800;margin:0}
+  /* ---------- 電子チケット（?t=トークン のときだけ出る・2026-09-07追加） ---------- */
+  .tk{background:var(--panel);border:1px solid rgba(99,182,204,.45);border-radius:3px;overflow:hidden}
+  .tk .hd{background:linear-gradient(180deg,#0d3947,var(--stage));padding:18px;text-align:center}
+  .tk .hd .ev{font-family:var(--serif);font-size:13px;letter-spacing:.14em;color:var(--main);margin:0 0 8px}
+  .tk .hd .nm{font-family:var(--mincho);font-size:22px;font-weight:600;margin:0}
   .tk .hd .nm small{font-size:13px;font-weight:400;margin-left:4px;color:#cfeaf2}
-  .tk .hd .st{font-size:15px;margin:8px 0 0;color:#cfeaf2}
+  .tk .hd .st{font-size:15px;margin:9px 0 0;color:#cfeaf2}
   .tk .qr{background:#fff;padding:20px;text-align:center}
   .tk .qr img{width:200px;height:200px;image-rendering:pixelated;display:inline-block}
-  .tk .bd{padding:14px 18px;font-size:13px;color:var(--dim);line-height:1.9}
+  .tk .bd{padding:15px 18px;font-size:13px;color:var(--dim);line-height:1.95}
   .tk .bd b{color:var(--ink)}
-  .tk .due{margin:0 0 8px;padding:9px 12px;border-radius:8px;font-size:13.5px;
-    background:rgba(201,162,75,.14);border:1px solid rgba(201,162,75,.5);color:var(--sup)}
+  .tk .due{margin:0 0 8px;padding:10px 12px;border-radius:2px;font-size:13.5px;
+    background:rgba(201,162,75,.12);border:1px solid rgba(201,162,75,.5);color:var(--sup)}
 
-  .oshi{display:block;text-decoration:none;background:linear-gradient(180deg,#123a46,var(--panel));
-    border:1px solid rgba(99,182,204,.45);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
-  .oshi .t{font-size:17px;font-weight:800;color:var(--ink);margin:0 0 6px}
+  /* ---------- 推し診断への導線 ---------- */
+  .oshi{display:block;text-decoration:none;border:1px solid rgba(99,182,204,.45);
+    border-radius:3px;padding:20px;background:linear-gradient(180deg,rgba(18,58,70,.7),var(--panel))}
+  .oshi .t{font-family:var(--mincho);font-size:19px;font-weight:600;color:var(--ink);margin:0 0 7px}
   .oshi .d{font-size:13.5px;color:var(--dim);margin:0}
-  .oshi .go{display:inline-block;margin-top:12px;font-size:13.5px;font-weight:800;color:var(--main)}
+  .oshi .go{display:inline-block;margin-top:13px;font-size:13.5px;color:var(--main);
+    border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
 </style>
 </head>
 <body>
@@ -186,15 +284,38 @@
   <img class="logo" src="assets/haribow-logo-white.png" alt="HARIBOW"
        onerror="this.onerror=null;this.src='assets/go-beyond-logo.png'">
 
+  <!-- 表紙（2026-09-16）。写真は go-beyond の assets/hero.jpg を縮小したもの。
+       白い衣装が黒に抜ける1枚なので、暗く沈めても人が残る。
+       ★ここが画面幅いっぱいに出るのは .hero の margin:0 -16px で .wrap の padding を
+         打ち消しているから。.wrap の padding を変えるならここも直すこと。 -->
   <div class="hero">
-    <p class="tag">HARIBOW FIRST SOLO SHOW</p>
-    <h1>Go BEYOND</h1>
-    <p class="sub">公園から世界、その先へ。</p>
-    <div class="info">
-      2026年9月29日（火）　開場 18:00／開演 19:30<br>
-      めぐろパーシモンホール 大ホール
+    <div class="ph"></div><div class="vg"></div>
+    <div class="in">
+      <p class="tag">HARIBOW FIRST SOLO SHOW</p>
+      <h1>Go BEYOND</h1>
+      <p class="sub">公園から世界、その先へ。</p>
+      <div class="info">
+        2026年9月29日（火）　開場 18:00／開演 19:30<br>
+        めぐろパーシモンホール 大ホール
+      </div>
     </div>
   </div>
+
+  <!-- 目次（2026-09-16）。11章まで増えたので、読む前に全体が見えるようにする。
+       番号は h2 の data-ch と対。章を足したら両方直すこと（自動では振っていない）。 -->
+  <nav class="toc">
+    <a href="#c01"><b>01</b>ごあいさつ</a>
+    <a href="#c02"><b>02</b>当日のご案内</a>
+    <a href="#c03"><b>03</b>本日の演目</a>
+    <a href="#c04"><b>04</b>何が難しいのか</a>
+    <a href="#c05"><b>05</b>誰を見ればいいか</a>
+    <a href="#c06"><b>06</b>出演者</a>
+    <a href="#c07"><b>07</b>はじめての方へ</a>
+    <a href="#c08"><b>08</b>これまで</a>
+    <a href="#c09"><b>09</b>読みもの</a>
+    <a href="#c10"><b>10</b>支えてくださった皆さま</a>
+    <a href="#c11"><b>11</b>公演情報</a>
+  </nav>
 
   <!-- 電子チケット（2026-09-07追加）。?t=トークン 付きで開いたときだけ出す。
        トークンが無ければ丸ごと隠れるので、公開URLのままでも普通のパンフレットとして成立する。
@@ -213,7 +334,7 @@
        ※現行文は2026-07-27に置いた仮文。2026-08-23／08-27の監査で「AI仮文のまま」と
          指摘され、そのまま残っている。差し替えるまでは公開面が欠けないようここに置いておく。 -->
   <section>
-    <h2>ごあいさつ</h2>
+    <h2 id="c01" data-ch="01">ごあいさつ</h2>
     <p class="lead">
       本日はお越しいただき、ありがとうございます。<br>
       特別な設備も後ろ盾もない公園や路上での練習から始まったHARIBOWにとって、
@@ -226,7 +347,7 @@
   <!-- ウェルカム動画（2026-09-07追加）。実体は media/welcome.mp4（縦1080×1920・66.6秒・字幕入り）。
        公演後は中身が古くなる（19:25の案内・新メンバー紹介）ので、9/30以降はこの節ごと外すか差し替える。 -->
   <section>
-    <h2>HARIBOWからのご案内</h2>
+    <h2 id="c02" data-ch="02">HARIBOWからのご案内</h2>
     <p class="lead">出演メンバーから、当日の楽しみ方を2つお伝えします。（1分）</p>
     <div class="vid">
       <video controls playsinline preload="none" poster="media/welcome-poster.jpg">
@@ -248,7 +369,7 @@
   <!-- 演目は official_site/content.js の LINEUP と同じ内容・同じ並び（2026-09-07 同期）。
        片方だけ直すと必ずズレる。変えたら両方直すこと。 -->
   <section>
-    <h2>本日の演目</h2>
+    <h2 id="c03" data-ch="03">本日の演目</h2>
     <p class="lead" id="actsLead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
     <div id="acts">
 
@@ -327,7 +448,7 @@
          ・「8回跳ぶ」… 8回は縄の回転であって跳ぶ回数ではない
        ★「ずっとこの速さではない」の一文は誇張への歯止め。消さないこと。 -->
   <section>
-    <h2>何が難しいのか</h2>
+    <h2 id="c04" data-ch="04">何が難しいのか</h2>
     <p class="lead">大会の名前や順位は、誰かが「すごい」と言った記録です。ここには、その場で見て分かるほうを書いておきます。</p>
     <div class="qa">
       <div class="b">
@@ -336,8 +457,23 @@
       </div>
       <div class="b">
         <p class="t">まばたき1回のあいだに、縄が1本、足の下を通り抜けます</p>
-        <p class="big">縄は1秒に約8回まわります。1回あたり125ミリ秒。<br>人のまばたき1回が、およそ100〜150ミリ秒です。</p>
+        <div class="fig">
+          <span class="v">125</span><span class="u">ミリ秒 ／ 縄1回ぶん</span>
+          <span class="vs">縄は1秒に約8回まわります。人のまばたき1回が、およそ100〜150ミリ秒です。</span>
+        </div>
         <p>ずっとこの速さで進むわけではありません。ただ、その場面は必ず来ます。来たら、足元を見てください。</p>
+        <!-- 1秒だけ実物の速さを見せる装置（2026-09-16）。
+             上の帯＝縄が8回通る。下の帯＝まばたき1回で視界が閉じる。同じ1秒に重ねている。
+             ★125ms・8回・1000ms は org/profile.md の実数と対。ここを変えると説明が嘘になる
+             ★自動再生しない。押した時だけ動く。 -->
+        <div class="blink" id="blink">
+          <div class="row"><span class="lb">縄</span>
+            <div class="band"><div class="rope"></div></div></div>
+          <div class="row"><span class="lb">まばたき</span>
+            <div class="band"><div class="eye"></div><div class="lid"></div></div></div>
+          <button class="btn" type="button" id="blinkBtn">1秒だけ、その速さを見る</button>
+          <p class="out" id="blinkOut">押すと1秒だけ動きます。縄は8回、まばたきは1回です。</p>
+        </div>
       </div>
       <div class="b">
         <p class="t">この数分のために、10年</p>
@@ -349,7 +485,7 @@
   <!-- 推し診断への導線（2026-09-07追加）。出演者一覧の直前に置く：
        31名の名前を先に見せると覚えられずに流されるので、3人に絞る側を先に出す。 -->
   <section>
-    <h2>誰を見ればいいか</h2>
+    <h2 id="c05" data-ch="05">誰を見ればいいか</h2>
     <a class="oshi" id="oshiLink" href="oshi.html">
       <p class="t">31人は、多いですか？</p>
       <p class="d">4つの質問に答えると、あなたが今日見る3人と、その人の「何を探すか」が出ます。1分で終わります。</p>
@@ -358,7 +494,7 @@
   </section>
 
   <section>
-    <h2>出演者</h2>
+    <h2 id="c06" data-ch="06">出演者</h2>
     <p class="lead">お名前を押すと、その人のプロフィールが開きます。</p>
     <div class="cast" id="cast"></div>
     <p class="note">※ 出演者・演目は変更になる場合があります。</p>
@@ -373,7 +509,7 @@
        内訳の数字は cast_data.js の c フィールドの実数（回答27／未回答4）。
        人数が変わったら数え直すこと。1つの版で固定した数字なので自動では動かない。 -->
   <section>
-    <h2>はじめての方へ</h2>
+    <h2 id="c07" data-ch="07">はじめての方へ</h2>
     <p class="lead">決まった作法はありません。知らなくても困らないことだけ、2つ書いておきます。</p>
     <div class="qa">
       <div class="b">
@@ -396,36 +532,42 @@
   </section>
 
   <section>
-    <h2>HARIBOWのこれまで</h2>
+    <h2 id="c08" data-ch="08">HARIBOWのこれまで</h2>
     <div class="achv">
-      <div><b>ダブルダッチ、世界の頂点</b>　2025 IJRU世界選手権 優勝（世界30カ国以上が集う舞台で世界一に）</div>
-      <div><b>世界のタレントショー</b>　Britain's Got Talent で史上初の“観客ゴールデンブザー”、決勝進出。イタリア・スペイン・フランスのタレントショーにも出演</div>
-      <div><b>世界最高峰のサーカス／ヴァリエテ</b>　シルク・ドゥ・ソレイユ賞／リングリング賞／モンテカルロ賞を受賞。ムーラン・ルージュ、世界最大のテント Cirque Phénix、欧州最大級 Europa-Park ほか名門に出演</div>
-      <div><b>ドイツアリーナツアー</b>　Feuerwerk「VIVA」で1万人超級のアリーナ30公演以上（年間20万人超を動員する“欧州で最も成功した体操エンタメショー”）</div>
-      <div><b>世界的ビッグイベント</b>　NBA アブダビ、約2万人アリーナのハーフタイムショー</div>
-      <div><b>欧州7拠点・同時公演（2025）</b>　同じ時間に7つの舞台を回した。総勢35名を派遣</div>
+      <div><b>ダブルダッチ、世界の頂点</b>2025 IJRU世界選手権 優勝（世界30カ国以上が集う舞台で世界一に）</div>
+      <div><b>世界のタレントショー</b>Britain's Got Talent で史上初の“観客ゴールデンブザー”、決勝進出。イタリア・スペイン・フランスのタレントショーにも出演</div>
+      <div><b>世界最高峰のサーカス／ヴァリエテ</b>シルク・ドゥ・ソレイユ賞／リングリング賞／モンテカルロ賞を受賞。ムーラン・ルージュ、世界最大のテント Cirque Phénix、欧州最大級 Europa-Park ほか名門に出演</div>
+      <div><b>ドイツアリーナツアー</b>Feuerwerk「VIVA」で1万人超級のアリーナ30公演以上（年間20万人超を動員する“欧州で最も成功した体操エンタメショー”）</div>
+      <div><b>世界的ビッグイベント</b>NBA アブダビ、約2万人アリーナのハーフタイムショー</div>
+      <div><b>欧州7拠点・同時公演（2025）</b>同じ時間に7つの舞台を回した。総勢35名を派遣</div>
     </div>
   </section>
 
   <section>
-    <h2>読みもの</h2>
+    <h2 id="c09" data-ch="09">読みもの</h2>
     <p class="lead">今日ここに至るまでを、本人たちの言葉で書いた記事が2本あります。開演前や帰り道にどうぞ。</p>
     <div class="reads">
-      <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener">
+      <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fy:42%">
+        <div class="bg" style="background-image:url(assets/reads/bgt.jpg)"></div>
+        <div class="tx">
         <p class="t">体育館だと思っていた</p>
         <p class="d">Britain's Got Talent で史上初の観客ゴールデンブザーを受けた5人が、あの10日間を95分かけて振り返った記録。手作りの募金箱でロンドンへ渡った話から、満席でも赤字になる今日の公演の話まで。</p>
         <span class="go">読む →</span>
+        </div>
       </a>
-      <a href="https://go-beyond.haribow.com/takumi.html" target="_blank" rel="noopener">
+      <a href="https://go-beyond.haribow.com/takumi.html" target="_blank" rel="noopener" style="--fy:46%">
+        <div class="bg" style="background-image:url(assets/reads/takumi.jpg)"></div>
+        <div class="tx">
         <p class="t">100回、聞いた話</p>
         <p class="d">この春に加わった6人目・三輪卓海の話。自分がいない場所の「世界一」を100回語ってきた新入社員が、今日この舞台に立ちます。</p>
         <span class="go">読む →</span>
+        </div>
       </a>
     </div>
   </section>
 
   <section>
-    <h2>支えてくださった皆さま</h2>
+    <h2 id="c10" data-ch="10">支えてくださった皆さま</h2>
     <div class="thanks">
       <p style="margin:0;font-size:13.5px;color:var(--dim)">サポーター券・応援金で背中を押してくださった皆さまです。</p>
       <div class="names" id="thanksNames"><span class="empty">読み込んでいます…</span></div>
@@ -433,7 +575,7 @@
   </section>
 
   <section>
-    <h2>公演情報</h2>
+    <h2 id="c11" data-ch="11">公演情報</h2>
     <div class="info-card">
       <dl style="margin:0">
         <dt>日時</dt>
@@ -560,6 +702,40 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
         + (d.intermission ? '休憩があります。' : '<b>休憩はありません。</b>お手洗いは開演前にお済ませください。');
     })
     .catch(function(){ /* 出さないだけ。演目の並びは初期値のまま読める */ });
+})();
+
+/* ---------- まばたきの装置（2026-09-16） ----------
+   125ms × 8回 = 1秒。この3つの数字はCSSのキーフレームと対になっている。
+   片方だけ変えると、画面の動きと本文の説明が食い違う。
+   ★自動再生しない。読んでいる最中に勝手に動く帯は、ただの邪魔になる。 */
+(function(){
+  var box = document.getElementById('blink'),
+      btn = document.getElementById('blinkBtn'),
+      out = document.getElementById('blinkOut');
+  if(!box || !btn || !out) return;
+
+  /* 動きを減らす設定の人には、同じ内容を文章で出して装置ごと隠す（CSS側で row と btn を消す） */
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    out.textContent = '1秒のあいだに、縄は8回まわります。まばたきは、そのうちの1回ぶんです。';
+    return;
+  }
+
+  btn.addEventListener('click', function(){
+    if(box.classList.contains('run')) return;
+    btn.disabled = true;
+    out.innerHTML = '<b>0</b> 回';
+    box.classList.add('run');
+
+    var n = 0;
+    var tick = setInterval(function(){ n++; if(n<=8) out.innerHTML = '<b>'+n+'</b> 回'; }, 125);
+    setTimeout(function(){
+      clearInterval(tick);
+      box.classList.remove('run');
+      out.innerHTML = '<b>8</b> 回。いまの1秒です。まばたき1回のあいだに、縄が1本、通り抜けました。';
+      btn.disabled = false;
+      btn.textContent = 'もう1秒、見る';
+    }, 1000);
+  });
 })();
 
 /* 支援者のお名前は毎日変わるのでGASから取る（手で更新すると必ず古くなる） */
