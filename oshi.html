@@ -475,8 +475,12 @@ function card(o,i){
   if(a.i) h+='<button class="play" type="button" aria-label="'+esc(m.p)+'さんの自己紹介を再生">'+TRI+'</button>';
   h+='<div class="cap"><p class="pn">'+esc(m.p||m.n)+'</p><p class="kn">'+esc(m.k)+'</p></div></div>';
 
-  /* プロフィール未提出の人。本人の言葉が1つも無いので、相性度も自己申告の欄も出さない。
-     出せるのは他のメンバーが書いた推薦文だけ。無いものを埋めない。 */
+  var motto = a.m ? '<div class="motto"><span class="lb">座右の銘<b>本人の手書きです</b></span>'+
+    '<figure><img src="'+base+'motto.png" alt="'+esc(m.p||m.k)+'さんの座右の銘" loading="lazy"></figure></div>' : '';
+
+  /* プロフィール未提出の人。フォームの回答が無いので、相性度も自己申告の欄も出さない。
+     出せるのは他のメンバーが書いた推薦文と、届いていれば本人の手書きの座右の銘だけ。無いものを埋めない。
+     ★座右の銘は本人の言葉なので ph:1 でも出す（2026-09-16・井端真秀04 が先に座右の銘だけ提出していた） */
   if(m.ph){
     h+='<div class="task" data-key="'+m.id+'" role="button" tabindex="0" aria-pressed="false" data-done="0">'+
        '<span class="box">'+CHECK+'</span>'+
@@ -487,8 +491,10 @@ function card(o,i){
     h+='<div class="when"><span class="lb">この人が出る演目</span>'+
        '<p class="also">オープニングとエンディングに出ます。31人が揃うこの2つが、探せる場面です。</p></div>';
     h+='<div class="blk"><span class="lb">この人について</span>'+
-       '<p style="color:var(--dim)">本人のプロフィールは準備中です。いまお見せできるのは、'+
-       '一緒に跳んでいるメンバーが書いた言葉だけです。</p></div>';
+       '<p style="color:var(--dim)">本人のプロフィールは準備中です。'+
+       (a.m ? 'いまお見せできるのは、一緒に跳んでいるメンバーが書いた言葉と、本人が書いた座右の銘です。'
+            : 'いまお見せできるのは、一緒に跳んでいるメンバーが書いた言葉だけです。')+'</p></div>';
+    h+=motto;
     return h+glossBlock(h)+'</article>';
   }
 
@@ -530,8 +536,7 @@ function card(o,i){
   h+='<p class="facts">'+facts(m).map(esc).join(' ／ ')+'</p>';
   h+='<div class="blk"><span class="lb">呼びかけについて</span><p>'+esc(m.c)+
      (m.w?'<br><span style="color:var(--dim)">「'+esc(m.w)+'」</span>':'')+'</p></div>';
-  if(a.m) h+='<div class="motto"><span class="lb">座右の銘<b>本人の手書きです</b></span>'+
-             '<figure><img src="'+base+'motto.png" alt="'+esc(m.p)+'さんの座右の銘" loading="lazy"></figure></div>';
+  h+=motto;
   return h+glossBlock(h)+'</article>';
 }
 
