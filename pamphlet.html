@@ -119,6 +119,15 @@
   .today .v{margin:4px 0 0;font-size:15px;color:var(--ink);line-height:1.7}
   .today .v .n{font-family:var(--serif);font-size:40px;line-height:1;margin-right:6px}
   .today .s{margin:7px 0 0;font-size:12.5px;color:var(--faint)}
+  /* 開演までのカウントダウン（2026-09-16・JUNYA指示「OPの演出とリンクさせたい」）
+     ★数字の幅を固定している。Instrument Serif は数字の幅が揃っていないので、
+       そのままだと1秒ごとに単位の位置が左右に揺れる */
+  .today .cd{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 12px;margin:6px 0 0}
+  .today .cd span{white-space:nowrap}
+  .today .cd b{display:inline-block;min-width:1.05em;text-align:right;font-family:var(--serif);
+    font-weight:400;font-size:38px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .today .cd b.w{min-width:1.1em}
+  .today .cd i{font-style:normal;font-size:13px;color:var(--dim);margin-left:3px}
 
   /* ---------- 目次 ---------- */
   .toc{margin:26px 0 8px;columns:2;column-gap:20px;font-size:13px}
@@ -807,13 +816,30 @@ function jstNow_(){
 }
 function jst_(mm, dd, hh, mi){ return new Date(2026, mm-1, dd, hh, mi, 0); }
 
+/* 開演までのカウントダウンの目標時刻（2026-09-16）。
+   ★会場の開演前カウントダウン（performance/solo_show/countdown/・20:00→0）と0を揃えるための値。
+     OPの演出側で0の時刻が変わったら、ここ1箇所だけ直す（時・分）。 */
+var CD_TARGET_ = [19, 30];
+
+function pad2_(n){ return (n < 10 ? '0' : '') + n; }
+function countdownHtml_(ms){
+  var t = Math.max(0, Math.floor(ms / 1000)),
+      d = Math.floor(t / 86400), h = Math.floor(t % 86400 / 3600),
+      m = Math.floor(t % 3600 / 60), sec = t % 60;
+  /* 日は0になったら出さない。時・分・秒は桁を揃えて常に出す（数字が跳ねないように） */
+  return '<span class="cd">'
+    + (d ? '<span><b class="w">' + d + '</b><i>日</i></span>' : '')
+    + '<span><b>' + pad2_(h) + '</b><i>時間</i></span>'
+    + '<span><b>' + pad2_(m) + '</b><i>分</i></span>'
+    + '<span><b>' + pad2_(sec) + '</b><i>秒</i></span></span>';
+}
+
 function renderToday_(){
   var box = document.getElementById('today');
   if(!box) return;
   var now  = jstNow_(),
-      day0 = jst_(9,29,0,0),
       open = jst_(9,29,18,0),
-      pre  = jst_(9,29,19,25),
+      start= jst_(9,29,CD_TARGET_[0],CD_TARGET_[1]),
       endp = SHOW_END_.split(':'),
       end  = jst_(9,29, Number(endp[0]), Number(endp[1]) + 15),
       gone = jst_(9,30,6,0);
@@ -821,18 +847,12 @@ function renderToday_(){
   if(now >= gone){ box.hidden = true; return; }
 
   var k='', v='', sub='';
-  if(now < day0){
-    k = '公演まで';
-    v = '<span class="n">' + Math.ceil((day0 - now) / 86400000) + '</span>日';
-    sub = '当日はこの場所が案内に変わります。';
-  } else if(now < open){
-    k = '本日です';
-    v = '開場 18:00 ／ 開演 19:30';
-    sub = 'めぐろパーシモンホール 大ホール';
-  } else if(now < pre){
-    k = '開場しています';
-    v = '19:25ごろから開演の演出が始まります。';
-    sub = 'お席は指定席です。';
+  if(now < start){
+    k = '開演まで';
+    v = countdownHtml_(start - now);
+    sub = now < open
+      ? '9月29日（火）19:30 開演'
+      : '開場しています。19:25ごろから開演の演出が始まります。';
   } else if(now < end){
     k = '上演中です';                 /* ここでは何も足さない。客席で読ませない */
   } else {
@@ -845,6 +865,10 @@ function renderToday_(){
   box.hidden = false;
 }
 renderToday_();
+/* 1秒ごとに進める。秒の変わり目に合わせて呼ぶ（ずれて表示が2秒飛ぶのを防ぐ） */
+(function tick_(){
+  setTimeout(function(){ renderToday_(); tick_(); }, 1000 - (Date.now() % 1000) + 5);
+})();
 
 /* ---------- 終演後アンケート（2026-09-16） ----------
    拍手が鳴り止んだ直後がいちばん熱が高いのに、これまで観客の側から出せるものが無かった。
