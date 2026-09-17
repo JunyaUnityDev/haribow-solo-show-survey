@@ -181,7 +181,7 @@ function renderSheet(d){
   if(pend.length){
     ph.innerHTML='<div class="card pending"><b class="t">まだ決まっていないこと '+pend.length+'件</b><ul>'
       + pend.map(function(r){
-          return '<li>'+esc(r.item.replace(/（.*$/,''))+' <span>'+esc(r.owner||'')+(r.due?'・期限 '+esc(r.due):'')+'</span></li>';
+          return '<li>'+esc(r.item.replace(/（[^（）]*）$/,''))+' <span>'+esc(r.owner||'')+(r.due?'・期限 '+esc(r.due):'')+'</span></li>';
         }).join('')
       + '</ul><p class="muted" style="margin:6px 0 0">決まり次第、このページにも反映されます。</p></div>';
   } else { ph.innerHTML=''; }
