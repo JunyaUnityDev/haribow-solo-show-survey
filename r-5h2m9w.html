@@ -3,42 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- 当日受付担当が見る案内（2026-09-17）。持ち場の名前が出るので検索には出さない。
-     ファイル名も推測できないものにしてある（p-7q3x9k.html と同じ考え方）。
+<!-- 当日受付の手引き（2026-09-17 作成／同日 全面改訂）。
+     受付担当が「仕組み」「表示ごとの意味と対応」「スタッフへの指示」まで一枚で把握するためのページ。
+     持ち場の名前が出るので検索には出さない。ファイル名も推測できないものにしてある（p-7q3x9k.html と同じ考え方）。
      ★受付画面の鍵（checkin.html?k=）はここに書かない。このページを見た人が入場を通せてしまう。
      ★持ち場と未決事項は『GO BEYOND 2026_舞台関連資料』の「当日受付」タブから読む（GAS page=reception）。
-       手順とテスト用チケットはこのファイルに直書き。 -->
+     ★表示文言・挙動は checkin.html と gas/Tickets.js（checkinTicket / checkinTeam_ / lookupTickets /
+       checkinByRow / checkinStats / undoCheckin）に合わせて書いてある。あちらを変えたらここも直す。 -->
 <meta name="robots" content="noindex,nofollow">
-<title>当日受付｜Go BEYOND</title>
+<title>当日受付の手引き｜Go BEYOND</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <style>
   :root{
-    --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35;
-    --text:#f3f1ea; --faint:#8b919e; --sup:#c9a24b;
-    --ok:#6fae8a; --warn:#d2b060; --ng:#c0695f;
+    --bg:#0a0b0e; --panel:#14161c; --panel2:#1b1e26; --line:#2a2d35;
+    --text:#f3f1ea; --sub:#d9d6cd; --faint:#8b919e; --sup:#c9a24b;
+    --ok:#6fae8a; --warn:#d2b060; --ng:#c0695f; --link:#8fb7c9;
   }
   *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:58px}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
     -webkit-text-size-adjust:100%;line-height:1.75}
-  .wrap{max-width:560px;margin:0 auto;padding:24px 16px 72px}
-  header{margin-bottom:22px}
+  .wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
+  header{margin-bottom:18px}
   .evt{font-size:12px;letter-spacing:.1em;color:var(--sup);margin:0}
-  h1{font-size:26px;margin:4px 0 2px;letter-spacing:.02em}
+  h1{font-size:26px;margin:4px 0 4px;letter-spacing:.02em}
   .lead{font-size:13px;color:var(--faint);margin:0}
-  h2{font-size:15px;letter-spacing:.06em;margin:34px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h2{font-size:17px;letter-spacing:.04em;margin:44px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h2 .n{color:var(--sup);font-size:13px;margin-right:8px;letter-spacing:.08em}
   h2 small{font-weight:400;color:var(--faint);font-size:11.5px;margin-left:6px;letter-spacing:0}
+  h3{font-size:14px;margin:18px 0 6px}
+  p{margin:8px 0}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px}
   .muted{color:var(--faint);font-size:12px}
-  a{color:#8fb7c9}
+  .small{font-size:13px;color:var(--sub)}
+  a{color:var(--link)}
+  b.hl{color:#f0d68a}
+  .chip{display:inline-block;border-radius:5px;padding:0 7px;font-weight:700;font-size:12px;color:#0a0b0e;white-space:nowrap;line-height:1.7}
+  .chip.ok{background:var(--ok)} .chip.warn{background:var(--warn)} .chip.ng{background:var(--ng);color:#fff}
 
-  /* 未決 */
+  /* 目次（上部に固定） */
+  nav.toc{position:sticky;top:0;z-index:5;margin:0 -16px;padding:8px 16px;background:rgba(10,11,14,.94);
+    border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  nav.toc a{display:inline-block;font-size:12px;color:var(--sub);text-decoration:none;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin-right:6px}
+
+  /* 未決・持ち場 */
   .pending{border-color:rgba(192,105,95,.55);background:rgba(192,105,95,.08)}
   .pending b.t{color:#e3a39a;font-size:14px}
   .pending ul{margin:6px 0 0;padding-left:1.1em;font-size:13px}
   .pending li span{color:var(--faint);font-size:12px}
-
-  /* 持ち場 */
   .post{display:grid;grid-template-columns:1fr auto;gap:2px 10px}
   .post .p{font-weight:700;font-size:15px}
   .post .tm{font-weight:700;color:var(--sup);font-size:15px;text-align:right}
@@ -46,98 +60,324 @@
   .post .nm.empty{color:var(--ng)}
   .post .sub{grid-column:1/-1;font-size:12px;color:var(--faint)}
 
-  /* 手順 */
-  ol.steps{margin:0;padding-left:1.3em;font-size:15px}
-  ol.steps li{margin:4px 0}
-  .colors{display:grid;gap:8px;margin-top:12px}
-  .c{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:start;font-size:13.5px}
-  .chip{border-radius:6px;padding:3px 0;text-align:center;font-weight:700;font-size:13px;color:#0a0b0e}
-  .chip.ok{background:var(--ok)} .chip.warn{background:var(--warn)} .chip.ng{background:var(--ng);color:#fff}
-  .c b{display:block}
+  /* 仕組み図 */
+  .flow{display:grid;margin-top:12px}
+  .node{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .node > b{display:block;font-size:14px}
+  .node > span{font-size:12.5px;color:var(--sub)}
+  .arrow{text-align:center;color:var(--sup);font-size:12px;padding:4px 0;line-height:1.5}
+  .arrow::before{content:'↓';display:block;font-size:16px}
+  ul.facts{margin:6px 0 0;padding-left:1.1em;font-size:13.5px;color:var(--sub)}
+  ul.facts li{margin:5px 0}
 
-  /* 困ったとき */
-  dl.faq{margin:0}
-  dl.faq dt{font-weight:700;font-size:14px;margin-top:14px}
-  dl.faq dt:first-child{margin-top:0}
-  dl.faq dd{margin:2px 0 0;font-size:13.5px;color:#d9d6cd}
+  /* 表をカードに崩す（スマホで横スクロールさせない） */
+  .rows{display:grid;gap:10px;margin-top:10px}
+  .row{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .row .h{font-weight:700;font-size:14.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .row dl{margin:6px 0 0;display:grid;grid-template-columns:5.2em 1fr;gap:3px 10px;font-size:13px}
+  .row dt{color:var(--faint);font-size:12px;padding-top:1px}
+  .row dd{margin:0;color:var(--sub);min-width:0}
+  .row.boss{border-left:3px solid var(--ng)}
+
+  /* 画面の見方 */
+  .screen{background:#0f1116;border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:10px}
+  .scr-part{border:1px dashed #3a3e48;border-radius:8px;padding:8px 10px;margin:6px 0;font-size:12.5px;color:var(--sub)}
+  .scr-part b{color:var(--text);font-size:13px}
+  .scr-part .tag{float:right;color:var(--sup);font-size:11px;font-weight:700}
+
+  /* 台本 */
+  .script{background:#101218;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    font-size:14px;line-height:1.9;white-space:pre-wrap;color:var(--text)}
+  .copy{margin-top:8px;background:#2a3f52;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700}
+
+  /* 時間の流れ */
+  .tl{margin-top:10px;border-left:2px solid var(--line);padding-left:14px;margin-left:5px}
+  .tl .t{position:relative;margin:0 0 14px}
+  .tl .t::before{content:'';position:absolute;left:-20px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--sup)}
+  .tl .tm{font-weight:700;color:var(--sup);font-size:14px}
+  .tl .d{font-size:13.5px;color:var(--sub)}
+
+  /* チェックリスト */
+  .check label{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .check label:last-child{border-bottom:0}
+  .check input{margin-top:5px;width:18px;height:18px;flex:none}
+  .check small{display:block;color:var(--faint);font-size:12px}
 
   /* テスト用チケット */
-  .how{font-size:13px;color:#d9d6cd}
-  .how ol{margin:6px 0 0;padding-left:1.2em}
   .tix{display:grid;gap:12px;margin-top:12px}
   .tk{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:start}
   .qr{background:#fff;border-radius:8px;padding:8px;line-height:0}
   .qr img{width:116px;height:116px;image-rendering:pixelated}
   .tk .k{font-weight:700;font-size:15px}
-  .tk .exp{font-size:12.5px;margin-top:4px;color:#d9d6cd}
-  .tk .exp .chip{display:inline-block;padding:0 7px;margin-right:4px;font-size:11.5px}
+  .tk .exp{font-size:12.5px;margin-top:4px;color:var(--sub)}
   .tk a{font-size:12px}
   @media (max-width:380px){ .tk{grid-template-columns:1fr} .qr{justify-self:start} }
-  .foot{margin-top:40px;font-size:11.5px;color:var(--faint)}
+  .foot{margin-top:44px;font-size:11.5px;color:var(--faint)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <p class="evt">GO BEYOND ／ 2026.9.29 めぐろパーシモンホール</p>
-    <h1>当日受付</h1>
-    <p class="lead">当日受付担当の方へ。持ち場・受付の手順・練習用のQRをまとめています。</p>
+    <h1>当日受付の手引き</h1>
+    <p class="lead">受付の仕組み、表示ごとの意味と対応、スタッフへの指示の出し方をまとめています。上から順に読めば、受付の全体がわかります。</p>
   </header>
 
-  <div id="pending"></div>
+  <nav class="toc">
+    <a href="#s-people">持ち場</a><a href="#s-how">仕組み</a><a href="#s-guests">お客さんの種類</a><a href="#s-screen">画面の見方</a><a href="#s-verdict">表示と対応</a><a href="#s-undo">取り消し</a><a href="#s-boss">責任者</a><a href="#s-brief">スタッフへの指示</a><a href="#s-day">当日の流れ</a><a href="#s-prep">準備物</a><a href="#s-trouble">困ったとき</a><a href="#s-test">練習</a>
+  </nav>
 
-  <h2>持ち場 <small id="upd"></small></h2>
+  <div id="pending" style="margin-top:14px"></div>
+
+  <!-- ============ 持ち場 ============ -->
+  <h2 id="s-people"><span class="n">01</span>持ち場 <small id="upd"></small></h2>
   <div id="posts"><p class="muted">読み込んでいます…</p></div>
 
-  <h2>受付の手順</h2>
+  <!-- ============ 仕組み ============ -->
+  <h2 id="s-how"><span class="n">02</span>受付の仕組み</h2>
   <div class="card">
-    <ol class="steps">
-      <li>受付画面を開く（URLは受付責任者から受け取ってください）</li>
-      <li>一番上に<b>自分の名前</b>を入れる（入れないとカメラが動きません）</li>
-      <li>「カメラを起動する」→ お客さんのQRをかざす</li>
-    </ol>
-    <div class="colors">
-      <div class="c"><span class="chip ok">緑</span><div><b>ご入場ください</b>そのまま通す。</div></div>
-      <div class="c"><span class="chip warn">黄</span><div><b>入場済みです</b>同じQRが2回目。読み間違いなら「取り消す」で戻せます。</div></div>
-      <div class="c"><span class="chip ng">赤</span><div><b>現金／お支払い未確認／取消済み</b>自分で通さず、<b>受付責任者を呼ぶ</b></div></div>
+    <p class="small" style="margin-top:0">専用の機械はありません。<b>スマホのブラウザで開く受付画面</b>が、運営の予約台帳と直接つながっています。</p>
+    <div class="flow">
+      <div class="node"><b>お客さん</b><span>購入時のメールやデジタルパンフレットにある「電子チケット」のQRを見せる。QRが出せない方は名前を伝える</span></div>
+      <div class="arrow">スマホのカメラで読む／名前で検索する</div>
+      <div class="node"><b>受付画面（スタッフのスマホ）</b><span>読み取ったQRの中身（チケット番号）を運営のサーバーに送る</span></div>
+      <div class="arrow">インターネット経由</div>
+      <div class="node"><b>運営のサーバー → 予約台帳</b><span>番号で予約を探し、支払い状態と入場済みかを確認。通してよければ<b>入場時刻と受付した人の名前</b>を台帳に書き込む</span></div>
+      <div class="arrow">結果を返す</div>
+      <div class="node"><b>受付画面に判定が出る</b><span><span class="chip ok">緑</span> 通す ／ <span class="chip warn">黄</span> 注意 ／ <span class="chip ng">赤</span> 止める。音と振動でも知らせる</span></div>
+    </div>
+    <h3>この仕組みから来る、大事な性質</h3>
+    <ul class="facts">
+      <li><b>何台でも同時に使える。</b>同じURLを開くだけ。台帳は1つなので、別のスマホで同じQRを読んでも「入場済み」で止まる（二重入場は起きない）</li>
+      <li><b>通信が必須。</b>電波が無いと1人も判定できない。だから紙の名簿を必ず手元に置く</li>
+      <li><b>誰が通したかが全部残る。</b>画面に名前を入れないとカメラも検索も動かないのはこのため。名前は各スマホが覚えるので、毎回入れ直す必要はない</li>
+      <li><b>運営にメールが飛ぶ操作がある。</b>お支払い未確認の方を通したとき、取消済みの方を通したとき、当日現金を受け取ったとき、現金を受け取ったあとに入場を取り消したとき</li>
+      <li><b>ご招待の方はこの台帳に入っていない。</b>名前検索では出てくるが、入場の記録は残らない（紙の名簿で管理する）</li>
+    </ul>
+  </div>
+
+  <!-- ============ お客さんの種類 ============ -->
+  <h2 id="s-guests"><span class="n">03</span>お客さんの種類と、受付での扱い</h2>
+  <p class="small">来る人は下の8パターンのどれかです。受付に立つ前に、全部に目を通してください。赤い線の付いたものは受付責任者の判断が要ります。</p>
+  <div class="rows">
+    <div class="row">
+      <div class="h">① 事前に購入済み（カード・振込）</div>
+      <dl><dt>持ってくる</dt><dd>電子チケットのQR</dd><dt>表示</dt><dd><span class="chip ok">緑</span>「ご入場ください」名前・席・人数</dd><dt>対応</dt><dd>そのまま通す。いちばん多いパターン</dd></dl>
+    </div>
+    <div class="row">
+      <div class="h">② サポーター券・大学生券</div>
+      <dl><dt>表示</dt><dd><span class="chip ok">緑</span>に加えて、黄色い枠で「扇子 ×2 ／ Tシャツ M・L」や「学生証を確認」</dd><dt>対応</dt><dd>サポーター券は<b class="hl">扇子とTシャツを渡す</b>。大学生券は<b class="hl">学生証を見せてもらう</b>。名前検索から通した場合も同じ表示が出る</dd></dl>
+    </div>
+    <div class="row">
+      <div class="h">③ 団体</div>
+      <dl><dt>持ってくる</dt><dd>代表の方のQRが1枚（団体全員分）</dd><dt>表示</dt><dd><span class="chip ok">緑</span>「【団体】◯◯」と人数</dd><dt>対応</dt><dd>1回読めば全員が入場済みになる。<b class="hl">遅れて来た人は、団体名と席番号が言えればQRなしで通す</b>（席は指定なので、通しても席は増えない）。迷ったら通す側で</dd></dl>
+    </div>
+    <div class="row boss">
+      <div class="h">④ 当日券（現金払い）</div>
+      <dl><dt>持ってくる</dt><dd>当日（0時〜開演19:30）にネットで席を選び「現金」を選んだ方。QRは出ている</dd><dt>表示</dt><dd><span class="chip ng">赤</span>「現金 ¥◯◯ を受け取る」</dd><dt>対応</dt><dd><b class="hl">現金を受け取ってから</b>「現金を受け取った」を押す → <span class="chip ok">緑</span>。お客さんに入金確認メールが届き、運営にも通知が行く</dd></dl>
+    </div>
+    <div class="row boss">
+      <div class="h">⑤ お支払いが確認できていない方</div>
+      <dl><dt>表示</dt><dd><span class="chip ng">赤</span>「お支払い未確認」（当日朝に振り込んだ方など）</dd><dt>対応</dt><dd>スタッフは通さず<b class="hl">受付責任者を呼ぶ</b>。責任者が確認できたら「確認できたので入場させる」。支払い状態は「未」のまま入場だけ記録され、運営に通知。お金は公演後に運営が照合する</dd></dl>
+    </div>
+    <div class="row boss">
+      <div class="h">⑥ 取消済みの予約</div>
+      <dl><dt>表示</dt><dd><span class="chip ng">赤</span>「取消済みのご予約です」</dd><dt>対応</dt><dd><b class="hl">受付責任者を呼ぶ</b>。通すことはできるが、<b>その席はすでに解放されていて、別の人が座る可能性がある</b>。通す場合は座る場所を現場で決める。運営に通知</dd></dl>
+    </div>
+    <div class="row">
+      <div class="h">⑦ ご招待（2階席）</div>
+      <dl><dt>持ってくる</dt><dd>QRは無い。名前を伝えてくる</dd><dt>表示</dt><dd>名前検索で「【ご招待】◯◯」と席・人数。ボタンは出ない</dd><dt>対応</dt><dd><b class="hl">招待レーンで紙の名簿に印を付け、席を伝えて通す</b>。受付画面には記録が残らないので、紙が唯一の記録</dd></dl>
+    </div>
+    <div class="row">
+      <div class="h">⑧ 1人で何回かに分けて買った方</div>
+      <dl><dt>表示</dt><dd><span class="chip warn">黄</span>「このお客様は他にも ◯件 のご注文があります（席／人数）」</dd><dt>対応</dt><dd>QRは注文ごとに別。<b class="hl">もう1枚のQRも読む</b>。読み忘れると、お連れの方が「入場していない」扱いのまま残る</dd></dl>
     </div>
   </div>
 
-  <h2>困ったとき</h2>
-  <div class="card">
-    <dl class="faq">
-      <dt>QRが出せない（電池切れ・メールが見つからない）</dt>
-      <dd>受付画面の「お名前で検索」。漢字・ひらがな・カタカナ・メールの一部・電話番号の一部、どれでも探せます。</dd>
-      <dt>「読み取れませんでした」と出た</dt>
-      <dd>すぐにもう一度かざしてOK。続くようならお名前検索に切り替える。</dd>
-      <dt>「通信エラー」と出た・画面が動かない</dt>
-      <dd>紙の名簿に印を付けて通す。電波が戻ったら、印を付けた人を受付画面で1件ずつ入れる。</dd>
-      <dt>ご招待の方</dt>
-      <dd>QRはありません。<b>招待レーンで紙の名簿に印を付けて</b>、お席を伝える。受付画面には入場の記録が残りません。</dd>
-      <dt>団体で、遅れて来た人</dt>
-      <dd>団体のQRは代表の方が出した時点で全員入場済みです。<b>団体名とお席の番号</b>が聞ければ、QRなしで通してください。</dd>
-      <dt>「確認できたので入場させる」ボタン</dt>
-      <dd><b>受付責任者だけが押す。</b>お名前検索から通した場合は、あとから取り消せません。</dd>
-      <dt>開演してよいか</dt>
-      <dd>画面の「未入場」にはご招待の方が入っていません。<b>画面の未入場0 ＋ 紙の名簿の残り0</b>の両方で判断します。</dd>
-    </dl>
+  <!-- ============ 画面の見方 ============ -->
+  <h2 id="s-screen"><span class="n">04</span>受付画面の見方</h2>
+  <p class="small">上から順に、こう並んでいます。</p>
+  <div class="screen">
+    <div class="scr-part"><span class="tag">最初に1回</span><b>あなたのお名前</b><br>入れないとカメラも名前検索も動かない。スマホが覚えるので、次に開いたときは入力済み</div>
+    <div class="scr-part"><span class="tag">目安</span><b>入場 ／ 予定 ／ 未入場</b><br>「予定」は支払い済みのチケットと団体の人数。<b>ご招待は入っていない。</b>責任者判断で通した人は「入場」にだけ足される。1分ごとと、誰かを通すたびに更新</div>
+    <div class="scr-part"><span class="tag">メイン</span><b>カメラ</b>（暗いときは「ライト」ボタン）<br>かざすだけで次々読む。<b>同じQRは10秒間読まない</b>（連続読み防止）。受付中は画面が自動で消えない</div>
+    <div class="scr-part"><span class="tag">QRが無い人</span><b>お名前で検索</b><br>名前・ふりがな（ひらがな／カタカナどちらでも）・メールの一部・電話番号の一部・団体名・代表者名で探せる。最大20件。結果の下に、その人に使えるボタンが出る</div>
+    <div class="scr-part"><span class="tag">画面の一番下</span><b>判定の表示</b><br><b>次の人を読むまで消えない。</b>音は緑が高く短い、黄が中くらい、赤が低い。振動は緑が短く1回、黄と赤は2回</div>
   </div>
 
-  <h2>練習用のテストチケット</h2>
-  <div class="card how">
-    本物の受付画面で、そのまま練習できます。入場の記録や売上には一切残りません。
-    <ol>
-      <li>このページを<b>パソコンや別のスマホ</b>で開く（受付画面のスマホとは別の端末）</li>
-      <li>受付画面のカメラで、下のQRを1つずつ読む</li>
+  <!-- ============ 表示と対応 ============ -->
+  <h2 id="s-verdict"><span class="n">05</span>表示ごとの意味と対応（全パターン）</h2>
+  <p class="small"><span class="chip ng">責任者</span> の付いたものは、スタッフが自分で判断しないでください。</p>
+  <h3>カメラでQRを読んだとき</h3>
+  <div class="rows">
+    <div class="row"><div class="h"><span class="chip ok">緑</span>ご入場ください</div>
+      <dl><dt>意味</dt><dd>支払い済み。入場を記録した</dd><dt>対応</dt><dd>通す。黄色い枠でお渡し物が出ていたら渡す</dd></dl></div>
+    <div class="row"><div class="h"><span class="chip warn">黄</span>他にも ◯件 のご注文があります</div>
+      <dl><dt>意味</dt><dd>今のQRは入場記録済み。同じ方の別の注文が残っている</dd><dt>対応</dt><dd>もう1枚のQRも読む</dd></dl></div>
+    <div class="row"><div class="h"><span class="chip warn">黄</span>入場済みです（◯時◯分に記録）</div>
+      <dl><dt>意味</dt><dd>このQRはもう使われている</dd><dt>対応</dt><dd>「取り消して入場にする」は、自分で読み間違えたとわかるときだけ押す。本人が「まだ入っていない」と言うなど、わからなければ責任者へ</dd></dl></div>
+    <div class="row boss"><div class="h"><span class="chip ng">赤</span>現金 ¥◯◯ を受け取る <span class="chip ng">責任者</span></div>
+      <dl><dt>意味</dt><dd>当日券で、まだお金を受け取っていない</dd><dt>対応</dt><dd>現金を受け取る → 「現金を受け取った」を押す → 確認を押す → 緑</dd></dl></div>
+    <div class="row boss"><div class="h"><span class="chip ng">赤</span>お支払い未確認 <span class="chip ng">責任者</span></div>
+      <dl><dt>意味</dt><dd>振込などが運営側でまだ確認できていない</dd><dt>対応</dt><dd>責任者が「確認できたので入場させる」。支払いは未確定のまま、運営に通知</dd></dl></div>
+    <div class="row boss"><div class="h"><span class="chip ng">赤</span>取消済みのご予約です <span class="chip ng">責任者</span></div>
+      <dl><dt>意味</dt><dd>予約が取り消され、席は解放済み</dd><dt>対応</dt><dd>責任者が判断。通す場合は座る場所を現場で決める。運営に通知</dd></dl></div>
+    <div class="row"><div class="h"><span class="chip ng">赤</span>読み取れませんでした</div>
+      <dl><dt>意味</dt><dd>該当する予約が無い、または混雑などでサーバーの応答が失敗した</dd><dt>対応</dt><dd>すぐもう一度かざしてよい。続くならお名前検索へ</dd></dl></div>
+    <div class="row"><div class="h"><span class="chip ng">赤</span>通信エラー</div>
+      <dl><dt>意味</dt><dd>スマホがネットにつながっていない</dd><dt>対応</dt><dd>電波を確認。戻らなければ紙の名簿で通す（<a href="#s-trouble">困ったとき</a>）</dd></dl></div>
+    <div class="row"><div class="h"><span class="chip ng">赤</span>このURLでは受付できません／合言葉がありません</div>
+      <dl><dt>意味</dt><dd>開いている受付画面のURLが違う</dd><dt>対応</dt><dd>受付責任者から正しいURLを受け取り直す</dd></dl></div>
+    <div class="row"><div class="h"><span class="chip ng">赤</span>カメラを起動できません</div>
+      <dl><dt>意味</dt><dd>ブラウザにカメラの使用が許可されていない</dd><dt>対応</dt><dd>ブラウザの設定でカメラを許可する。その場はお名前検索で受付できる</dd></dl></div>
+  </div>
+
+  <h3>お名前検索の結果に出るボタン</h3>
+  <div class="rows">
+    <div class="row"><div class="h">「入場を記録する」</div>
+      <dl><dt>意味</dt><dd>支払い済み。QRを読んだのと同じ扱い</dd><dt>対応</dt><dd>本人と席を確認して押す</dd></dl></div>
+    <div class="row boss"><div class="h">「現金 ¥◯◯ を受け取った」 <span class="chip ng">責任者</span></div>
+      <dl><dt>対応</dt><dd>当日券。現金を受け取ってから押す</dd></dl></div>
+    <div class="row boss"><div class="h">「確認できたので入場させる」「取消済み：責任者の確認を得て入場させる」 <span class="chip ng">責任者</span></div>
+      <dl><dt>対応</dt><dd>カメラの赤表示と同じ。責任者が判断して押す</dd></dl></div>
+    <div class="row boss"><div class="h">「電子チケットが未発行です」＋「責任者の確認で入場させる」 <span class="chip ng">責任者</span></div>
+      <dl><dt>意味</dt><dd>お支払いが確認できず、QR自体がまだ作られていない方</dd><dt>対応</dt><dd><b class="hl">押すと取り消せない。</b>押す前に、注文番号と席をご本人と読み合わせる。支払いは未確定のまま、運営に通知</dd></dl></div>
+    <div class="row"><div class="h">「【ご招待】◯◯」（ボタンなし）</div>
+      <dl><dt>対応</dt><dd>紙の名簿に印を付け、席を伝えて通す</dd></dl></div>
+    <div class="row"><div class="h">うすく表示された行（◯時◯分 入場済み）</div>
+      <dl><dt>意味</dt><dd>すでに入場記録がある</dd><dt>対応</dt><dd>ボタンは出ない。別人の行を探すか、責任者へ</dd></dl></div>
+    <div class="row"><div class="h">「該当がありません」</div>
+      <dl><dt>対応</dt><dd>名前の一部だけ、ふりがな、電話番号の一部、メールの一部などで試す。それでも出なければ責任者へ</dd></dl></div>
+  </div>
+
+  <!-- ============ 取り消し ============ -->
+  <h2 id="s-undo"><span class="n">06</span>取り消しのルール</h2>
+  <div class="card">
+    <ul class="facts" style="margin-top:0">
+      <li><b>QRで通した入場は取り消せる。</b>結果に出る「取り消す」を押す。誰がいつ取り消したかは台帳に残る</li>
+      <li><b>現金を受け取ったあとに取り消すと、消えるのは入場記録だけ。</b>「支払い済み」は残る（お客さんへの入金確認メールも送信済み）。画面に警告が出て、運営にも通知が行く。<b class="hl">現金を返したなら、必ず受付責任者に伝える</b></li>
+      <li><b>お名前検索の「責任者の確認で入場させる」（チケット未発行の方）は取り消せない。</b>押す前の読み合わせが唯一の防止策</li>
+      <li>テスト用チケットは取り消すと、すぐにもう一度練習できる</li>
+    </ul>
+  </div>
+
+  <!-- ============ 責任者 ============ -->
+  <h2 id="s-boss"><span class="n">07</span>受付責任者の役割</h2>
+  <div class="card">
+    <p class="small" style="margin-top:0">赤が出たときに判断する人です。受付画面は、責任者判断の操作をするたびに確認の画面を出します。</p>
+    <h3>責任者だけが行う4つ</h3>
+    <ul class="facts">
+      <li><b>お支払い未確認の方を通す</b>（支払いは未確定のまま・運営に通知）</li>
+      <li><b>当日券の現金を受け取る</b>（受け取ってから押す・運営に通知）</li>
+      <li><b>入場を取り消す</b>（現金を受け取っていた場合は、返金したかどうかを運営に伝える）</li>
+      <li><b>QRが出ない方や取消済みの方を、名簿と照らして通す</b>（取り消せない操作を含む）</li>
+    </ul>
+    <h3>責任者が押さえておくこと</h3>
+    <ul class="facts">
+      <li>責任者判断で通した記録は、すべて<b>受付画面に入れた名前</b>付きで運営にメールされる。後から「誰が・なぜ」を聞かれる前提で判断する</li>
+      <li>取消済みの方の席は解放済み。通すなら空いている席を現場で案内する</li>
+      <li><b>開演してよいかは「画面の未入場0」だけで決めない。</b>画面にはご招待の方が入っていない。<b class="hl">画面の未入場0 ＋ 紙の名簿の残り0</b>で判断する</li>
+      <li>当日券の売上は、開演後に封筒で運営へ渡す（封筒に金額と担当者名を書く）</li>
+    </ul>
+  </div>
+
+  <!-- ============ スタッフへの指示 ============ -->
+  <h2 id="s-brief"><span class="n">08</span>スタッフへの指示（集合時にそのまま読み上げ）</h2>
+  <p class="small">受付スタッフに最初に伝える内容です。5分で読めます。LINEに貼っても使えます。</p>
+  <div class="script" id="brief">受付の説明をします。
+
+【準備】
+・受付画面のURLを開いて、一番上に自分の名前を入れてください。入れないとカメラが動きません。
+・スマホは充電しておいてください。
+
+【基本】
+・お客さんのQRをカメラにかざすだけです。
+・緑はそのまま通してください。
+・黄色い枠で「扇子・Tシャツ」が出たら渡してください。「学生証を確認」が出たら学生証を見せてもらってください。
+・黄の「入場済み」は、同じQRが2回目です。
+・黄の「他にも◯件のご注文」は、もう1枚のQRも読んでください。
+
+【赤が出たら】
+・赤は自分で通さず、受付責任者を呼んでください。
+・「確認できたので入場させる」ボタンは、責任者だけが押します。
+
+【QRが出せない人】
+・「お名前で検索」で探してください。ひらがなでもカタカナでも、電話番号の一部でも出ます。
+・「読み取れませんでした」は、すぐかざし直してOK。続くなら名前検索へ。
+
+【団体】
+・代表の方がQRを出した時点で全員入場済みです。
+・遅れて来た人は、団体名と席番号が言えれば通してください。
+
+【ご招待】
+・QRはありません。招待レーンで紙の名簿に印を付けて、席を伝えて通します。
+
+【通信が切れたら】
+・紙の名簿に印を付けて通してください。電波が戻ったら、印を付けた人を画面から入れ直します。
+
+【取り消し】
+・読み間違えたら、結果の「取り消す」で戻せます。
+・現金を受け取ったあとの取り消しは、必ず責任者に伝えてください。
+
+わからないことは、責任者に聞いてください。</div>
+  <button class="copy" onclick="copyBrief(this)">この文面をコピー</button>
+
+  <!-- ============ 当日の流れ ============ -->
+  <h2 id="s-day"><span class="n">09</span>当日の流れ（9/29）</h2>
+  <div class="tl">
+    <div class="t"><div class="tm">17:00　受付スタッフ集合（予定）</div><div class="d">集合時刻は持ち場の欄が正です。受付画面のURLを配り、全員が名前を入れる。<a href="#s-brief">スタッフへの指示</a>を読み上げる</div></div>
+    <div class="t"><div class="tm">集合〜開場まで　練習</div><div class="d">テスト用チケット4種を全員で一巡（<a href="#s-test">練習</a>）。本物のお客さんのQRでは練習しない。紙の名簿・ペン・つり銭を配置</div></div>
+    <div class="t"><div class="tm">18:00　開場</div><div class="d">受付開始。当日券（現金）の方も来はじめる</div></div>
+    <div class="t"><div class="tm">19:30　開演</div><div class="d">当日券のネット購入はここで締切。開演してよいかは<b>画面の未入場0 ＋ 紙の名簿の残り0</b>で判断</div></div>
+    <div class="t"><div class="tm">開演後</div><div class="d">遅れて来た方は引き続き受付。当日券の売上を封筒で運営へ（金額と担当者名を書く）。通信が切れて紙で通した人がいれば、画面から入れ直す</div></div>
+  </div>
+
+  <!-- ============ 準備物 ============ -->
+  <h2 id="s-prep"><span class="n">10</span>準備物チェック</h2>
+  <div class="card check">
+    <label><input type="checkbox">受付用のスマホ（人数分）<small>充電100%。モバイルバッテリーもあると安心</small></label>
+    <label><input type="checkbox">受付画面のURL<small>受付責任者から受け取る。このページには載せていません</small></label>
+    <label><input type="checkbox">紙の名簿（受付の人数分＋責任者用）<small>9/28に最終版を印刷予定。通信が切れたときの唯一の手段</small></label>
+    <label><input type="checkbox">招待客の名簿（招待レーン用）<small>印を付ける。ご招待の方の唯一の記録</small></label>
+    <label><input type="checkbox">ペン</label>
+    <label><input type="checkbox">当日券用：金庫・つり銭・封筒<small>つり銭の目安 千円札30枚・500円玉20枚（一般A ¥3,500／一般S ¥4,500）</small></label>
+    <label><input type="checkbox">サポーター券の扇子・Tシャツ<small>画面の表示を見て、その場で渡す</small></label>
+    <label><input type="checkbox">練習用にQRを表示する端末（パソコンか別のスマホ）</label>
+  </div>
+
+  <!-- ============ 困ったとき ============ -->
+  <h2 id="s-trouble"><span class="n">11</span>困ったとき</h2>
+  <div class="rows">
+    <div class="row"><div class="h">通信が切れた・画面が固まった</div>
+      <dl><dt>対応</dt><dd>紙の名簿で名前を確認し、印を付けて通す。電波が戻ったら、印を付けた人を1人ずつお名前検索で探し「入場を記録する」</dd></dl></div>
+    <div class="row"><div class="h">「読み取れませんでした」が続く</div>
+      <dl><dt>対応</dt><dd>混雑でサーバーの応答が詰まっていることがある（検索も同じく遅くなる）。慌ててかざし続けず、名前検索に切り替える</dd></dl></div>
+    <div class="row"><div class="h">お客さんのスマホの画面が暗くて読めない</div>
+      <dl><dt>対応</dt><dd>画面を明るくしてもらう。受付側が暗ければ「ライト」ボタン</dd></dl></div>
+    <div class="row"><div class="h">メールが見つからない・電池切れ</div>
+      <dl><dt>対応</dt><dd>お名前検索。見つかれば「入場を記録する」</dd></dl></div>
+    <div class="row"><div class="h">同じ名前が何件も出る</div>
+      <dl><dt>対応</dt><dd>席・人数をご本人と読み合わせてから押す。自信がなければ責任者へ</dd></dl></div>
+    <div class="row"><div class="h">画面の「未入場」が合わない気がする</div>
+      <dl><dt>対応</dt><dd>数字は目安。ご招待は入らず、責任者判断で通した人は「予定」に入らない。開演判断は紙の名簿と合わせて行う</dd></dl></div>
+  </div>
+
+  <!-- ============ 練習 ============ -->
+  <h2 id="s-test"><span class="n">12</span>練習用のテストチケット</h2>
+  <div class="card small">
+    本物の受付画面で、そのまま練習できます。<b>台帳にも売上にも何も書き込まれません。</b>
+    <ol style="margin:6px 0 0;padding-left:1.2em">
+      <li>このページを<b>パソコンか別のスマホ</b>で開く（受付画面のスマホでは自分の画面のQRを読めません）</li>
+      <li>受付画面のカメラで、下のQRを①から順に読む</li>
       <li>「こう出れば正しい」と同じ表示になるか確かめる</li>
     </ol>
-    <p class="muted" style="margin:8px 0 0">「入場済み」の状態は15分で自動的に消えます。何度でも練習できます。</p>
+    <p class="muted" style="margin:8px 0 0">「入場済み」の状態は15分で自動的に消えます。「取り消す」を押せばすぐ消えます。何度でも練習できます。</p>
   </div>
   <div class="tix" id="tix"></div>
 
   <p class="foot">
-    このページのURLは受付に関わる人だけに共有してください。<br>
-    持ち場と未決事項は運営のスプレッドシートから読み込んでいます。
+    このページのURLは、受付に関わる人だけに共有してください。<br>
+    持ち場と未決事項は、運営のスプレッドシート（舞台関連資料「当日受付」タブ）から読み込んでいます。
   </p>
 </div>
 
@@ -149,13 +389,13 @@ var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9Do
    架空の注文なので、ここに書いても実売・座席・入場記録のどれにも触れない。 */
 var TESTS=[
   { t:'test-4k9x2m7p', k:'① ふつうのチケット',
-    exp:'<span class="chip ok">緑</span>テスト 様　2名「ご入場ください」<br>→ もう一度かざすと <span class="chip warn">黄</span>「入場済みです」<br>→「取り消す」で戻るか確かめる' },
+    exp:'<span class="chip ok">緑</span>「ご入場ください」テスト（テスト）様　2名<br>→ もう一度かざす：<span class="chip warn">黄</span>「入場済みです」<br>→「取り消して入場にする」で戻るか確かめる' },
   { t:'test-team-7h2qzv', k:'② 団体のチケット',
-    exp:'<span class="chip ok">緑</span>テスト大学ダブルダッチ部 様　9名<br>→ 1回かざせば9名全員が入場済み' },
+    exp:'<span class="chip ok">緑</span>テスト大学ダブルダッチ部（テスト）様　9名<br>→ 1回読むだけで9名全員が入場済み' },
   { t:'test-cash-5r8wnd', k:'③ 当日現金のチケット',
-    exp:'<span class="chip ng">赤</span>「現金 ¥9,000 を受け取る」<br>→ 責任者が「現金を受け取った」を押す → <span class="chip ok">緑</span>' },
+    exp:'<span class="chip ng">赤</span>「現金 ¥9,000 を受け取る」<br>→「現金を受け取った」→ 確認 → <span class="chip ok">緑</span>「現金 ¥9,000 を受け取りました」' },
   { t:'test-void-3n6vkc', k:'④ 取消済みのチケット',
-    exp:'<span class="chip ng">赤</span>「取消済みのご予約です」<br>→ 通さずに責任者を呼ぶ練習。お客さん側の画面にはQRが出ません' }
+    exp:'<span class="chip ng">赤</span>「取消済みのご予約です」<br>→ 責任者を呼ぶ練習。「確認できたので入場させる」で通るところまで確かめる<br>※お客さん側の画面にはQRが出ません' }
 ];
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
@@ -174,6 +414,16 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
     box.appendChild(el);
   });
 })();
+
+function copyBrief(btn){
+  var text=document.getElementById('brief').textContent;
+  function done(){ btn.textContent='コピーしました'; setTimeout(function(){ btn.textContent='この文面をコピー'; },1800); }
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done); return; }
+  }catch(e){}
+  var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand('copy'); done(); }catch(e){} document.body.removeChild(ta);
+}
 
 function renderSheet(d){
   var pend=(d.decide||[]).filter(function(r){ return r.item && String(r.state).trim()!=='決定'; });
