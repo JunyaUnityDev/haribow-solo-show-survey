@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 当日受付担当が見る案内（2026-09-17）。持ち場の名前が出るので検索には出さない。
+     ファイル名も推測できないものにしてある（p-7q3x9k.html と同じ考え方）。
+     ★受付画面の鍵（checkin.html?k=）はここに書かない。このページを見た人が入場を通せてしまう。
+     ★持ち場と未決事項は『GO BEYOND 2026_舞台関連資料』の「当日受付」タブから読む（GAS page=reception）。
+       手順とテスト用チケットはこのファイルに直書き。 -->
+<meta name="robots" content="noindex,nofollow">
+<title>当日受付｜Go BEYOND</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<style>
+  :root{
+    --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35;
+    --text:#f3f1ea; --faint:#8b919e; --sup:#c9a24b;
+    --ok:#6fae8a; --warn:#d2b060; --ng:#c0695f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+    -webkit-text-size-adjust:100%;line-height:1.75}
+  .wrap{max-width:560px;margin:0 auto;padding:24px 16px 72px}
+  header{margin-bottom:22px}
+  .evt{font-size:12px;letter-spacing:.1em;color:var(--sup);margin:0}
+  h1{font-size:26px;margin:4px 0 2px;letter-spacing:.02em}
+  .lead{font-size:13px;color:var(--faint);margin:0}
+  h2{font-size:15px;letter-spacing:.06em;margin:34px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h2 small{font-weight:400;color:var(--faint);font-size:11.5px;margin-left:6px;letter-spacing:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px}
+  .muted{color:var(--faint);font-size:12px}
+  a{color:#8fb7c9}
+
+  /* 未決 */
+  .pending{border-color:rgba(192,105,95,.55);background:rgba(192,105,95,.08)}
+  .pending b.t{color:#e3a39a;font-size:14px}
+  .pending ul{margin:6px 0 0;padding-left:1.1em;font-size:13px}
+  .pending li span{color:var(--faint);font-size:12px}
+
+  /* 持ち場 */
+  .post{display:grid;grid-template-columns:1fr auto;gap:2px 10px}
+  .post .p{font-weight:700;font-size:15px}
+  .post .tm{font-weight:700;color:var(--sup);font-size:15px;text-align:right}
+  .post .nm{grid-column:1/-1;font-size:14px}
+  .post .nm.empty{color:var(--ng)}
+  .post .sub{grid-column:1/-1;font-size:12px;color:var(--faint)}
+
+  /* 手順 */
+  ol.steps{margin:0;padding-left:1.3em;font-size:15px}
+  ol.steps li{margin:4px 0}
+  .colors{display:grid;gap:8px;margin-top:12px}
+  .c{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:start;font-size:13.5px}
+  .chip{border-radius:6px;padding:3px 0;text-align:center;font-weight:700;font-size:13px;color:#0a0b0e}
+  .chip.ok{background:var(--ok)} .chip.warn{background:var(--warn)} .chip.ng{background:var(--ng);color:#fff}
+  .c b{display:block}
+
+  /* 困ったとき */
+  dl.faq{margin:0}
+  dl.faq dt{font-weight:700;font-size:14px;margin-top:14px}
+  dl.faq dt:first-child{margin-top:0}
+  dl.faq dd{margin:2px 0 0;font-size:13.5px;color:#d9d6cd}
+
+  /* テスト用チケット */
+  .how{font-size:13px;color:#d9d6cd}
+  .how ol{margin:6px 0 0;padding-left:1.2em}
+  .tix{display:grid;gap:12px;margin-top:12px}
+  .tk{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:start}
+  .qr{background:#fff;border-radius:8px;padding:8px;line-height:0}
+  .qr img{width:116px;height:116px;image-rendering:pixelated}
+  .tk .k{font-weight:700;font-size:15px}
+  .tk .exp{font-size:12.5px;margin-top:4px;color:#d9d6cd}
+  .tk .exp .chip{display:inline-block;padding:0 7px;margin-right:4px;font-size:11.5px}
+  .tk a{font-size:12px}
+  @media (max-width:380px){ .tk{grid-template-columns:1fr} .qr{justify-self:start} }
+  .foot{margin-top:40px;font-size:11.5px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="evt">GO BEYOND ／ 2026.9.29 めぐろパーシモンホール</p>
+    <h1>当日受付</h1>
+    <p class="lead">当日受付担当の方へ。持ち場・受付の手順・練習用のQRをまとめています。</p>
+  </header>
+
+  <div id="pending"></div>
+
+  <h2>持ち場 <small id="upd"></small></h2>
+  <div id="posts"><p class="muted">読み込んでいます…</p></div>
+
+  <h2>受付の手順</h2>
+  <div class="card">
+    <ol class="steps">
+      <li>受付画面を開く（URLは受付責任者から受け取ってください）</li>
+      <li>一番上に<b>自分の名前</b>を入れる（入れないとカメラが動きません）</li>
+      <li>「カメラを起動する」→ お客さんのQRをかざす</li>
+    </ol>
+    <div class="colors">
+      <div class="c"><span class="chip ok">緑</span><div><b>ご入場ください</b>そのまま通す。</div></div>
+      <div class="c"><span class="chip warn">黄</span><div><b>入場済みです</b>同じQRが2回目。読み間違いなら「取り消す」で戻せます。</div></div>
+      <div class="c"><span class="chip ng">赤</span><div><b>現金／お支払い未確認／取消済み</b>自分で通さず、<b>受付責任者を呼ぶ</b></div></div>
+    </div>
+  </div>
+
+  <h2>困ったとき</h2>
+  <div class="card">
+    <dl class="faq">
+      <dt>QRが出せない（電池切れ・メールが見つからない）</dt>
+      <dd>受付画面の「お名前で検索」。漢字・ひらがな・カタカナ・メールの一部・電話番号の一部、どれでも探せます。</dd>
+      <dt>「読み取れませんでした」と出た</dt>
+      <dd>すぐにもう一度かざしてOK。続くようならお名前検索に切り替える。</dd>
+      <dt>「通信エラー」と出た・画面が動かない</dt>
+      <dd>紙の名簿に印を付けて通す。電波が戻ったら、印を付けた人を受付画面で1件ずつ入れる。</dd>
+      <dt>ご招待の方</dt>
+      <dd>QRはありません。<b>招待レーンで紙の名簿に印を付けて</b>、お席を伝える。受付画面には入場の記録が残りません。</dd>
+      <dt>団体で、遅れて来た人</dt>
+      <dd>団体のQRは代表の方が出した時点で全員入場済みです。<b>団体名とお席の番号</b>が聞ければ、QRなしで通してください。</dd>
+      <dt>「確認できたので入場させる」ボタン</dt>
+      <dd><b>受付責任者だけが押す。</b>お名前検索から通した場合は、あとから取り消せません。</dd>
+      <dt>開演してよいか</dt>
+      <dd>画面の「未入場」にはご招待の方が入っていません。<b>画面の未入場0 ＋ 紙の名簿の残り0</b>の両方で判断します。</dd>
+    </dl>
+  </div>
+
+  <h2>練習用のテストチケット</h2>
+  <div class="card how">
+    本物の受付画面で、そのまま練習できます。入場の記録や売上には一切残りません。
+    <ol>
+      <li>このページを<b>パソコンや別のスマホ</b>で開く（受付画面のスマホとは別の端末）</li>
+      <li>受付画面のカメラで、下のQRを1つずつ読む</li>
+      <li>「こう出れば正しい」と同じ表示になるか確かめる</li>
+    </ol>
+    <p class="muted" style="margin:8px 0 0">「入場済み」の状態は15分で自動的に消えます。何度でも練習できます。</p>
+  </div>
+  <div class="tix" id="tix"></div>
+
+  <p class="foot">
+    このページのURLは受付に関わる人だけに共有してください。<br>
+    持ち場と未決事項は運営のスプレッドシートから読み込んでいます。
+  </p>
+</div>
+
+<script src="vendor/qrcode.js"></script>
+<script>
+var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+
+/* テスト用チケット。トークンは gas/Tickets.js の TEST_TICKETS_ と同じ。
+   架空の注文なので、ここに書いても実売・座席・入場記録のどれにも触れない。 */
+var TESTS=[
+  { t:'test-4k9x2m7p', k:'① ふつうのチケット',
+    exp:'<span class="chip ok">緑</span>テスト 様　2名「ご入場ください」<br>→ もう一度かざすと <span class="chip warn">黄</span>「入場済みです」<br>→「取り消す」で戻るか確かめる' },
+  { t:'test-team-7h2qzv', k:'② 団体のチケット',
+    exp:'<span class="chip ok">緑</span>テスト大学ダブルダッチ部 様　9名<br>→ 1回かざせば9名全員が入場済み' },
+  { t:'test-cash-5r8wnd', k:'③ 当日現金のチケット',
+    exp:'<span class="chip ng">赤</span>「現金 ¥9,000 を受け取る」<br>→ 責任者が「現金を受け取った」を押す → <span class="chip ok">緑</span>' },
+  { t:'test-void-3n6vkc', k:'④ 取消済みのチケット',
+    exp:'<span class="chip ng">赤</span>「取消済みのご予約です」<br>→ 通さずに責任者を呼ぶ練習。お客さん側の画面にはQRが出ません' }
+];
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+(function renderTests(){
+  var box=document.getElementById('tix');
+  TESTS.forEach(function(x){
+    var qr=qrcode(0,'M'); qr.addData(x.t); qr.make();
+    var el=document.createElement('div');
+    el.className='card tk';
+    el.innerHTML='<div class="qr">'+qr.createImgTag(4,0)+'</div>'
+      + '<div><div class="k">'+esc(x.k)+'</div>'
+      + '<div class="exp">'+x.exp+'</div>'
+      + '<a href="ticket.html?t='+encodeURIComponent(x.t)+'" target="_blank" rel="noopener">お客さんが見る画面を開く</a></div>';
+    box.appendChild(el);
+  });
+})();
+
+function renderSheet(d){
+  var pend=(d.decide||[]).filter(function(r){ return r.item && String(r.state).trim()!=='決定'; });
+  var ph=document.getElementById('pending');
+  if(pend.length){
+    ph.innerHTML='<div class="card pending"><b class="t">まだ決まっていないこと '+pend.length+'件</b><ul>'
+      + pend.map(function(r){
+          return '<li>'+esc(r.item.replace(/（.*$/,''))+' <span>'+esc(r.owner||'')+(r.due?'・期限 '+esc(r.due):'')+'</span></li>';
+        }).join('')
+      + '</ul><p class="muted" style="margin:6px 0 0">決まり次第、このページにも反映されます。</p></div>';
+  } else { ph.innerHTML=''; }
+
+  var posts=(d.posts||[]).filter(function(r){ return r.post; });
+  document.getElementById('posts').innerHTML = posts.length ? posts.map(function(r){
+    var nm=String(r.name||'').trim();
+    return '<div class="card post">'
+      + '<div class="p">'+esc(r.post)+'</div>'
+      + '<div class="tm">'+(r.time?esc(r.time)+' 集合':'')+'</div>'
+      + '<div class="nm'+(nm?'':' empty')+'">'+(nm?esc(nm):'担当 未定')+'</div>'
+      + '<div class="sub">'+[r.place,r.tools].filter(Boolean).map(esc).join('　／　')+'</div>'
+      + (r.todo?'<div class="sub">'+esc(r.todo)+'</div>':'')
+      + '</div>';
+  }).join('') : '<p class="muted">持ち場はまだ登録されていません。</p>';
+  if(d.updated) document.getElementById('upd').textContent=d.updated+' 時点';
+}
+
+fetch(BASE+'?page=reception')
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d && d.ok) renderSheet(d);
+    else throw 0;
+  })
+  .catch(function(){
+    document.getElementById('posts').innerHTML=
+      '<p class="muted">持ち場を読み込めませんでした。少し待ってから再読み込みしてください。</p>';
+  });
+</script>
+</body>
+</html>
