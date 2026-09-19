@@ -190,7 +190,14 @@ function renderMine(){
       var ent=inFor(ME, b.name);
       io.push('<span class="i">入り：'+(ent.v? esc(ent.v)+(ent.own?'（あなた指定）':'') : '<i class="todo">まだ決まっていません</i>')+'</span>');
     }
-    if(isStay) io.push('<span class="s">前のブロックから続けて舞台にいます</span>');
+    if(isStay){
+      /* 連続出演＝舞台に居続ける、とは限らない。転換が空いていれば一度捌けて戻ることもある。
+         断定せず、転換の秒数を見せて当日の判断に委ねる。 */
+      var pg = i>0 ? Math.round(p[i-1].trans*60) : 0;
+      io.push(pg===0
+        ? '<span class="s">前のブロックから続けて舞台にいます（転換0秒）</span>'
+        : '<span class="s">前のブロックにも出ています（転換'+pg+'秒）。いったん捌けるかは当日</span>');
+    }
     if(isOut)  io.push('<span class="o">ハケ：'+(m.out? esc(m.out) : '<i class="todo">まだ決まっていません</i>')+'</span>');
     if(!isOut && !isStay && !isIn) io.push('<span class="s">—</span>');
     out.push('<div class="card"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
