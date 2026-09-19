@@ -581,7 +581,10 @@ function portrait(m){
   else{
     h+='<span class="ropes"></span><span class="vert" aria-hidden="true">'+esc(m.k||nm)+'</span>';
     /* 写真は無いが自己紹介動画はある人：動画の1コマ目を肖像にする（本人が撮った自撮りなので） */
-    if(a.i) h+='<video class="still" src="'+base+'intro.mp4#t=0.8" muted playsinline preload="metadata" aria-hidden="true"></video>';
+    /* 既定は0.8秒。st で秒数を変えられる。★st:0 は「動画から肖像を作らない」（2026-09-20・三好廉太郎32）。
+       .por は中央の帯だけを見せるので、離れて撮っていて顔が帯の外にある人は、どのコマを選んでも胴体しか出ない。
+       その場合は写真が届くまで写真なしの表示（縦書きの名前）にする方がきれいに出る。 */
+    if(a.i && m.st!==0) h+='<video class="still" src="'+base+'intro.mp4#t='+(m.st||0.8)+'" muted playsinline preload="metadata" aria-hidden="true"></video>';
   }
   h+='<div class="grain"></div><div class="scrim"></div>';
   var media='';
