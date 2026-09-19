@@ -426,7 +426,8 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 var BY={}; M.forEach(function(m){ BY[m.n]=m; });
 /* ph:1（プロフィール未提出）は抽選に入れない。データが無いので相性が占いになる。
    「お目当ての人」で名前を選んだときだけ出る。BY には入れてあるので選択は効く。 */
-var MP=M.filter(function(m){ return !m.ph; });
+/* role（舞台に出ない担当・ホワイエDJ）も入れない。診断の出力は「舞台で探すもの」なので */
+var MP=M.filter(function(m){ return !m.ph && !m.role; });
 var VOICE={}; V.forEach(function(v){ (VOICE[v[1]]=VOICE[v[1]]||[]).push({f:v[0],t:v[2]}); });
 
 /* 出演者の並び。★pamphlet.html の CAST と同じ順番にしてある（パンフレットの一覧から来た人が
@@ -649,9 +650,13 @@ function card(o,i){
     h+='<div class="sec role"><span class="lb">担当</span>'+
        '<p class="rl">'+esc(m.role)+'</p>'+
        '<p class="rd">客席の外のホワイエ（ロビー）で音楽を流します。</p></div>';
+    /* 2026-09-19 フォームが返ってきた。「DJ中にやってしまうこと」はホワイエで見られるものなので担当の下に置く */
+    if(m.o) h+='<div class="sec role"><span class="lb">DJ中にやってしまうこと</span>'+
+       '<p class="rl">'+esc(m.o)+'</p><p class="rd">本人が書いたことです。</p></div>';
     h+=mottoBlock(m);
     h+=voicesBlock(vs);
-    h+='<p class="pending">本人のプロフィールは準備中です。</p>';
+    if(m.y) h+=selfBlock(m);
+    else h+='<p class="pending">本人のプロフィールは準備中です。</p>';
     return h+glossBlock(h)+'</article>';
   }
 
@@ -682,7 +687,13 @@ function card(o,i){
   h+=mottoBlock(m);
   h+=actsBlock(m);
   h+=voicesBlock(vs);
+  h+=selfBlock(m);
+  return h+glossBlock(h)+'</article>';
+}
 
+/* 本人のこと＋声援の答え。role の人（ホワイエDJ）も同じものを出すので関数にした（2026-09-19） */
+function selfBlock(m){
+  var h='';
   /* 本人のこと。★「苦手」は出さない（本人の弱みを客席に並べる場所ではない） */
   var rows=[["ダブルダッチ歴",m.y],["始めたきっかけ",m.t==="その他"?"":m.t],
             ["得意",m.g],["本番の直前",m.b],["最近ハマっていること",m.h]]
@@ -694,8 +705,7 @@ function card(o,i){
   /* 客席からどう反応していいか。本人の答え（§5）。一律の決まりにしない */
   if(m.c) h+='<div class="sec"><div class="call"><p class="k">客席からの声援について、本人の答え</p>'+
      '<p class="v">'+esc(m.c)+'</p>'+(m.w?'<p class="w">「'+esc(m.w)+'」</p>':'')+'</div></div>';
-
-  return h+glossBlock(h)+'</article>';
+  return h;
 }
 
 function show(list){
