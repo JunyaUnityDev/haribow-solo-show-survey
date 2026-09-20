@@ -181,18 +181,20 @@ function ioFor(person, block, field){
   }
   return {v: mv(block)[field]||'', own:false};
 }
-/* 客席A〜Dの位置。文字だけだと当日どこに座るか分からないので図を出す。
-   A・D＝前方（1〜12列）の下手側・上手側、B・C＝後方（13列以降）の下手側・上手側。 */
+/* A〜Dは客席の「扉」。演者は扉の外で待機して、そこから入場する。席に座るわけではない。
+   図は、どの扉かを分かるようにするためだけに出している（2026-09-20 坂田の指摘で修正）。 */
 function seatMapHtml(){
-  return '<div class="map"><h2>客席 A〜D はここ</h2>'+
-    '<p>1階席。前の12列が <b>A（下手）</b>／<b>D（上手）</b>、13列から後ろが <b>B（下手）</b>／<b>C（上手）</b>。</p>'+
-    '<img src="media/seatmap_zones.png" alt="めぐろパーシモンホール 1階席の座席図。A〜Dの位置" loading="lazy">'+
+  return '<div class="map"><h2>客席 A〜D の扉はここ</h2>'+
+    '<p><b>A〜Dは客席の扉です。</b>扉の外で待機して、そこから入場します（席に座るわけではありません）。<br>'+
+    '1階席のみ。2階席は使いません。</p>'+
+    '<img src="media/seatmap_zones.png" alt="めぐろパーシモンホール 1階席。A〜Dの扉の位置" loading="lazy">'+
     '<div class="zones">'+
-      '<span><b>A</b> 下手・前方（1〜12列／1〜10番）</span>'+
-      '<span><b>D</b> 上手・前方（1〜12列／23〜32番）</span>'+
-      '<span><b>B</b> 下手・後方（13列〜／1〜10番）</span>'+
-      '<span><b>C</b> 上手・後方（13列〜／23〜32番）</span>'+
-    '</div></div>';
+      '<span><b>A</b> 下手・前方の扉</span>'+
+      '<span><b>D</b> 上手・前方の扉</span>'+
+      '<span><b>B</b> 下手・後方の扉</span>'+
+      '<span><b>C</b> 上手・後方の扉</span>'+
+    '</div>'+
+    '<p style="margin:10px 0 0">客席から見て左が下手、右が上手です。</p></div>';
 }
 /* 値の出し方。空＝未定、「—」始まり＝該当なし、チーム裁量＝チームで決めてよい */
 function ioHtml(label, cls, r){
