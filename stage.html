@@ -8,17 +8,17 @@
 <style>
   :root{
     --bg:#f4f1ec; --panel:#fffdfa; --line:#ddd6cb; --ink:#2e2a24; --dim:#7d7466;
-    --accent:#6b5f4e; --accent-ink:#fffdfa; --in:#4e6b57; --out:#8a5a48; --stay:#7d7466;
+    --accent:#6b5f4e; --accent-ink:#fffdfa; --in:#4e6b57; --out:#8a5a48; --stay:#7d7466; --warn:#b03a2e;
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
       --bg:#1c1a17; --panel:#252220; --line:#3b3631; --ink:#ece7de; --dim:#9a9184;
-      --accent:#a9997f; --accent-ink:#1c1a17; --in:#8fb59b; --out:#c99078; --stay:#9a9184;
+      --accent:#a9997f; --accent-ink:#1c1a17; --in:#8fb59b; --out:#c99078; --stay:#9a9184; --warn:#e07a63;
     }
   }
   :root[data-theme="dark"]{
     --bg:#1c1a17; --panel:#252220; --line:#3b3631; --ink:#ece7de; --dim:#9a9184;
-    --accent:#a9997f; --accent-ink:#1c1a17; --in:#8fb59b; --out:#c99078; --stay:#9a9184;
+    --accent:#a9997f; --accent-ink:#1c1a17; --in:#8fb59b; --out:#c99078; --stay:#9a9184; --warn:#e07a63;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -59,6 +59,9 @@
   .stagemap .kyaku{grid-column:1/4}
   .stand{margin-top:8px;font-size:12px;color:var(--ink);padding-top:8px;border-top:1px solid var(--line)}
   .stand b{color:var(--in)}
+  .quick{margin-top:9px;padding:9px 11px;border-radius:8px;font-size:13px;
+       background:rgba(180,40,30,.08);border:1px solid var(--warn);color:var(--warn);line-height:1.6}
+  .quick b{font-weight:700}
   .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   .time{font-size:15px;font-weight:700;letter-spacing:.02em;flex:none}
   .bn{font-size:16px;font-weight:700}
@@ -318,6 +321,14 @@ function renderMine(){
     }
     /* いつ・どこに集合するか。入りの場所から出す（舞台に居続ける人には出さない）。
        「出番の時刻」だけ分かっても動けない——1つ前が始まったら持ち場へ、が実際の動き方 */
+    /* 早着替え（C部）。**その演目のあと**に着替える人へ、赤で警告を出す */
+    var qc = (D.quick && D.quick[ME] || []).filter(function(q){
+      return b.name===q.block || b.name.slice(0,q.block.length)===q.block; });
+    var qcHtml = qc.map(function(q){
+      return '<div class="quick">⚠ <b>この演目のあと、'+esc(q.place||'（場所未定）')+'で早着替え</b>'+
+        (q.span? '（'+esc(q.span)+'）':'')+
+        (q.costume? '<br><b>'+esc(q.costume)+'を'+esc(q.place||'そこ')+'に持って行く必要あり</b>':'')+
+        (q.memo? '<br>'+md(q.memo):'')+'</div>'; }).join('');
     var stand = standbyOf(entry.v);
     var cue = i>=2 ? p[i-2] : (i===1 ? p[0] : null);   // 2つ前まで（頭は開演前）
     var standHtml = (stand && !isStay)
@@ -328,7 +339,7 @@ function renderMine(){
       '<span class="bn">'+esc(b.name)+'</span></div>'+
       '<div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div>'+
       '<div class="io">'+io.join('')+'</div>'+
-      standHtml+
+      qcHtml+standHtml+
       (notes.length? '<div class="props">'+notes.join('<br>')+'</div>':'')+
       (m.props? '<div class="props">舞台で動かすもの<br>'+mdBlock(m.props)+'</div>':'')+
       '</div>');
