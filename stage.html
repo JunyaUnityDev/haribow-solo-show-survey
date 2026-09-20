@@ -58,6 +58,13 @@
   .props{margin-top:8px;font-size:12px;color:var(--dim);padding-top:8px;border-top:1px solid var(--line)}
   .io .free{color:var(--in);font-weight:400}
   .io .na{color:var(--dim);font-weight:400}
+  .map{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin:10px 0 16px}
+  .map h2{font-size:14px;margin:0 0 4px}
+  .map p{font-size:12px;color:var(--dim);margin:0 0 10px}
+  .map img{width:100%;height:auto;border-radius:8px;display:block;background:#fff}
+  .map .zones{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:12px}
+  .map .zones b{display:inline-block;min-width:1.2em}
+  .map .zones span{border:1px solid var(--line);border-radius:7px;padding:4px 9px}
   table{width:100%;border-collapse:collapse;font-size:12px}
   th,td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;text-align:left}
   th{background:var(--bg);font-size:11px}
@@ -174,6 +181,19 @@ function ioFor(person, block, field){
   }
   return {v: mv(block)[field]||'', own:false};
 }
+/* 客席A〜Dの位置。文字だけだと当日どこに座るか分からないので図を出す。
+   A・D＝前方（1〜12列）の下手側・上手側、B・C＝後方（13列以降）の下手側・上手側。 */
+function seatMapHtml(){
+  return '<div class="map"><h2>客席 A〜D はここ</h2>'+
+    '<p>1階席。前の12列が <b>A（下手）</b>／<b>D（上手）</b>、13列から後ろが <b>B（下手）</b>／<b>C（上手）</b>。</p>'+
+    '<img src="media/seatmap_zones.png" alt="めぐろパーシモンホール 1階席の座席図。A〜Dの位置" loading="lazy">'+
+    '<div class="zones">'+
+      '<span><b>A</b> 下手・前方（1〜12列／1〜10番）</span>'+
+      '<span><b>D</b> 上手・前方（1〜12列／23〜32番）</span>'+
+      '<span><b>B</b> 下手・後方（13列〜／1〜10番）</span>'+
+      '<span><b>C</b> 上手・後方（13列〜／23〜32番）</span>'+
+    '</div></div>';
+}
 /* 値の出し方。空＝未定、「—」始まり＝該当なし、チーム裁量＝チームで決めてよい */
 function ioHtml(label, cls, r){
   var v = r.v||'';
@@ -216,7 +236,7 @@ function renderMine(){
   out.push('<p class="sum">出番は <b>'+mine.length+'</b> ブロック（全'+p.length+'ブロック中）</p>');
   if(!mine.length){ out.push('<div class="card">この公演での出番はありません。</div>'); host.innerHTML=out.join(''); return; }
 
-  var prevIdx=null;
+  var prevIdx=null, usesSeat=false;
   mine.forEach(function(i){
     var b=p[i], f=flow(i), m=mv(b.name);
     var isStay = f.stay.indexOf(ME)>=0;
@@ -228,8 +248,14 @@ function renderMine(){
     }
     /* 入りもハケも必ず出す。「次のブロックにも出るから」とハケを隠すと、
        袖が変わる人（例：DDCJ2023で下手へハケて、Cirqueに下手から入り直す）の動きが消える */
-    var io=[ ioHtml('入り','i', ioFor(ME,b.name,'in')), ioHtml('ハケ','o', ioFor(ME,b.name,'out')) ];
+    var entry = ioFor(ME,b.name,'in'), exit = ioFor(ME,b.name,'out');
+    var io=[ ioHtml('入り','i', entry), ioHtml('ハケ','o', exit) ];
     var notes=[];
+    /* 個人指定があると、ブロック共通の指示（例：OPの「終盤に客席通路A〜Dから登場」）が
+       画面から消えてしまう。登場のタイミングはそちらにしか書いていないので併記する。 */
+    if((entry.own && m["in"] && m["in"]!==entry.v) || (exit.own && m.out && m.out!==exit.v)){
+      notes.push('このブロック全体：'+esc([m["in"], m.out].filter(Boolean).join(' ／ ')));
+    }
     if(isStay){
       var pg = i>0 ? Math.round(p[i-1].trans*60) : 0;
       notes.push('前の「'+esc(p[i-1].name)+'」にも出ています（転換'+pg+'秒）。'+
@@ -247,8 +273,11 @@ function renderMine(){
       (notes.length? '<div class="props">'+notes.join('<br>')+'</div>':'')+
       (m.props? '<div class="props">舞台で動かすもの：'+esc(m.props)+'</div>':'')+
       '</div>');
+    if(/客席\s*[A-D]/.test(entry.v||'')) usesSeat=true;
     prevIdx=i;
   });
+  /* 客席から出る人にだけ図を出す（舞台袖だけの人には関係ない） */
+  if(usesSeat) out.push(seatMapHtml());
   host.innerHTML=out.join('');
 }
 
@@ -263,7 +292,7 @@ function renderAll(){
       '<td data-l="入り">'+(m["in"]?esc(m["in"]):dash)+'</td><td data-l="ハケ">'+(m.out?esc(m.out):dash)+'</td>'+
       '<td data-l="物の置き場所">'+(m.props?esc(m.props):dash)+'</td></tr>');
   }
-  el('viewAll').innerHTML='<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
+  el('viewAll').innerHTML=seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
     '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+
     rows.join('')+'</tbody></table>';
 }
