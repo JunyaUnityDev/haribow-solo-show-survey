@@ -72,7 +72,8 @@
   .io .free{border-color:var(--in)}
   .io .na{opacity:.62}
   .io .todo{color:var(--dim);font-weight:400;font-style:italic}
-  .io b.lv{font-weight:700}
+  .io em.val{font-style:normal;display:block}
+  .io b.lv{font-weight:700;font-size:11px;color:var(--in)}
   .props{margin-top:8px;font-size:12px;color:var(--dim);padding-top:8px;border-top:1px solid var(--line)}
   .io .free{color:var(--in);font-weight:400}
   .io .na{color:var(--dim);font-weight:400}
@@ -154,6 +155,11 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
 /* シートには **ここを強調** という書き方が入っている。記号のまま出していたので太字にする。
    エスケープしてから変換するので、タグを書かれても素通りしない（2026-09-21） */
 function md(s){ return esc(s).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/★/g,'<b>★</b>'); }
+/* 注釈は1行に詰め込むと読めない。★ と ／ で折る（2026-09-21） */
+function mdBlock(s){
+  return md(s).replace(/\s*<b>★<\/b>\s*/g,'<br><b>★</b>').replace(/\s*／\s*/g,'<br>／ ')
+              .replace(/^<br>/,'');
+}
 
 try{ ME = qs.get('name') || localStorage.getItem('hbw_stage_me') || ''; }catch(e){ ME = qs.get('name')||''; }
 
@@ -231,11 +237,12 @@ function standbyOf(v){
 /* 値の出し方。空＝未定、「—」始まり＝該当なし、チーム裁量＝チームで決めてよい */
 function ioHtml(label, cls, r){
   var v = r.v||'';
-  if(!v) return '<span class="'+cls+'"><i class="todo">まだ決まっていません</i></span>';
-  if(v.charAt(0)==='—') return '<span class="'+cls+' na">'+md(v)+'</span>';
+  if(!v) return '<span class="'+cls+'"><em class="val"><i class="todo">まだ決まっていません</i></em></span>';
+  if(v.charAt(0)==='—') return '<span class="'+cls+' na"><em class="val">'+md(v)+'</em></span>';
   if(/チーム裁量|チームで決め|各自で決め|自由/.test(v))
-    return '<span class="'+cls+' free">'+md(v)+'　<b class="lv">チームで決めてOK</b></span>';
-  return '<span class="'+cls+'">'+md(v)+'</span>';
+    return '<span class="'+cls+' free"><em class="val">'+md(v)+
+      '　<b class="lv">チームで決めてOK</b></em></span>';
+  return '<span class="'+cls+'"><em class="val">'+md(v)+'</em></span>';
 }
 
 function renderNames(){
@@ -297,7 +304,7 @@ function renderMine(){
     /* 個人指定があると、ブロック共通の指示（例：OPの「終盤に客席通路A〜Dから登場」）が
        画面から消えてしまう。登場のタイミングはそちらにしか書いていないので併記する。 */
     if((entry.own && m["in"] && m["in"]!==entry.v) || (exit.own && m.out && m.out!==exit.v)){
-      notes.push('このブロック全体：'+md([m["in"], m.out].filter(Boolean).join(' ／ ')));
+      notes.push('このブロック全体<br>'+mdBlock([m["in"], m.out].filter(Boolean).join(' ／ ')));
     }
     if(isStay){
       var pg = i>0 ? Math.round(p[i-1].trans*60) : 0;
@@ -323,7 +330,7 @@ function renderMine(){
       '<div class="io">'+io.join('')+'</div>'+
       standHtml+
       (notes.length? '<div class="props">'+notes.join('<br>')+'</div>':'')+
-      (m.props? '<div class="props">舞台で動かすもの：'+md(m.props)+'</div>':'')+
+      (m.props? '<div class="props">舞台で動かすもの<br>'+mdBlock(m.props)+'</div>':'')+
       '</div>');
     if(/客席\s*[A-D]/.test(entry.v||'')) usesSeat=true;
     prevIdx=i;
