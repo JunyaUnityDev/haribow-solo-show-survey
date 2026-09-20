@@ -246,7 +246,12 @@ function renderMine(){
     /* 出番が飛んでいる時だけ「この間は出番なし」。
        隣り合うブロックで出していたので「20:36〜20:36」のような空の帯が出ていた（2026-09-20 修正） */
     if(prevIdx!==null && i>prevIdx+1){
-      out.push('<div class="card gap">↓ この間は出番なし（'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+'）</div>');
+      /* 空いている間に何をやっているかを出す。自分の出番だけ並んでいても、
+         袖で何分待つのかが分からない（2026-09-20 坂田） */
+      var between=[];
+      for(var j=prevIdx+1;j<i;j++) between.push(esc(p[j].name));
+      out.push('<div class="card gap">↓ この間は出番なし（'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+'）'+
+        '<br>'+between.join(' → ')+'</div>');
     }
     /* 入りもハケも必ず出す。「次のブロックにも出るから」とハケを隠すと、
        袖が変わる人（例：DDCJ2023で下手へハケて、Cirqueに下手から入り直す）の動きが消える */
