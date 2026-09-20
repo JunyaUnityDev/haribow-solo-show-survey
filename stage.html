@@ -121,6 +121,10 @@ fetch(BASE+'?page=stagemove').then(function(r){return r.json();}).then(function(
   el('fail').textContent='読み込めませんでした。電波の良い場所でページを開き直してください。';
 });
 
+/* 表示名（ダッチャーネーム）。『名簿マッピング』E列にあればそれ、無ければニックネームのまま。
+   推測で当てない——記録に無い人はニックネーム表示で正しい。 */
+function dn(n){ return (D.display && D.display[n]) || n; }
+
 /* そのブロックに誰が出ているか */
 function castOf(name){
   if(!D.cast) return [];
@@ -150,14 +154,15 @@ function inFor(person, block){
 function renderNames(){
   var box=el('names'); box.innerHTML='';
   (D.members||[]).forEach(function(n){
-    var b=document.createElement('button'); b.type='button'; b.textContent=n;
+    var b=document.createElement('button'); b.type='button'; b.textContent=dn(n);
+    b.dataset.nick=n;
     b.onclick=function(){ pick(n); };
     box.appendChild(b);
   });
   el('q').addEventListener('input', function(){
     var v=this.value.trim();
     Array.prototype.forEach.call(box.children, function(b){
-      b.hidden = v && b.textContent.indexOf(v)<0;
+      b.hidden = v && b.textContent.indexOf(v)<0 && (b.dataset.nick||'').indexOf(v)<0;
     });
   });
 }
@@ -172,7 +177,7 @@ function reset(){ el('pickBox').hidden=false; el('mine').hidden=true; el('q').va
 function renderMine(){
   var host=el('mine'); host.hidden=false;
   var p=D.program, out=[];
-  out.push('<p class="me"><b>'+esc(ME)+'</b><a href="javascript:reset()">別の人を選ぶ</a></p>');
+  out.push('<p class="me"><b>'+esc(dn(ME))+'</b><a href="javascript:reset()">別の人を選ぶ</a></p>');
   var mine=[];
   for(var i=0;i<p.length;i++){ if(castOf(p[i].name).indexOf(ME)>=0) mine.push(i); }
   out.push('<p class="sum">出番は <b>'+mine.length+'</b> ブロック（全'+p.length+'ブロック中）</p>');
