@@ -56,7 +56,8 @@
   <div id="root">
     <h1>お問い合わせ</h1>
     <p class="lead">HARIBOW単独公演「Go BEYOND」について、こちらから承ります。<br>
-      3営業日以内にご連絡いたします。</p>
+      公演当日（9/29）までに必ずご連絡いたします。<br>
+      <b>お急ぎの場合は info@haribow.com へ直接お送りください。</b></p>
 
     <p class="linked" id="linked" style="display:none"></p>
 
@@ -187,7 +188,7 @@ function submitForm(){
   .then(function(r){return r.json();}).then(function(res){
     if(res && res.ok){
       done('お問い合わせを承りました',
-        '内容を確認のうえ、3営業日以内に<br>'+esc(mail)+' へご連絡いたします。<br><br>'
+        '内容を確認のうえ、<b>公演当日（9/29）までに</b><br>'+esc(mail)+' へご連絡いたします。<br><br>'
         +'<span style="font-size:12px">お返事が届かない場合は、迷惑メールフォルダをご確認のうえ、'
         +'<a href="mailto:info@haribow.com">info@haribow.com</a> までご連絡ください。</span>');
     } else {
