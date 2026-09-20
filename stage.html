@@ -56,10 +56,27 @@
   .io .i{color:var(--in)}.io .o{color:var(--out)}.io .s{color:var(--stay);font-weight:400}
   .io .todo{color:var(--dim);font-weight:400;font-style:italic}
   .props{margin-top:8px;font-size:12px;color:var(--dim);padding-top:8px;border-top:1px solid var(--line)}
+  .io .free{color:var(--in);font-weight:400}
+  .io .na{color:var(--dim);font-weight:400}
   table{width:100%;border-collapse:collapse;font-size:12px}
   th,td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;text-align:left}
   th{background:var(--bg);font-size:11px}
   td.c{text-align:center;white-space:nowrap}
+  /* スマホ：7列の表は入らないので、1ブロック＝1枚のカードに畳む（横スクロールを出さない） */
+  @media (max-width:620px){
+    .wrap{padding:16px 16px 48px}
+    header img{height:18px}
+    .me b{font-size:20px}
+    table,thead,tbody,tr,th,td{display:block}
+    thead{display:none}
+    tr{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+       padding:10px 12px;margin-bottom:10px}
+    td{border:0;padding:2px 0;font-size:13px}
+    td.c{text-align:left;white-space:normal}
+    td::before{content:attr(data-l) "：";color:var(--dim);font-size:11px;margin-right:4px}
+    td[data-l="ブロック"]::before{content:none}
+    td[data-l="ブロック"]{font-size:15px;margin-bottom:4px}
+  }
   .note{font-size:12px;color:var(--dim);margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
   .err{color:var(--out);font-weight:700}
   [hidden]{display:none!important}
@@ -94,7 +111,8 @@
   <div id="viewAll" hidden></div>
 
   <p class="note">
-    入り・ハケが「—」のところは、まだ決まっていません。<br>
+    <b>「まだ決まっていません」</b>＝運営がこれから決めます。<b>「チームで決めてOK」</b>＝その演目のチームで決めて構いません。
+    <b>「—」</b>で始まるものは、そもそも出入りが無いところです。<br>
     袖のどこから、までは決めていません。<b>細部は当日リハーサル（9/29 14:00〜16:30）で決めます。</b><br>
     このページは『出ハケ』シートと構成台本をそのまま読んでいます。順番や尺が変わると自動で変わります。
   </p>
@@ -142,13 +160,28 @@ function flow(i){
   return {cur:cur, "in":inS, stay:stay, out:outS};
 }
 function mv(name){ return (D.moves && (D.moves[name]||null)) || {"in":"",out:"",props:"",memo:""}; }
-/* その人のそのブロックでの入り口。B部の個人指定が優先 */
-function inFor(person, block){
+/* その人のそのブロックでの入り／ハケ。B部の個人指定があればそれが優先、無ければブロック共通 */
+function ioFor(person, block, field){
   var pp = D.perPerson && D.perPerson[person];
   if(pp){
-    for(var k in pp){ if(block.slice(0,k.length)===k || block===k) return {v:pp[k], own:true}; }
+    for(var k in pp){
+      if(block===k || block.slice(0,k.length)===k){
+        var o = pp[k], v = (typeof o==='string') ? o : (o&&o[field]);
+        if(v) return {v:v, own:true};
+        break;
+      }
+    }
   }
-  return {v: mv(block)["in"], own:false};
+  return {v: mv(block)[field]||'', own:false};
+}
+/* 値の出し方。空＝未定、「—」始まり＝該当なし、チーム裁量＝チームで決めてよい */
+function ioHtml(label, cls, r){
+  var v = r.v||'';
+  if(!v) return '<span class="'+cls+'">'+label+'：<i class="todo">まだ決まっていません</i></span>';
+  if(v.charAt(0)==='—') return '<span class="na">'+label+'：'+esc(v)+'</span>';
+  if(/チーム裁量|チームで決め|各自で決め|自由/.test(v))
+    return '<span class="free">'+label+'：'+esc(v)+'（チームで決めてOK）</span>';
+  return '<span class="'+cls+'">'+label+'：'+esc(v)+(r.own?'（あなた指定）':'')+'</span>';
 }
 
 function renderNames(){
@@ -183,35 +216,38 @@ function renderMine(){
   out.push('<p class="sum">出番は <b>'+mine.length+'</b> ブロック（全'+p.length+'ブロック中）</p>');
   if(!mine.length){ out.push('<div class="card">この公演での出番はありません。</div>'); host.innerHTML=out.join(''); return; }
 
-  var lastEnd=null;
+  var prevIdx=null;
   mine.forEach(function(i){
     var b=p[i], f=flow(i), m=mv(b.name);
-    var isIn = f["in"].indexOf(ME)>=0, isStay = f.stay.indexOf(ME)>=0, isOut = f.out.indexOf(ME)>=0;
-    if(lastEnd!==null){
-      out.push('<div class="card gap">↓ この間は出番なし（'+esc(lastEnd)+' 〜 '+esc(b.st)+'）</div>');
+    var isStay = f.stay.indexOf(ME)>=0;
+    var goesOn = (i<p.length-1) && castOf(p[i+1].name).indexOf(ME)>=0;   // 次のブロックにも出る
+    /* 出番が飛んでいる時だけ「この間は出番なし」。
+       隣り合うブロックで出していたので「20:36〜20:36」のような空の帯が出ていた（2026-09-20 修正） */
+    if(prevIdx!==null && i>prevIdx+1){
+      out.push('<div class="card gap">↓ この間は出番なし（'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+'）</div>');
     }
-    var io=[];
-    if(isIn){
-      var ent=inFor(ME, b.name);
-      io.push('<span class="i">入り：'+(ent.v? esc(ent.v)+(ent.own?'（あなた指定）':'') : '<i class="todo">まだ決まっていません</i>')+'</span>');
-    }
+    /* 入りもハケも必ず出す。「次のブロックにも出るから」とハケを隠すと、
+       袖が変わる人（例：DDCJ2023で下手へハケて、Cirqueに下手から入り直す）の動きが消える */
+    var io=[ ioHtml('入り','i', ioFor(ME,b.name,'in')), ioHtml('ハケ','o', ioFor(ME,b.name,'out')) ];
+    var notes=[];
     if(isStay){
-      /* 連続出演＝舞台に居続ける、とは限らない。転換が空いていれば一度捌けて戻ることもある。
-         断定せず、転換の秒数を見せて当日の判断に委ねる。 */
       var pg = i>0 ? Math.round(p[i-1].trans*60) : 0;
-      io.push(pg===0
-        ? '<span class="s">前のブロックから続けて舞台にいます（転換0秒）</span>'
-        : '<span class="s">前のブロックにも出ています（転換'+pg+'秒）。いったん捌けるかは当日</span>');
+      notes.push('前の「'+esc(p[i-1].name)+'」にも出ています（転換'+pg+'秒）。'+
+        (pg===0 ? '間が0秒なので、出たままか一度捌くかは上の入り・ハケのとおりに。'
+                : '上のハケ・入りが違う袖なら、ここで一度捌いて入り直します。'));
     }
-    if(isOut)  io.push('<span class="o">ハケ：'+(m.out? esc(m.out) : '<i class="todo">まだ決まっていません</i>')+'</span>');
-    if(!isOut && !isStay && !isIn) io.push('<span class="s">—</span>');
+    if(goesOn){
+      notes.push('このあと間を置かず「'+esc(p[i+1].name)+'」に続けて出ます（転換'+
+        Math.round(b.trans*60)+'秒）。');
+    }
     out.push('<div class="card"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
       '<span class="bn">'+esc(b.name)+'</span></div>'+
       '<div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div>'+
       '<div class="io">'+io.join('')+'</div>'+
+      (notes.length? '<div class="props">'+notes.join('<br>')+'</div>':'')+
       (m.props? '<div class="props">舞台で動かすもの：'+esc(m.props)+'</div>':'')+
       '</div>');
-    lastEnd=b.en;
+    prevIdx=i;
   });
   host.innerHTML=out.join('');
 }
@@ -221,11 +257,11 @@ function renderAll(){
   for(var i=0;i<p.length;i++){
     var b=p[i], f=flow(i), m=mv(b.name);
     var dash='<i class="todo">—</i>';
-    rows.push('<tr><td class="c">'+b.n+'</td><td class="c">'+esc(b.st)+'<br>〜'+esc(b.en)+'</td>'+
-      '<td><b>'+esc(b.name)+'</b><div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div></td>'+
-      '<td class="c">入'+f["in"].length+'<br>続'+f.stay.length+'<br>出'+f.out.length+'</td>'+
-      '<td>'+(m["in"]?esc(m["in"]):dash)+'</td><td>'+(m.out?esc(m.out):dash)+'</td>'+
-      '<td>'+(m.props?esc(m.props):dash)+'</td></tr>');
+    rows.push('<tr><td class="c" data-l="#">'+b.n+'</td><td class="c" data-l="時刻">'+esc(b.st)+' 〜 '+esc(b.en)+'</td>'+
+      '<td data-l="ブロック"><b>'+esc(b.name)+'</b><div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div></td>'+
+      '<td class="c" data-l="人数">入'+f["in"].length+' ／ 続'+f.stay.length+' ／ 出'+f.out.length+'</td>'+
+      '<td data-l="入り">'+(m["in"]?esc(m["in"]):dash)+'</td><td data-l="ハケ">'+(m.out?esc(m.out):dash)+'</td>'+
+      '<td data-l="物の置き場所">'+(m.props?esc(m.props):dash)+'</td></tr>');
   }
   el('viewAll').innerHTML='<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
     '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+
