@@ -46,7 +46,10 @@
   .me a{font-size:12px;color:var(--dim)}
   .sum{font-size:13px;color:var(--dim);margin:0 0 16px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:10px}
-  .card.gap{background:transparent;border-style:dashed;padding:8px 15px;text-align:center;color:var(--dim);font-size:12px}
+  .card.gap{background:transparent;border-style:dashed;padding:9px 15px;text-align:center;color:var(--dim);font-size:12px}
+  .card.gap .btw{margin-top:3px;text-align:left;padding-left:2px}
+  .stand{margin-top:8px;font-size:12px;color:var(--ink);padding-top:8px;border-top:1px solid var(--line)}
+  .stand b{color:var(--in)}
   .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   .time{font-size:15px;font-weight:700;letter-spacing:.02em;flex:none}
   .bn{font-size:16px;font-weight:700}
@@ -196,6 +199,17 @@ function seatMapHtml(){
     '</div>'+
     '<p style="margin:10px 0 0">客席から見て左が下手、右が上手です。</p></div>';
 }
+/* 入りの書き方から「どこに集合するか」を出す。舞台に居続ける人には集合場所が無い */
+function standbyOf(v){
+  v = v||'';
+  var m = v.match(/客席\s*([A-D])/);
+  if(m) return '客席 '+m[1]+ ' の扉の外';
+  if(/舞台上|続き|そのまま|登場しない/.test(v)) return '';
+  if(v.indexOf('上手')>=0 && v.indexOf('下手')>=0) return '上手袖／下手袖（自分の側）';
+  if(v.indexOf('上手')>=0) return '上手袖';
+  if(v.indexOf('下手')>=0) return '下手袖';
+  return '';
+}
 /* 値の出し方。空＝未定、「—」始まり＝該当なし、チーム裁量＝チームで決めてよい */
 function ioHtml(label, cls, r){
   var v = r.v||'';
@@ -249,9 +263,10 @@ function renderMine(){
       /* 空いている間に何をやっているかを出す。自分の出番だけ並んでいても、
          袖で何分待つのかが分からない（2026-09-20 坂田） */
       var between=[];
-      for(var j=prevIdx+1;j<i;j++) between.push(esc(p[j].name));
+      for(var j=prevIdx+1;j<i;j++)
+        between.push('<div class="btw">'+esc(p[j].st)+'　'+esc(p[j].name)+'</div>');
       out.push('<div class="card gap">↓ この間は出番なし（'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+'）'+
-        '<br>'+between.join(' → ')+'</div>');
+        between.join('')+'</div>');
     }
     /* 入りもハケも必ず出す。「次のブロックにも出るから」とハケを隠すと、
        袖が変わる人（例：DDCJ2023で下手へハケて、Cirqueに下手から入り直す）の動きが消える */
@@ -273,10 +288,18 @@ function renderMine(){
       notes.push('このあと間を置かず「'+esc(p[i+1].name)+'」に続けて出ます（転換'+
         Math.round(b.trans*60)+'秒）。');
     }
+    /* いつ・どこに集合するか。入りの場所から出す（舞台に居続ける人には出さない）。
+       「出番の時刻」だけ分かっても動けない——1つ前が始まったら持ち場へ、が実際の動き方 */
+    var stand = standbyOf(entry.v);
+    var standHtml = (stand && !isStay)
+      ? '<div class="stand">1つ前の「'+esc(i>0 ? p[i-1].name : '開演前')+'」（'+
+        esc(i>0 ? p[i-1].st : '19:30')+'〜）が始まったら <b>'+esc(stand)+'</b> へ集合</div>'
+      : '';
     out.push('<div class="card"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
       '<span class="bn">'+esc(b.name)+'</span></div>'+
       '<div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div>'+
       '<div class="io">'+io.join('')+'</div>'+
+      standHtml+
       (notes.length? '<div class="props">'+notes.join('<br>')+'</div>':'')+
       (m.props? '<div class="props">舞台で動かすもの：'+esc(m.props)+'</div>':'')+
       '</div>');
