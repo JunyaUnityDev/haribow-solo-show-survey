@@ -109,7 +109,7 @@
       <!-- 商品の写真（Tシャツ・タオル／限定セット）。
            ★画像の中に価格が焼き込まれている。価格を変えるときは『物販設定』の商品マスタと
              この画像の両方を直すこと。片方だけ直すと、表示と請求額が食い違う。 -->
-      <img class="shot" src="assets/goods/goods-tshirt-towel.jpg"
+      <img class="shot" id="shotA" src="assets/goods/goods-tshirt-towel.jpg"
            alt="Tシャツ ¥4,500（サイズ M／L／XL／2XL）とマフラータオル ¥2,500"
            loading="lazy" onerror="this.style.display='none'">
 
@@ -126,7 +126,7 @@
         <select id="wQty" onchange="recalc()"></select>
       </div>
 
-      <img class="shot" src="assets/goods/goods-set.jpg"
+      <img class="shot" id="shotB" src="assets/goods/goods-set.jpg"
            alt="事前販売限定セット ¥7,000（Tシャツ・マフラータオル・サイン入りトレーディングカード1枚）"
            loading="lazy" onerror="this.style.display='none'" style="margin-top:16px">
 
@@ -215,6 +215,15 @@ var picked = { tshirt:{}, towel:0, set:{} };
 
 function $(id){ return document.getElementById(id); }
 function yen(n){ return '¥' + Number(n||0).toLocaleString(); }
+/* お客様が入力した文字をそのまま innerHTML に入れない（2026-09-21 追加）。
+   お名前に <img onerror=...> のようなタグを入れて注文し、?t= のURLを他人に送ると、
+   受け取った人のブラウザで ticket.haribow.com 上のスクリプトとして動いてしまう。
+   このドメインは静的で鍵も持たないので被害は小さいが、通す理由も無い。 */
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
 function qparam(k){
@@ -309,6 +318,16 @@ function buildForm(){
 
   $('capHint').textContent = '数量の合計は '+CAT.maxItems+' 点までです。';
 
+  /* 売り止めた商品の写真を消す（2026-09-21 追加）。
+     ★1枚目はTシャツとタオルが一緒に写っているので、両方止まったときだけ消す。
+       片方だけ止めた状態では「載っているのに選べない」ままになるが、
+       価格の出ている写真を残すより、選択肢が無いほうが誤解が小さい。
+       1商品だけ止める運用が出てきたら写真を分ける。 */
+  var tOn = !!(it.tshirt && it.tshirt.onSale);
+  var wOn = !!(it.towel  && it.towel.onSale);
+  if(!tOn && !wOn){ var a=$('shotA'); if(a) a.style.display='none'; }
+  if(!(it.set && it.set.onSale)){ var b=$('shotB'); if(b) b.style.display='none'; }
+
   // 受け取りの案内（文言はサーバーの『物販設定』が持つ）
   var pk = CAT.pickup||{};
   /* ★「郵送はいたしません」と書かないこと（2026-09-21 修正）。
@@ -318,7 +337,7 @@ function buildForm(){
   $('pickupInfo').innerHTML =
       '<b>お受け取りは公演当日、会場でのお渡しです。</b>'
     + '配送でのお受け取りはお選びいただけません。<br><br>'
-    + '　場所：'+pk.place+'<br>'
+    + '　場所：'+esc(pk.place)+'<br>'
     + '　日時：'+(CAT.show&&CAT.show.date)+'　'+pk.time+'<br>'
     + '　方法：物販ブースで、メールでお送りする<b>受付番号</b>とお名前をお伝えください<br><br>'
     /* ★この公演は全1幕で休憩がない（公式サイトの来場ガイドがそう案内している）。
@@ -395,18 +414,18 @@ function review(){
   var rows = [];
   var t = [];
   SIZES.forEach(function(s){ if(picked.tshirt[s]>0) t.push(s+'×'+picked.tshirt[s]+'枚'); });
-  if(t.length) rows.push('<b>'+it.tshirt.name+'</b>　'+t.join('　'));
-  if(picked.towel>0) rows.push('<b>'+it.towel.name+'</b>　'+picked.towel+'枚');
+  if(t.length) rows.push('<b>'+esc(it.tshirt.name)+'</b>　'+t.join('　'));
+  if(picked.towel>0) rows.push('<b>'+esc(it.towel.name)+'</b>　'+picked.towel+'枚');
   var s2 = [];
   SIZES.forEach(function(s){ if(picked.set[s]>0) s2.push(s+'×'+picked.set[s]+'個'); });
-  if(s2.length) rows.push('<b>'+it.set.name+'</b>　'+s2.join('　')+'（Tシャツのサイズ）');
+  if(s2.length) rows.push('<b>'+esc(it.set.name)+'</b>　'+s2.join('　')+'（Tシャツのサイズ）');
 
   rows.push('');
-  rows.push('<b>お名前</b>　'+$('bName').value.trim()+'（'+$('bKana').value.trim()+'）');
-  rows.push('<b>メール</b>　'+$('bMail').value.trim());
-  rows.push('<b>電話</b>　'+$('bTel').value.trim());
+  rows.push('<b>お名前</b>　'+esc($('bName').value.trim())+'（'+esc($('bKana').value.trim())+'）');
+  rows.push('<b>メール</b>　'+esc($('bMail').value.trim()));
+  rows.push('<b>電話</b>　'+esc($('bTel').value.trim()));
   rows.push('');
-  rows.push('お受け取り：'+(CAT.show&&CAT.show.date)+'　'+(CAT.pickup&&CAT.pickup.place));
+  rows.push('お受け取り：'+esc(CAT.show&&CAT.show.date)+'　'+esc(CAT.pickup&&CAT.pickup.place));
 
   $('reviewBody').innerHTML = rows.join('<br>');
   $('reviewTotal').textContent = yen(window.__total);
@@ -418,6 +437,16 @@ function backToForm(){ hide('reviewArea'); show('formArea'); window.scrollTo(0,0
 function validate(){
   if(!window.__count) return '商品をお選びください。';
   if(window.__count > CAT.maxItems) return '数量の合計は '+CAT.maxItems+' 点までです。';
+  /* ★商品ごとの上限もここで見る（2026-09-21 追加）。
+       これが無いと、M3枚＋L3枚＝6枚のように画面では組めてしまい、
+       サーバーだけが弾く。お客様は［お支払いに進む］まで進んでから断られる。
+       上限の値はサーバー（商品マスタ）が持っているものをそのまま使う。 */
+  var it = {}; (CAT.items||[]).forEach(function(x){ it[x.id]=x; });
+  var tSum = 0, sSum = 0;
+  SIZES.forEach(function(s){ tSum += (picked.tshirt[s]||0); sSum += (picked.set[s]||0); });
+  if(it.tshirt && tSum > it.tshirt.maxQty) return 'Tシャツは合計 '+it.tshirt.maxQty+'枚までです（いま'+tSum+'枚）。';
+  if(it.towel  && picked.towel > it.towel.maxQty) return 'タオルは '+it.towel.maxQty+'枚までです。';
+  if(it.set    && sSum > it.set.maxQty) return 'セットは合計 '+it.set.maxQty+'個までです（いま'+sSum+'個）。';
   if(!$('bName').value.trim()) return 'お名前をご入力ください。';
   if(!$('bKana').value.trim()) return 'ふりがなをご入力ください。';
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('bMail').value.trim())) return 'メールアドレスの形式をご確認ください。';
@@ -453,6 +482,16 @@ function checkout(){
   .then(function(r){ return r.json(); })
   .then(function(o){
     if(o && o.ok && o.url){ location.href = o.url; return; }
+    /* 押し直しで、すでに同じ内容のお支払いが済んでいた場合。
+       サーバーが二重注文を作らずに「もう払われている」と返してくる。 */
+    if(o && o.ok && o.paid){
+      pendingClear();
+      doneScreen('お支払いは完了しています',
+        'このご注文はすでに確定しています。<br><br>'
+        + '<span class="lines">受付番号</span><div class="rno">'+esc(o.receiptNo)+'</div>'
+        + '<p class="center lines">ご注文の控えをメールでお送りしています。</p>');
+      return;
+    }
     pendingClear();
     btn.disabled = false; btn.textContent = 'お支払いに進む';
     $('payErr').textContent = errText(o && o.error);
@@ -501,8 +540,8 @@ function resumeNow(){
     if(o && o.ok && o.paid){
       pendingClear(); hide('resumeBar'); hide('formArea');
       doneScreen('お支払いは完了しています',
-        'ご注文は確定しています。<br>受付番号 <b>'+o.receiptNo+'</b><br>'
-        + (o.breakdown||'') + '<br><br>詳しくはご注文確認のメールをご覧ください。');
+        'ご注文は確定しています。<br>受付番号 <b>'+esc(o.receiptNo)+'</b><br>'
+        + esc(o.breakdown||'') + '<br><br>詳しくはご注文確認のメールをご覧ください。');
       return;
     }
     pendingClear(); hide('resumeBar');
@@ -526,13 +565,22 @@ function confirmReturn(token){
         doneScreen('ご注文ありがとうございます',
             'お支払いを確認いたしました。ご注文は確定しています。<br><br>'
           + '<span class="lines">受付番号</span>'
-          + '<div class="rno">'+o.receiptNo+'</div>'
-          + '<p class="center lines">'+(o.breakdown||'')+'<br>'+yen(o.total)+'（お支払い済み）</p><br>'
+          + '<div class="rno">'+esc(o.receiptNo)+'</div>'
+          + '<p class="center lines">'+esc(o.breakdown||'')+'<br>'+yen(o.total)+'（お支払い済み）</p><br>'
           + '<b>お受け取り</b><br>'
           + '公演当日、会場の物販ブースで、この受付番号とお名前をお伝えください。<br>'
           + '<b>この公演には休憩がありません。</b>開場から開演までの間にお受け取りください。<br>'
           + '当日お受け取りいただけなかった場合は、公演後に着払いでお送りします。<br><br>'
-          + 'ご注文の控えをメールでお送りしました。届いていない場合は'
+          + 'ご注文の控えをメールでお送りしました。'
+          /* ★控えのURLをここに出す（2026-09-21 追加）。
+               メールが届かない方（キャリアメールの不達実績あり）にとって、
+               受付番号と注文内容をあとから開ける唯一の手段になる。
+               この画面を閉じてしまうと受付番号を知る方法が無くなっていた。 */
+          + (o.viewToken
+              ? '<br>このページを閉じたあとは、下のURLからも確認できます。<br>'
+                + '<a href="goods.html?t='+o.viewToken+'">https://ticket.haribow.com/goods.html?t='+o.viewToken+'</a><br>'
+              : '')
+          + '届いていない場合は'
           + '<a href="contact.html">お問い合わせフォーム</a>からご連絡ください。');
         return;
       }
@@ -571,14 +619,14 @@ function orderView(token){
         + '解決しない場合は<a href="contact.html">お問い合わせフォーム</a>からご連絡ください。');
       return;
     }
-    var body = '<span class="lines">受付番号</span><div class="rno">'+d.receiptNo+'</div>'
-      + '<p class="center lines">'+d.name+' 様<br>'+(d.breakdown||'')+'<br>'+yen(d.total)
+    var body = '<span class="lines">受付番号</span><div class="rno">'+esc(d.receiptNo)+'</div>'
+      + '<p class="center lines">'+esc(d.name)+' 様<br>'+esc(d.breakdown||'')+'<br>'+yen(d.total)
       + (d.paid ? '（お支払い済み）' : '（お支払い前）')+'</p><br>';
     if(d.picked){
       body += '<b>お渡し済みです。</b>ありがとうございました。';
     } else {
       body += '<b>お受け取り</b><br>'
-        + '　場所：'+(d.pickup&&d.pickup.place)+'<br>'
+        + '　場所：'+esc(d.pickup&&d.pickup.place)+'<br>'
         + '　日時：'+(d.show&&d.show.date)+'　'+(d.pickup&&d.pickup.time)+'<br>'
         + '　方法：物販ブースで、この受付番号とお名前をお伝えください<br><br>'
         + '<b>この公演には休憩がありません。</b>開場（'+(d.show&&d.show.open)+'）から開演までの間に'
