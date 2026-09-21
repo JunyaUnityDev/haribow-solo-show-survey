@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<title>グッズ事前受注｜HARIBOW単独公演「Go BEYOND」</title>
+<meta name="description" content="HARIBOW単独公演「Go BEYOND」のグッズ事前受注。Tシャツ・タオル・事前販売限定セット。お受け取りは公演当日、会場の物販ブースです。">
+<!--
+  グッズの事前受注ページ（2026-09-21 新設）
+
+  ★このページは何もしない。判断は全部サーバー（gas/Goods.js）にある。
+    金額・在庫・締切・上限をここで決めないこと。画面を書き換えれば通るようになる。
+    合計の表示は「お客様に見せるための計算」で、請求額はサーバーが商品マスタから出し直す。
+
+  ★日付をここに書かないこと。締切の正典は gas/Deadlines.js の GOODS_ORDER_END_ で、
+    表示は ?page=goods_catalog の orderEnd を使う。
+    このリポに日付を書くと gas_tests/check_deadlines.js の検出対象になる。
+    公演日だけは締切ではないのでサーバーから受けて出している。
+
+  ★受け取りは会場のみ（指示書④／2026-09-21 JUNYA）。
+    「後日発送を選んで買う」導線を足さないこと。決定No.48③は今回開けていない。
+    当日受け取れなかった方だけ、公演後に着払いで発送する（指示書⑤）。
+
+  ★3つのモード
+    ①通常              … 受注フォーム
+    ②?confirm=トークン … Squareから戻ってきた直後。サーバーが実決済を照合して確定する
+    ③?t=トークン       … ご注文内容の確認（購入完了メールのリンク先）
+-->
+<style>
+  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --text:#f3f1ea; --faint:#8b919e;
+         --accent:#2a3f52; --accentline:#39536b; --teal:#7fb8b0; --warn:#c9a24b; --bad:#d4736b; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+    -webkit-text-size-adjust:100%;font-feature-settings:"palt";line-height:1.8}
+  .wrap{max-width:560px;margin:0 auto;padding:48px 20px 72px}
+  .logo{display:block;width:120px;margin:0 auto 26px;opacity:.95}
+  h1{font-size:15px;letter-spacing:.14em;text-align:center;font-weight:700;margin:0 0 4px}
+  .sub{font-size:11.5px;color:var(--faint);text-align:center;letter-spacing:.12em;margin:0 0 28px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+  .step{font-size:11px;letter-spacing:.14em;color:var(--teal);font-weight:700;margin:0 0 14px}
+  .item{border-top:1px solid var(--line);padding:16px 0 4px}
+  .item:first-of-type{border-top:0;padding-top:0}
+  .iname{font-size:15px;font-weight:700;margin:0 0 2px}
+  .iprice{font-size:13px;color:var(--faint);margin:0 0 12px}
+  .sizes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .szbox{text-align:center}
+  .szlabel{font-size:11px;color:var(--faint);margin-bottom:4px}
+  select,input[type=text],input[type=email],input[type=tel]{
+    width:100%;padding:11px 10px;background:#0e1014;color:var(--text);
+    border:1px solid var(--line);border-radius:8px;font-size:15px;font-family:inherit}
+  select{appearance:none;text-align:center;text-align-last:center}
+  label.f{display:block;font-size:12px;color:var(--faint);margin:14px 0 5px}
+  label.f .req{color:var(--warn)}
+  .hint{font-size:11.5px;color:var(--faint);margin:5px 0 0}
+  .setsizes{margin-top:10px}
+  .setrow{display:flex;align-items:center;gap:10px;margin-top:8px}
+  .setrow span{font-size:12.5px;color:var(--faint);white-space:nowrap;min-width:5.2em}
+  .agree{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:13px;line-height:1.7}
+  .agree input{margin:5px 0 0;width:18px;height:18px;flex:0 0 auto;accent-color:#7fb8b0}
+  .total{display:flex;justify-content:space-between;align-items:baseline;
+    border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
+  .total .t{font-size:12px;color:var(--faint)}
+  .total .v{font-size:24px;font-weight:800}
+  .btn{display:block;width:100%;padding:15px;border-radius:10px;border:1px solid var(--accentline);
+    background:var(--accent);color:#fff;font-size:15px;font-weight:700;text-align:center;
+    text-decoration:none;margin-top:16px;cursor:pointer;font-family:inherit}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.ghost{background:transparent;border-color:var(--line);color:var(--text);font-weight:600;font-size:14px}
+  .lines{font-size:13px;color:var(--faint);line-height:1.95}
+  .lines b{color:var(--text);font-weight:700}
+  .err{color:var(--bad);font-size:13px;margin-top:12px;white-space:pre-line}
+  .note{margin-top:26px;font-size:11.5px;color:var(--faint);line-height:1.9;
+    border-top:1px solid var(--line);padding-top:16px}
+  .note a,.lines a{color:var(--teal)}
+  .rno{font-size:32px;font-weight:800;letter-spacing:.06em;text-align:center;margin:6px 0 2px}
+  .bar{background:#1b1f27;border:1px solid var(--accentline);border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px}
+  .center{text-align:center}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="assets/go-beyond-logo.png" alt="Go BEYOND" onerror="this.style.display='none'">
+  <h1>HARIBOW単独公演「Go BEYOND」</h1>
+  <p class="sub">GOODS / 事前受注</p>
+
+  <div id="boot" class="card center lines">読み込んでいます…</div>
+
+  <!-- 中断した手続きの続き -->
+  <div id="resumeBar" class="bar hidden">
+    <div id="resumeMsg"></div>
+    <button class="btn" id="resumeBtn" onclick="resumeNow()">お支払いを続ける</button>
+    <button class="btn ghost" onclick="dismissResume()">あとにする</button>
+  </div>
+
+  <!-- ① 商品 -->
+  <div id="formArea" class="hidden">
+    <div class="card">
+      <p class="step">STEP 1 ／ 商品を選ぶ</p>
+
+      <div class="item" id="itemTshirt">
+        <p class="iname" id="tName">Tシャツ</p>
+        <p class="iprice" id="tPrice"></p>
+        <div class="sizes" id="tSizes"></div>
+        <p class="hint">サイズごとに枚数をお選びください。</p>
+      </div>
+
+      <div class="item" id="itemTowel">
+        <p class="iname" id="wName">タオル</p>
+        <p class="iprice" id="wPrice"></p>
+        <select id="wQty" onchange="recalc()"></select>
+      </div>
+
+      <div class="item" id="itemSet">
+        <p class="iname" id="sName">事前販売限定セット</p>
+        <p class="iprice" id="sPrice"></p>
+        <select id="sQty" onchange="renderSetSizes()"></select>
+        <div class="setsizes" id="setSizes"></div>
+        <p class="hint" id="setHint"></p>
+      </div>
+
+      <div class="total"><span class="t">合計</span><span class="v" id="sum">¥0</span></div>
+      <p class="hint" id="capHint"></p>
+    </div>
+
+    <!-- ② 購入者情報 -->
+    <div class="card">
+      <p class="step">STEP 2 ／ お客様情報</p>
+      <label class="f">お名前 <span class="req">*</span></label>
+      <input type="text" id="bName" autocomplete="name" placeholder="坂田 潤弥">
+      <label class="f">ふりがな <span class="req">*</span></label>
+      <input type="text" id="bKana" autocomplete="off" placeholder="さかた じゅんや">
+      <p class="hint">物販ブースでお名前を確認するために使います。</p>
+      <label class="f">メールアドレス <span class="req">*</span></label>
+      <input type="email" id="bMail" autocomplete="email" inputmode="email" placeholder="example@haribow.com">
+      <p class="hint">ご注文の確認と受付番号をこちらにお送りします。</p>
+      <label class="f">電話番号 <span class="req">*</span></label>
+      <input type="tel" id="bTel" autocomplete="tel" inputmode="tel" placeholder="09012345678">
+      <p class="hint">メールが届かなかった場合のご連絡先です。</p>
+      <label class="f">このグッズをどこで知りましたか（任意）</label>
+      <select id="bSrc">
+        <option value="">選択しない</option>
+        <option>HARIBOWのSNS</option>
+        <option>出演者・スタッフから</option>
+        <option>友人・家族から</option>
+        <option>ワークショップ・イベントで</option>
+        <option>記事・ニュースで</option>
+        <option>その他・覚えていない</option>
+      </select>
+    </div>
+
+    <!-- ③ 受け取りと同意 -->
+    <div class="card">
+      <p class="step">STEP 3 ／ お受け取りと注意事項</p>
+      <p class="lines" id="pickupInfo"></p>
+      <div class="agree"><input type="checkbox" id="ag1"><label for="ag1" id="ag1t"></label></div>
+      <div class="agree"><input type="checkbox" id="ag2"><label for="ag2">ご注文後のキャンセル・変更・サイズの交換ができないことを確認しました</label></div>
+      <div class="agree"><input type="checkbox" id="ag3"><label for="ag3">商品・サイズ・数量に間違いがないことを確認しました</label></div>
+      <div class="agree"><input type="checkbox" id="ag4"><label for="ag4">当日お受け取りいただけなかった場合、公演後に着払い（送料はお客様のご負担）で発送されることを確認しました</label></div>
+      <button class="btn" id="goBtn" onclick="review()">ご注文内容を確認する</button>
+      <p class="err" id="formErr"></p>
+    </div>
+  </div>
+
+  <!-- 確認 → 決済 -->
+  <div id="reviewArea" class="card hidden">
+    <p class="step">ご注文内容の確認</p>
+    <p class="lines" id="reviewBody"></p>
+    <div class="total"><span class="t">お支払い金額</span><span class="v" id="reviewTotal">¥0</span></div>
+    <p class="hint">お支払いは Square の決済画面に移動します。カード情報を当団体で保持することはありません。</p>
+    <button class="btn" id="payBtn" onclick="checkout()">お支払いに進む</button>
+    <button class="btn ghost" onclick="backToForm()">内容を直す</button>
+    <p class="err" id="payErr"></p>
+  </div>
+
+  <!-- 完了・注文内容 -->
+  <div id="doneArea" class="card hidden">
+    <p class="step" id="doneStep">お手続きが完了しました</p>
+    <p class="lines" id="doneBody"></p>
+  </div>
+
+  <p class="note">
+    お問い合わせは <a href="contact.html">お問い合わせフォーム</a> または
+    <a href="mailto:info@haribow.com">info@haribow.com</a> までお願いいたします。<br>
+    <a href="tokushoho.html">特定商取引法に基づく表記</a> ／ <a href="index.html">チケットのご購入</a>
+  </p>
+</div>
+
+<script>
+var BASE = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+var PENDING_KEY = 'haribow_goods_pending_v1';
+
+var CAT = null;               // サーバーから受けた価格・上限・受け取り条件
+var SIZES = ['M','L','XL','2XL'];
+var picked = { tshirt:{}, towel:0, set:{} };
+
+function $(id){ return document.getElementById(id); }
+function yen(n){ return '¥' + Number(n||0).toLocaleString(); }
+function show(id){ $(id).classList.remove('hidden'); }
+function hide(id){ $(id).classList.add('hidden'); }
+function qparam(k){
+  var m = new RegExp('[?&]'+k+'=([^&]*)').exec(location.search);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+/* 押した内容の控え。応答が届かなかったお客様に「同じ注文の続き」を出すために使う。
+   ★保存するのはメールアドレスだけ。金額や商品は控えない（サーバーの行が正なので、
+     ここに持つと画面とサーバーで2つの真実ができる）。 */
+function pendingStore_(){ try{ return window.localStorage; }catch(e){ return null; } }
+function pendingSave(mail){
+  try{ var s=pendingStore_(); if(s) s.setItem(PENDING_KEY, JSON.stringify({contact:mail, ts:Date.now()})); }catch(e){}
+}
+function pendingGet(){
+  try{
+    var s=pendingStore_(); if(!s) return null;
+    var o=JSON.parse(s.getItem(PENDING_KEY)||'null');
+    if(!o || !o.contact) return null;
+    if(Date.now()-Number(o.ts||0) > 60*60*1000) return null;   // 1時間で忘れる
+    return o;
+  }catch(e){ return null; }
+}
+function pendingClear(){ try{ var s=pendingStore_(); if(s) s.removeItem(PENDING_KEY); }catch(e){} }
+
+/* ============ 起動 ============ */
+window.addEventListener('DOMContentLoaded', function(){
+  var t = qparam('t'), c = qparam('confirm');
+  if(c){ confirmReturn(c); return; }
+  if(t){ orderView(t); return; }
+  loadCatalog();
+});
+
+function loadCatalog(){
+  fetch(BASE+'?page=goods_catalog')
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d || !d.ok){ bootMsg('ただいまご注文を受け付けておりません。'); return; }
+    CAT = d;
+    if(!d.open){
+      var m = d.closedReason==='after'
+        ? 'グッズの事前受注は終了しました。<br>当日、会場の物販ブースでもお求めいただけます（事前価格より500円高くなります）。'
+        : d.closedReason==='before'
+        ? 'グッズの事前受注は、もうしばらくでお受け付けを開始いたします。'
+        : 'ただいまご注文を受け付けておりません。';
+      bootMsg(m);
+      return;
+    }
+    buildForm();
+    hide('boot'); show('formArea');
+    var p = pendingGet();
+    if(p) showResumeBar(p);
+  })
+  .catch(function(){ bootMsg('通信に失敗しました。通信環境の良い場所で、もう一度お試しください。'); });
+}
+function bootMsg(html){ $('boot').innerHTML = html; show('boot'); }
+
+/* ============ フォームを組む（価格・上限はサーバーの値） ============ */
+function buildForm(){
+  var it = {};
+  (CAT.items||[]).forEach(function(x){ it[x.id]=x; });
+  SIZES = CAT.sizes || SIZES;
+
+  // Tシャツ
+  if(it.tshirt && it.tshirt.onSale){
+    $('tName').textContent = it.tshirt.name;
+    $('tPrice').textContent = yen(it.tshirt.price) + '（当日 ' + yen(it.tshirt.dayPrice) + '）';
+    var h = '';
+    SIZES.forEach(function(s){
+      h += '<div class="szbox"><div class="szlabel">'+s+'</div>'
+        +  '<select id="t_'+s+'" onchange="recalc()">'+qtyOpts(it.tshirt.maxQty)+'</select></div>';
+    });
+    $('tSizes').innerHTML = h;
+  } else { hide('itemTshirt'); }
+
+  // タオル
+  if(it.towel && it.towel.onSale){
+    $('wName').textContent = it.towel.name;
+    $('wPrice').textContent = yen(it.towel.price) + '（当日 ' + yen(it.towel.dayPrice) + '）';
+    $('wQty').innerHTML = qtyOpts(it.towel.maxQty);
+  } else { hide('itemTowel'); }
+
+  // セット
+  if(it.set && it.set.onSale){
+    $('sName').textContent = it.set.name;
+    $('sPrice').textContent = yen(it.set.price);
+    $('sQty').innerHTML = qtyOpts(it.set.maxQty);
+    $('setHint').innerHTML = 'セットの内容は、Tシャツ・タオル・トレーディングカード（'
+      + (CAT.cardMembers||[]).join(' / ') + ' の6名からランダムに1枚・サイン付き）です。<br>'
+      + '<b>Tシャツのサイズは、セット1個ごとにお選びいただきます。</b>';
+  } else { hide('itemSet'); }
+
+  $('capHint').textContent = '数量の合計は '+CAT.maxItems+' 点までです。';
+
+  // 受け取りの案内（文言はサーバーの『物販設定』が持つ）
+  var pk = CAT.pickup||{};
+  $('pickupInfo').innerHTML =
+      '<b>お受け取りは公演当日、会場でのお渡しのみです。</b>郵送はいたしません。<br><br>'
+    + '　場所：'+pk.place+'<br>'
+    + '　日時：'+(CAT.show&&CAT.show.date)+'　'+pk.time+'（開場 '+(CAT.show&&CAT.show.open)+'）<br>'
+    + '　方法：物販ブースで、メールでお送りする<b>受付番号</b>とお名前をお伝えください<br><br>'
+    + 'ご注文の受付は <b>'+CAT.orderEnd+'</b> までです。お支払いは事前のカード決済のみで、'
+    + '決済の完了をもってご注文の確定となります。';
+  $('ag1t').textContent = 'お受け取りが '+(CAT.show&&CAT.show.date)+' の会場（'+pk.place+'）のみで、郵送では受け取れないことを確認しました';
+
+  renderSetSizes();
+}
+function qtyOpts(max){
+  var h = '';
+  for(var i=0;i<=(max||5);i++) h += '<option value="'+i+'">'+i+'</option>';
+  return h;
+}
+
+/** セットの個数に応じて「1個目のサイズ」「2個目のサイズ」…を出す。
+ *  ★これが無いと、セットに入るTシャツのサイズが取れない（サポーター券で実際に起きた不具合）。 */
+function renderSetSizes(){
+  var n = Number(($('sQty')||{}).value||0);
+  var box = $('setSizes');
+  var prev = [];
+  box.querySelectorAll('select').forEach(function(sel){ prev.push(sel.value); });
+  var h = '';
+  for(var i=0;i<n;i++){
+    var v = prev[i] || 'M';
+    h += '<div class="setrow"><span>'+(i+1)+'個目</span><select class="setsz" onchange="recalc()">';
+    SIZES.forEach(function(s){ h += '<option value="'+s+'"'+(s===v?' selected':'')+'>'+s+'</option>'; });
+    h += '</select></div>';
+  }
+  box.innerHTML = h;
+  recalc();
+}
+
+/** 表示用の合計。請求額はサーバーが出し直す（ここを書き換えても金額は変わらない）。 */
+function recalc(){
+  var it = {}; (CAT && CAT.items || []).forEach(function(x){ it[x.id]=x; });
+  picked = { tshirt:{}, towel:0, set:{} };
+  var total = 0, count = 0;
+
+  SIZES.forEach(function(s){
+    var el = $('t_'+s);
+    var n = el ? Number(el.value||0) : 0;
+    picked.tshirt[s] = n; count += n;
+    if(it.tshirt) total += n * it.tshirt.price;
+  });
+  var w = $('wQty') ? Number($('wQty').value||0) : 0;
+  picked.towel = w; count += w;
+  if(it.towel) total += w * it.towel.price;
+
+  SIZES.forEach(function(s){ picked.set[s] = 0; });
+  document.querySelectorAll('.setsz').forEach(function(sel){
+    picked.set[sel.value] = (picked.set[sel.value]||0) + 1;
+    count += 1;
+    if(it.set) total += it.set.price;
+  });
+
+  $('sum').textContent = yen(total);
+  window.__total = total;
+  window.__count = count;
+  return total;
+}
+
+/* ============ 確認画面 ============ */
+function review(){
+  $('formErr').textContent = '';
+  recalc();
+  var e = validate();
+  if(e){ $('formErr').textContent = e; return; }
+
+  var it = {}; (CAT.items||[]).forEach(function(x){ it[x.id]=x; });
+  var rows = [];
+  var t = [];
+  SIZES.forEach(function(s){ if(picked.tshirt[s]>0) t.push(s+'×'+picked.tshirt[s]+'枚'); });
+  if(t.length) rows.push('<b>'+it.tshirt.name+'</b>　'+t.join('　'));
+  if(picked.towel>0) rows.push('<b>'+it.towel.name+'</b>　'+picked.towel+'枚');
+  var s2 = [];
+  SIZES.forEach(function(s){ if(picked.set[s]>0) s2.push(s+'×'+picked.set[s]+'個'); });
+  if(s2.length) rows.push('<b>'+it.set.name+'</b>　'+s2.join('　')+'（Tシャツのサイズ）');
+
+  rows.push('');
+  rows.push('<b>お名前</b>　'+$('bName').value.trim()+'（'+$('bKana').value.trim()+'）');
+  rows.push('<b>メール</b>　'+$('bMail').value.trim());
+  rows.push('<b>電話</b>　'+$('bTel').value.trim());
+  rows.push('');
+  rows.push('お受け取り：'+(CAT.show&&CAT.show.date)+'　'+(CAT.pickup&&CAT.pickup.place));
+
+  $('reviewBody').innerHTML = rows.join('<br>');
+  $('reviewTotal').textContent = yen(window.__total);
+  hide('formArea'); show('reviewArea');
+  window.scrollTo(0,0);
+}
+function backToForm(){ hide('reviewArea'); show('formArea'); window.scrollTo(0,0); }
+
+function validate(){
+  if(!window.__count) return '商品をお選びください。';
+  if(window.__count > CAT.maxItems) return '数量の合計は '+CAT.maxItems+' 点までです。';
+  if(!$('bName').value.trim()) return 'お名前をご入力ください。';
+  if(!$('bKana').value.trim()) return 'ふりがなをご入力ください。';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('bMail').value.trim())) return 'メールアドレスの形式をご確認ください。';
+  var d = $('bTel').value.replace(/[^0-9]/g,'');
+  if(d.length < 10 || d.length > 11) return 'お電話番号をご確認ください（10〜11桁）。';
+  if(!($('ag1').checked && $('ag2').checked && $('ag3').checked && $('ag4').checked)){
+    return '注意事項のすべてにチェックをお願いいたします。';
+  }
+  return '';
+}
+
+/* ============ 決済へ ============ */
+function checkout(){
+  var btn = $('payBtn');
+  btn.disabled = true; btn.textContent = '処理中…';
+  $('payErr').textContent = '';
+  var mail = $('bMail').value.trim();
+
+  /* 応答が返ってこないと、お客様には結果が一切分からなくなる。
+     先に手元へ控えを残し、あとから「同じ注文の続き」を出せるようにする。 */
+  pendingSave(mail);
+
+  fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({
+      survey:'goods_order',
+      name: $('bName').value.trim(), kana: $('bKana').value.trim(),
+      contact: mail, phone: $('bTel').value.trim(),
+      tshirt: picked.tshirt, towel: picked.towel, set: picked.set,
+      source: $('bSrc').value,
+      agree: { pickupOnly:$('ag1').checked, noCancel:$('ag2').checked,
+               checked:$('ag3').checked, unclaimedShip:$('ag4').checked }
+    })})
+  .then(function(r){ return r.json(); })
+  .then(function(o){
+    if(o && o.ok && o.url){ location.href = o.url; return; }
+    pendingClear();
+    btn.disabled = false; btn.textContent = 'お支払いに進む';
+    $('payErr').textContent = errText(o && o.error);
+  })
+  .catch(function(){
+    /* ここは決済画面へ飛ぶ「前」の通信でしか動かない。飛んだ後はページが遷移している。
+       サーバー側では注文が成立している可能性があるので、押し直させない。 */
+    btn.disabled = false; btn.textContent = 'お支払いに進む';
+    $('payErr').textContent = '通信が不安定です。ご注文は受け付けられている可能性があります。\n'
+      + 'この画面を閉じずに、30秒ほど待ってから［お支払いに進む］をもう一度押してください。\n'
+      + '同じご注文が二重になることはありません。';
+  });
+}
+
+function errText(code){
+  return code==='bad_email' ? 'メールアドレスの形式をご確認ください。'
+       : code==='bad_phone' ? 'お電話番号の形式をご確認ください（10〜11桁）。'
+       : code==='need_name' ? 'お名前をご入力ください。'
+       : code==='need_agree' ? '注意事項のすべてにチェックをお願いいたします。'
+       : code==='empty_cart' ? '商品をお選びください。'
+       : code==='over_total' ? '数量の合計が上限を超えています。'
+       : code==='over_tshirt' || code==='over_towel' || code==='over_set' ? '数量が上限を超えています。'
+       : code==='item_closed' ? '申し訳ありません。選ばれた商品は受付を終了しました。'
+       : code==='closed' ? 'グッズの事前受注は終了しました。当日、会場の物販ブースでお求めいただけます。'
+       : code==='not_open' ? 'ただいまご注文を受け付けておりません。'
+       : code==='square_not_configured' ? '決済システムに一時的な問題が起きています。お手数ですが、しばらく経ってからお試しください。'
+       : 'ご注文を受け付けられませんでした。お手数ですが、もう一度お試しください。';
+}
+
+/* ============ 中断した手続きの続き ============ */
+function showResumeBar(p){
+  $('resumeMsg').innerHTML = '先ほどのお手続きが途中で終わっている可能性があります。'
+    + 'お支払いの画面へ戻れます。';
+  show('resumeBar');
+}
+function dismissResume(){ hide('resumeBar'); }
+function resumeNow(){
+  var p = pendingGet();
+  var btn = $('resumeBtn');
+  btn.disabled = true; btn.textContent = '確認しています…';
+  fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ survey:'goods_resume', contact: p ? p.contact : '' })})
+  .then(function(r){ return r.json(); })
+  .then(function(o){
+    if(o && o.ok && o.url){ pendingClear(); location.href = o.url; return; }
+    if(o && o.ok && o.paid){
+      pendingClear(); hide('resumeBar'); hide('formArea');
+      doneScreen('お支払いは完了しています',
+        'ご注文は確定しています。<br>受付番号 <b>'+o.receiptNo+'</b><br>'
+        + (o.breakdown||'') + '<br><br>詳しくはご注文確認のメールをご覧ください。');
+      return;
+    }
+    pendingClear(); hide('resumeBar');
+    btn.disabled = false; btn.textContent = 'お支払いを続ける';
+  })
+  .catch(function(){ btn.disabled = false; btn.textContent = 'お支払いを続ける'; });
+}
+
+/* ============ 決済から戻ってきた（?confirm=） ============ */
+function confirmReturn(token){
+  bootMsg('お支払いを確認しています…');
+  var tries = 0;
+  var ask = function(){
+    tries++;
+    fetch(BASE, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ survey:'goods_confirm', token: token })})
+    .then(function(r){ return r.json(); })
+    .then(function(o){
+      if(o && o.ok){
+        pendingClear(); hide('boot');
+        doneScreen('ご注文ありがとうございます',
+            'お支払いを確認いたしました。ご注文は確定しています。<br><br>'
+          + '<span class="lines">受付番号</span>'
+          + '<div class="rno">'+o.receiptNo+'</div>'
+          + '<p class="center lines">'+(o.breakdown||'')+'<br>'+yen(o.total)+'（お支払い済み）</p><br>'
+          + '<b>お受け取り</b><br>'
+          + '公演当日、会場の物販ブースで、この受付番号とお名前をお伝えください。<br>'
+          + '郵送はいたしません。当日お受け取りいただけなかった場合は、公演後に着払いでお送りします。<br><br>'
+          + 'ご注文の控えをメールでお送りしました。届いていない場合は'
+          + '<a href="contact.html">お問い合わせフォーム</a>からご連絡ください。');
+        return;
+      }
+      /* 決済直後はSquare側の反映が間に合わないことがある。数回だけ間を置いて聞き直す。
+         それでも取れない場合も、毎時の後追いでサーバーが確定させてメールを送る。 */
+      if(o && o.error==='not_paid_yet' && tries < 4){ setTimeout(ask, 2500); return; }
+      hide('boot');
+      doneScreen('お支払いの確認に時間がかかっています',
+          'カード会社側の反映に時間がかかっている可能性があります。<br>'
+        + 'ご注文は残っていますので、この画面を閉じても大丈夫です。<br>'
+        + '確認が取れ次第、ご注文の控えをメールでお送りします。<br><br>'
+        + '30分たってもメールが届かない場合は、'
+        + '<a href="contact.html">お問い合わせフォーム</a>からご連絡ください。');
+    })
+    .catch(function(){
+      hide('boot');
+      doneScreen('通信に失敗しました',
+          'お支払いが完了している場合、ご注文は残っています。<br>'
+        + '確認が取れ次第、ご注文の控えをメールでお送りします。<br>'
+        + 'ご心配な場合は<a href="contact.html">お問い合わせフォーム</a>からご連絡ください。');
+    });
+  };
+  ask();
+}
+
+/* ============ ご注文内容の確認（?t=） ============ */
+function orderView(token){
+  bootMsg('読み込んでいます…');
+  fetch(BASE+'?page=goods_view&t='+encodeURIComponent(token))
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    hide('boot');
+    if(!d || !d.ok){
+      doneScreen('ご注文が見つかりませんでした',
+        'お手数ですが、ご注文確認のメールに記載のリンクをもう一度お開きください。<br>'
+        + '解決しない場合は<a href="contact.html">お問い合わせフォーム</a>からご連絡ください。');
+      return;
+    }
+    var body = '<span class="lines">受付番号</span><div class="rno">'+d.receiptNo+'</div>'
+      + '<p class="center lines">'+d.name+' 様<br>'+(d.breakdown||'')+'<br>'+yen(d.total)
+      + (d.paid ? '（お支払い済み）' : '（お支払い前）')+'</p><br>';
+    if(d.picked){
+      body += '<b>お渡し済みです。</b>ありがとうございました。';
+    } else {
+      body += '<b>お受け取り</b><br>'
+        + '　場所：'+(d.pickup&&d.pickup.place)+'<br>'
+        + '　日時：'+(d.show&&d.show.date)+'　'+(d.pickup&&d.pickup.time)+'（開場 '+(d.show&&d.show.open)+'）<br>'
+        + '　方法：物販ブースで、この受付番号とお名前をお伝えください<br><br>'
+        + '当日お受け取りいただけなかった場合は、公演後に着払い（送料はお客様のご負担）でお送りします。';
+    }
+    doneScreen('ご注文内容', body);
+  })
+  .catch(function(){
+    hide('boot');
+    doneScreen('通信に失敗しました', '通信環境の良い場所で、もう一度お試しください。');
+  });
+}
+
+function doneScreen(title, html){
+  $('doneStep').textContent = title;
+  $('doneBody').innerHTML = html;
+  hide('formArea'); hide('reviewArea'); hide('resumeBar');
+  show('doneArea');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
