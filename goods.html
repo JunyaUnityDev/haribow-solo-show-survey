@@ -44,6 +44,10 @@
   .step{font-size:11px;letter-spacing:.14em;color:var(--teal);font-weight:700;margin:0 0 14px}
   .item{border-top:1px solid var(--line);padding:16px 0 4px}
   .item:first-of-type{border-top:0;padding-top:0}
+  /* 商品の写真。画像が無い／読めないときは onerror で消えるので、
+     写真が届いていない状態でもフォームは成立する（価格と数量はサーバーの値で出る）。 */
+  .shot{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);
+    margin:0 0 14px;background:#fff}
   .iname{font-size:15px;font-weight:700;margin:0 0 2px}
   .iprice{font-size:13px;color:var(--faint);margin:0 0 12px}
   .sizes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -102,6 +106,13 @@
     <div class="card">
       <p class="step">STEP 1 ／ 商品を選ぶ</p>
 
+      <!-- 商品の写真（Tシャツ・タオル／限定セット）。
+           ★画像の中に価格が焼き込まれている。価格を変えるときは『物販設定』の商品マスタと
+             この画像の両方を直すこと。片方だけ直すと、表示と請求額が食い違う。 -->
+      <img class="shot" src="assets/goods/goods-tshirt-towel.jpg"
+           alt="Tシャツ ¥4,500（サイズ M／L／XL／2XL）とマフラータオル ¥2,500"
+           loading="lazy" onerror="this.style.display='none'">
+
       <div class="item" id="itemTshirt">
         <p class="iname" id="tName">Tシャツ</p>
         <p class="iprice" id="tPrice"></p>
@@ -114,6 +125,10 @@
         <p class="iprice" id="wPrice"></p>
         <select id="wQty" onchange="recalc()"></select>
       </div>
+
+      <img class="shot" src="assets/goods/goods-set.jpg"
+           alt="事前販売限定セット ¥7,000（Tシャツ・マフラータオル・サイン入りトレーディングカード1枚）"
+           loading="lazy" onerror="this.style.display='none'" style="margin-top:16px">
 
       <div class="item" id="itemSet">
         <p class="iname" id="sName">事前販売限定セット</p>
