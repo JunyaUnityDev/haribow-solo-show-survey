@@ -243,7 +243,10 @@ function pendingGet(){
     var s=pendingStore_(); if(!s) return null;
     var o=JSON.parse(s.getItem(PENDING_KEY)||'null');
     if(!o || !o.contact) return null;
-    if(Date.now()-Number(o.ts||0) > 60*60*1000) return null;   // 1時間で忘れる
+    /* サーバー側の「同じ注文の続き」の窓は30分（GOODS_DEDUPE_WINDOW_MIN_）。
+       ここを1時間にすると、45分前の控えでバナーが出るのにサーバーは何も返さず、
+       押しても黙ってバナーが消えるだけになる。窓を合わせる。 */
+    if(Date.now()-Number(o.ts||0) > 30*60*1000) return null;
     return o;
   }catch(e){ return null; }
 }
@@ -518,6 +521,11 @@ function errText(code){
        : code==='closed' ? 'グッズの事前受注は終了しました。当日、会場の物販ブースでお求めいただけます。'
        : code==='not_open' ? 'ただいまご注文を受け付けておりません。'
        : code==='square_not_configured' ? '決済システムに一時的な問題が起きています。お手数ですが、しばらく経ってからお試しください。'
+       /* not_ready＝サーバー側の設定が読めない状態（価格が文字列になっている等）。
+          運営には別途通知が飛んでいる。お客様に「もう一度お試しください」と言っても
+          直らないので、時間を置く／問い合わせる案内にする。 */
+       : code==='not_ready' ? 'ただいま受付の準備が整っておりません。お手数ですが、しばらく経ってからお試しください。\n'
+                            + 'お急ぎの場合は info@haribow.com までご連絡ください。'
        : 'ご注文を受け付けられませんでした。お手数ですが、もう一度お試しください。';
 }
 
@@ -544,8 +552,10 @@ function resumeNow(){
         + esc(o.breakdown||'') + '<br><br>詳しくはご注文確認のメールをご覧ください。');
       return;
     }
-    pendingClear(); hide('resumeBar');
-    btn.disabled = false; btn.textContent = 'お支払いを続ける';
+    /* 続きが見つからなかった。黙って消すと「押したのに何も起きない」になるので理由を出す。 */
+    pendingClear();
+    $('resumeMsg').textContent = '先ほどのお手続きは見つかりませんでした。お手数ですが、下からもう一度お選びください。';
+    btn.style.display = 'none';
   })
   .catch(function(){ btn.disabled = false; btn.textContent = 'お支払いを続ける'; });
 }
