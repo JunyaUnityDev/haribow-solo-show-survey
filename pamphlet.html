@@ -175,12 +175,20 @@
   /* シルクの1枚だけ元の写真が暗すぎて、brightness(.44) だと何も見えない。
      ★他の写真に .dark を付けないこと（明るい写真だと文字が読めなくなる） */
   .act.ph.dark .bg{filter:grayscale(.2) brightness(1) contrast(1.12)}
+  /* ゲスト2組は「どんな人か全く知らないお客さんがほとんど」（2026-09-22 刀祢槙斗）。
+     写真を大きく・明るく出して、顔と雰囲気が分かるようにする */
+  .act.ph.guest{min-height:290px}
+  .act.ph.guest .bg{filter:grayscale(.05) brightness(.72) contrast(1.05)}
+  .act.ph.guest::after{background:linear-gradient(180deg,rgba(7,13,16,.12) 0%,rgba(7,13,16,.55) 52%,rgba(7,13,16,.94) 100%)}
   .act.ph .tx{position:relative;z-index:2}
   .act.ph .d{color:#c6cfd3}
   /* 上演順（2026-09-10）。番号は『構成台本』タブから取る。ここには順番を持たない。
      取得に失敗したら番号は出ない＝静的な並びのまま。黙って違う順番を出さないため。 */
-  .act .no{position:absolute;top:11px;right:15px;z-index:2;font-family:var(--serif);
-    font-size:20px;font-weight:400;letter-spacing:.04em;color:var(--rope);opacity:.9}
+  /* ★2026-09-22 刀祢槙斗の指摘：右上に20pxだと小さく、この羅列がタイムテーブルだと気づけない。
+       左上へ移して倍の大きさにした（写真の上なので影を足して読めるようにしている） */
+  .act .no{position:absolute;top:8px;left:16px;z-index:2;font-family:var(--serif);
+    font-size:40px;line-height:1;font-weight:400;letter-spacing:.02em;color:var(--ink);opacity:.92;
+    text-shadow:0 2px 10px rgba(7,13,16,.85)}
   /* オープニング／エンディングは番号を振らない枠 */
   .lead-row{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;padding:12px 17px;
     border:1px solid var(--line);border-radius:3px;font-size:13.5px;color:var(--dim)}
@@ -390,8 +398,8 @@
     <a href="#c01"><b>01</b>ごあいさつ</a>
     <a href="#c02"><b>02</b>当日のご案内</a>
     <a href="#c03"><b>03</b>本日の演目</a>
-    <a href="#c05"><b>04</b>誰を見ればいいか</a>
-    <a href="#c06"><b>05</b>出演者</a>
+    <a href="#c06"><b>04</b>出演者</a>
+    <a href="#c05"><b>05</b>推し診断</a>
     <a href="#c07"><b>06</b>はじめての方へ</a>
     <a href="#c08"><b>07</b>これまで</a>
     <a href="#c09"><b>08</b>読みもの</a>
@@ -437,8 +445,8 @@
   <!-- ウェルカム動画（2026-09-07追加）。実体は media/welcome.mp4（縦1080×1920・66.6秒・字幕入り）。
        公演後は中身が古くなる（19:25の案内・新メンバー紹介）ので、9/30以降はこの節ごと外すか差し替える。 -->
   <section>
-    <h2 id="c02" data-ch="02">HARIBOWからのご案内</h2>
-    <p class="lead">出演メンバーが当日の楽しみ方を2つお伝えします。（1分）</p>
+    <h2 id="c02" data-ch="02">当日のご案内</h2>
+    <p class="lead">出演メンバーからのごあいさつです。（1分）</p>
     <div class="vid">
       <!-- サムネ（2026-09-16 作り直し）：動画 1.25秒の「全員でHポーズ」の1コマ＋タイトル。
            字幕が焼き込まれているので、下をグラデで沈めて見出しを載せて隠している。
@@ -448,14 +456,21 @@
         お使いの環境では動画を再生できません。
       </video>
     </div>
-    <p class="note">字幕が入っています。音を出せない場所でもわかります。</p>
     <div class="before">
       <p style="margin:0 0 6px;font-size:14.5px">
-        <b>開演は19:30ですが、19:25ごろから開演の演出が始まります。</b>少し早めにお席へお着きください。
+        <b>ご注意</b>　開演は19:30ですが、19:25ごろから開演の演出が始まります。少し早めにお席へお着きください。
       </p>
       <p style="margin:0;font-size:14.5px">
-        <b>HARIBOWに新しい仲間・TAKUMIが加わりました。</b>彼の動きにもご注目ください。
+        <b>お知らせ</b>　HARIBOWに新しい仲間・TAKUMIが加わりました。
       </p>
+    </div>
+    <!-- 2026-09-22 刀祢槙斗の指摘で足した。「楽しみ方を2つ」は中身が注意事項とお知らせだったので、
+         楽しみ方は使い方のほうに置いた。ホワイエの物販・ガチャ等はまだ事実を固めていないので書かない -->
+    <div class="qa" style="margin-top:8px">
+      <div class="b">
+        <p class="t">このパンフレットの使い方</p>
+        <p>出演者のページには、その人の癖がひとつ載っています。舞台で見つけたら「見つけた」を押してください。押した印はこの端末に残ります。</p>
+      </div>
     </div>
   </section>
 
@@ -463,7 +478,7 @@
        片方だけ直すと必ずズレる。変えたら両方直すこと。 -->
   <section>
     <h2 id="c03" data-ch="03">本日の演目</h2>
-    <p class="lead" id="actsLead">全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。上演順は当日のプログラムをご覧ください。</p>
+    <p class="lead" id="actsLead">上から順に上演します。全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。</p>
     <div id="acts">
 
     <div class="act ph" style="--fy:35%">
@@ -482,7 +497,7 @@
         <p class="d">世界30カ国以上が集う2025 IJRU世界選手権を制した、HARIBOW世界一の演技。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:50%">
+    <div class="act ph guest" style="--fy:50%">
       <div class="bg" style="background-image:url(assets/lineup/cheer-remans.jpg)"></div>
       <div class="tx">
         <span class="badge teal">限定コラボ</span>
@@ -490,7 +505,7 @@
         <p class="d">全員が会社員のパフォーマンスチーム『チアリーマンズ』。8月、5,000席を満席にした彼らの単独公演にHARIBOWが出演した。今度は“空飛ぶスーツ集団”が、この舞台に立つ。</p>
       </div>
     </div>
-    <div class="act ph" style="--fy:22%">
+    <div class="act ph guest" style="--fy:22%">
       <div class="bg" style="background-image:url(assets/lineup/air-footworks.jpg)"></div>
       <div class="tx">
         <span class="badge teal">限定ゲスト</span>
@@ -532,22 +547,23 @@
     </div>
   </section>
 
-  <!-- 推し診断への導線（2026-09-07追加）。出演者一覧の直前に置く：
-       32名の名前を先に見せると覚えられずに流されるので、3人に絞る側を先に出す。 -->
   <section>
-    <h2 id="c05" data-ch="04">誰を見ればいいか</h2>
-    <a class="oshi" id="oshiLink" href="oshi.html">
-      <p class="t">32人は、多いですか？</p>
-      <p class="d">4つの質問に答えると、今日あなたが見る3人と「何を探すか」が出ます。1分で終わります。</p>
-      <span class="go">推し診断をはじめる →</span>
-    </a>
-  </section>
-
-  <section>
-    <h2 id="c06" data-ch="05">出演者</h2>
+    <h2 id="c06" data-ch="04">出演者</h2>
     <p class="lead">お名前を押すとプロフィールが開きます。</p>
     <div class="cast" id="cast"></div>
     <p class="note">※ 出演者・演目は変更になる場合があります。</p>
+  </section>
+
+  <!-- 推し診断への導線（2026-09-07追加）。★2026-09-22 刀祢槙斗の指摘で、出演者一覧の「後ろ」へ移した。
+       見出しも「誰を見ればいいか」から「推し診断」に変えた（急に問いが来ると何のことか分からない）。
+       出演者を一度見たあとなら、32人から3人に絞る意味が通る。 -->
+  <section>
+    <h2 id="c05" data-ch="05">推し診断</h2>
+    <a class="oshi" id="oshiLink" href="oshi.html">
+      <p class="t">32人は、多いですか？</p>
+      <p class="d">4つの質問に答えると、今日あなたが見る3人と「その人の何を探すか」が出ます。1分で終わります。</p>
+      <span class="go">推し診断をはじめる →</span>
+    </a>
   </section>
 
   <!-- はじめての方へ（2026-09-16追加）。観客OS_設計 2-2「はじめての方へ」＝E-1 作法不明。
@@ -556,14 +572,11 @@
        ★声の可否を会場ルールとして断定しない（めぐろパーシモンへの確認は未完了。
          推し診断_設計 §5 の加藤周平 確認事項）。ここで書いているのは本人の回答であって、
          会場の許可ではない。会場ルールが確定したら、その時に一段足す。
-       内訳の数字は cast_data.js の c フィールドの実数（回答32／未回答0＝全員）。
-       2026-09-16に西川世那の回答が入り、4つめの答え「静かに見ててほしい」が1人出た。
-       2026-09-18に新遥生の答えを一度「雰囲気で湧いていただけると助かります」にしたが、本人の意図は
-       選択肢はそのまま（手を振る）で、この文は「」内の一言のほうだった（同日17:42内部LINE）。手を振る 8人 に戻した。
-       2026-09-19に三好廉太郎（ホワイエDJ）の回答が入り「呼ばれたら嬉しいけど、恥ずかしい」2→3。
-       2026-09-20に井端真秀の回答が入り「名前、呼んでほしい」18→19（未回答は稲葉大空の1名だけになった）。
-       2026-09-21に稲葉大空の回答が入り「名前、呼んでほしい」19→20。これで32名全員が回答済み。
-       人数が変わったら数え直すこと。1つの版で固定した数字なので自動では動かない。 -->
+       ★2026-09-22 刀祢槙斗の指摘で、答えの内訳（名前を呼んでほしい◯人…）は出すのをやめた。
+         「何のために載せているのか分からない。客はそれを守らなければいけないのか」となるため。
+         いまは「名前を呼んでください」だけを書き、個別の答えはひとりずつのページに任せている。
+         内訳を戻すときは cast_data.js の c フィールドを数え直すこと（自動では動かない）。
+ -->
   <section>
     <h2 id="c07" data-ch="06">はじめての方へ</h2>
     <p class="lead">決まった作法はありません。知らなくても困らないことを2つ書いておきます。</p>
@@ -574,14 +587,8 @@
       </div>
       <div class="b">
         <p class="t">声</p>
-        <p>声を出していいかどうかは出演者本人に聞いてあります。答えは人によって違いました。</p>
-        <div class="voices">
-          <div><span>名前、呼んでほしい</span><b>20人</b></div>
-          <div><span>手を振ってくれたら振り返す</span><b>8人</b></div>
-          <div><span>呼ばれたら嬉しいけど、恥ずかしい</span><b>3人</b></div>
-          <div><span>静かに見ててほしい</span><b>1人</b></div>
-        </div>
-        <p class="cap">一律の決まりにはしていません。誰が何と答えたかはひとりずつのページの「呼びかけについて」にあります。</p>
+        <p>名前を呼んでください。出演者に聞いたところ、ほとんどがそう答えました。</p>
+        <p class="cap">その人がどう答えたかは、ひとりずつのページの「呼びかけについて」にあります。</p>
         <a class="lk" id="mannerLink" href="oshi.html">出演者のページを見る →</a>
       </div>
     </div>
@@ -693,6 +700,10 @@
 </div>
 
 <script src="vendor/qrcode.js"></script>
+<!-- 出演者の表示名（ダッチャーネーム）を取るために読む。名簿の正本は cast_data.js 側。
+     ★2026-09-22 刀祢槙斗の指摘：一覧が本名だったので「刀祢 槙斗」ではなく「MAKITO」で出す。
+       リンクのキーは本名のまま（oshi.html?p= は本名で引いている） -->
+<script src="cast_data.js"></script>
 <script>
 var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
 var TOKEN=new URLSearchParams(location.search).get('t')||'';
@@ -706,8 +717,11 @@ var CAST = ['坂田潤弥','海野鷹幸','松澤竜介','井端真秀','加藤�
    プロフィールの中身は oshi.html の card() が1箇所で作っている。
    ここで作り直すと、素材やコメントを足したときに片方だけ古くなる。
    ?p= で開いた側は「閉じる」でこのパンフレットに戻ってくる。 */
+var SHOWN_ = {};
+if(window.M) M.forEach(function(m){ SHOWN_[m.n] = m.p || m.k || m.n; });
 document.getElementById('cast').innerHTML = CAST.map(function(n){
-  return '<a href="oshi.html?p='+encodeURIComponent(n)+'">'+n+'<span class="ar">▸</span></a>';
+  var label = SHOWN_[n] || n;   /* cast_data.js が読めなかったときは本名で出す */
+  return '<a href="oshi.html?p='+encodeURIComponent(n)+'" title="'+n+'">'+label+'<span class="ar">▸</span></a>';
 }).join('');
 
 /* ---------- 上演順（2026-09-10追加） ----------
@@ -765,9 +779,8 @@ document.getElementById('cast').innerHTML = CAST.map(function(n){
       acts.innerHTML = '';
       acts.appendChild(frag);
 
-      var lead = document.getElementById('actsLead');
-      if(lead) lead.textContent =
-        '全編HARIBOWだけのショーケースに、一夜限りのゲストが加わります。番号は当日の上演順です。';
+      /* 2026-09-22 刀祢槙斗の指摘で、番号の説明文（「番号は当日の上演順です。」）は出さない。
+         静的な lead が最初から「上から順に上演します。」と言っているので、二重に説明しない */
 
       /* 終演予定と休憩。どちらも台本から出す＝台本を直せばここも直る
          ★お客さんに見せる終演時刻は5分単位に切り上げる（2026-09-17 山本大方の依頼・坂田了承）。
