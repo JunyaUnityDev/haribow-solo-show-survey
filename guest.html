@@ -76,6 +76,14 @@
     border-radius:12px;padding:16px 16px 12px;margin:6px 0 0}
   .zone .lab{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.1em;margin:0 0 6px}
   .zone .val{font-size:15px;font-weight:800;line-height:1.7;margin:0}
+  /* 締切後の告知（2026-09-23追加）。ボタン下の赤字1行だけだと気づかれず、
+     「フォームが開けない」と問い合わせが来た（OVERTHUMPZ）。ページの一番上に出す。 */
+  .closed{background:rgba(200,67,58,.12);border:2px solid var(--warn);border-radius:16px;
+    padding:20px;margin-bottom:18px}
+  .closed h2{font-size:18px;font-weight:800;margin:0 0 10px;color:#ff8a80;letter-spacing:.02em}
+  .closed p{margin:0;font-size:14px;line-height:1.8}
+  .closed .mail{display:inline-block;margin-top:10px;font-size:16px;font-weight:800;color:var(--ink);
+    user-select:all}
   .hide{display:none}
 </style>
 </head>
@@ -100,8 +108,13 @@
     </p>
   </div>
 
+  <div id="closedBox" class="closed hide">
+    <h2>お申し込みの受付は <span id="closeD">—</span> で終了しました</h2>
+    <p id="closedMsg"></p>
+    <span class="mail">info@haribow.com</span>
+  </div>
   <div id="form" class="hide">
-    <div class="card">
+    <div class="card" id="inputCard">
       <h2 id="orgline">お申し込み内容</h2>
       <p class="hint" id="quota" style="margin-top:-6px"></p>
 
@@ -130,7 +143,7 @@
       <textarea id="guests" placeholder="改行区切りでご記入ください。当日の受付がスムーズになります。"></textarea>
     </div>
 
-    <div class="card">
+    <div class="card" id="confirmCard">
       <h2>ご確認</h2>
       <div class="srow"><span class="k">ご来場人数</span><span class="v" id="sumTotal">—</span></div>
       <div class="srow total"><span class="k" id="feeLabel">追加のお席</span><span class="v" id="sumFee">—</span></div>
@@ -143,7 +156,7 @@
       <!-- ★締切をここに出す（2026-08-25追加）。それまでこのページには締切が1文字も無く、
            9/23 0:00 になると予告なしに「受付は終了しました」に変わっていた。
            日付はベタ書きせず invite_meta の closeLabel を入れる。 -->
-      <p class="note">
+      <p class="note" id="closeNote">
         お申し込み・ご変更の締切は <b id="closeA">—</b> です。
         それまでは、このページから何度でもご人数を変更いただけます。<br>
         締切後のご変更は info@haribow.com で承ります。その場合は<b>お席が離れることがございます</b>ので、
@@ -401,8 +414,25 @@ function boot(d){
     }
   }
   if(d.closed){
-    $('go').disabled = true;
-    $('err').textContent = '受付を終了しました。お手数ですが info@haribow.com までご連絡ください。';
+    /* 締切後は、ページの一番上に大きく出す。入力欄は触れないようにし、
+       まだ登録していない方には入力欄そのものを見せない（入力しても送れないため）。 */
+    $('closeD').textContent = d.closeLabel || '締切日';
+    $('sub').textContent = '';
+    if(d.answered){
+      $('closedMsg').textContent = 'ご登録いただいた内容は下記のとおりです。'
+        + 'ご人数などの変更をご希望の場合は、お手数ですが下記までメールでご連絡ください。';
+      ['rep','contact','useFree','extra','guests'].forEach(function(id){ $(id).disabled = true; });
+      $('go').style.display = 'none';
+    } else {
+      $('closedMsg').textContent = 'このページからのご登録はできなくなりました。'
+        + 'ご来場をご希望の場合は、お手数ですが下記までメールでご連絡ください。'
+        + 'こちらでご登録を承ります。';
+      $('inputCard').querySelectorAll('input,select,textarea,label,.hint:not(#quota)')
+        .forEach(function(el){ el.style.display = 'none'; });
+      $('confirmCard').style.display = 'none';
+    }
+    $('closeNote').style.display = 'none';
+    show('closedBox');
   }
   uf.onchange = ex.onchange = recalc;
   recalc();
