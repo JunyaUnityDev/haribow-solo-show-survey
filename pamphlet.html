@@ -164,6 +164,10 @@
     border-right:1px solid var(--rope);border-bottom:1px solid var(--rope);
     transform:rotate(45deg);transition:transform .25s ease}
   h2.fold[aria-expanded="true"] .tg{transform:rotate(-135deg)}
+  /* 畳んだ章のうち、当日ここだけは読んでほしいものに付ける（2026-09-24） */
+  h2 .imp{display:inline-block;margin-left:10px;padding:2px 8px;border-radius:2px;vertical-align:middle;
+    font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    color:var(--sup);border:1px solid rgba(201,162,75,.55)}
   .fold-sum{margin:-6px 0 0;padding-left:20px;font-size:13px;color:var(--faint)}
   h2.fold[aria-expanded="true"] + .fold-sum{display:none}
   .foldbox[hidden]{display:none}
@@ -568,7 +572,9 @@
   <!-- ウェルカム動画（2026-09-07追加）。実体は media/welcome.mp4（縦1080×1920・66.6秒・字幕入り）。
        公演後は中身が古くなる（19:25の案内・新メンバー紹介）ので、9/30以降はこの節ごと外すか差し替える。 -->
   <section>
-    <h2 id="c02" data-ch="04">当日のご案内</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c02-b" id="c02" data-ch="04">当日のご案内<span class="imp">重要</span><span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">開演前の演出・ご入場・ホール内の電波・物販のこと</p>
+    <div class="foldbox" id="c02-b" hidden>
     <p class="lead">出演メンバーからのごあいさつです。（1分）</p>
     <div class="vid">
       <!-- サムネ（2026-09-16 作り直し）：動画 1.25秒の「全員でHポーズ」の1コマ＋タイトル。
@@ -639,14 +645,18 @@
         <p>出演者のページには、その人の癖がひとつ載っています。舞台で見つけたら「見つけた」を押してください。押した印はこの端末に残ります。</p>
       </div>
     </div>
+</div>
   </section>
 
 
   <section>
-    <h2 id="c06" data-ch="05">出演者</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c06-b" id="c06" data-ch="05">出演者<span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">32人の名前。押すとプロフィールが開きます</p>
+    <div class="foldbox" id="c06-b" hidden>
     <p class="lead">お名前を押すとプロフィールが開きます。</p>
     <div class="cast" id="cast"></div>
     <p class="note">※ 出演者・演目は変更になる場合があります。</p>
+</div>
   </section>
 
   <!-- 推し診断への導線（2026-09-07追加）。★2026-09-22 刀祢槙斗の指摘で、出演者一覧の「後ろ」へ移した。
@@ -673,7 +683,9 @@
          内訳を戻すときは cast_data.js の c フィールドを数え直すこと（自動では動かない）。
  -->
   <section>
-    <h2 id="c07" data-ch="07">はじめての方へ</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c07-b" id="c07" data-ch="07">ダブルダッチイベントがはじめての方へ<span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">拍手と声のこと。知らなくても困りません</p>
+    <div class="foldbox" id="c07-b" hidden>
     <p class="lead">決まった作法はありません。知らなくても困らないことを2つ書いておきます。</p>
     <div class="qa">
       <div class="b">
@@ -688,6 +700,7 @@
       </div>
     </div>
     <p class="note">※ 撮影については「公演情報」に書いています。</p>
+</div>
   </section>
 
   <section>
@@ -706,7 +719,9 @@
   </section>
 
   <section>
-    <h2 id="c09" data-ch="09">読みもの</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c09-b" id="c09" data-ch="09">読みもの<span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">本人たちの言葉で書いた記事が2本</p>
+    <div class="foldbox" id="c09-b" hidden>
     <p class="lead">今日ここに至るまでを、本人たちの言葉で書いた記事が2本あります。開演前や帰り道にどうぞ。</p>
     <div class="reads">
       <a href="https://go-beyond.haribow.com/bgt.html" target="_blank" rel="noopener" style="--fy:42%">
@@ -726,6 +741,7 @@
         </div>
       </a>
     </div>
+</div>
   </section>
 
   <section>
