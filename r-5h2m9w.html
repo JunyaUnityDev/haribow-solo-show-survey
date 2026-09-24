@@ -180,6 +180,49 @@
   .tk a{font-size:12px}
   @media (max-width:380px){ .tk{grid-template-columns:1fr} .qr{justify-self:start} }
   .foot{margin-top:44px;font-size:11.5px;color:var(--faint)}
+
+
+  /* 受付まわりの配置（案） */
+  .map{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}
+  .map svg{display:block;width:100%;height:auto}
+  .map svg text{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif}
+  .tag-draft{display:inline-block;background:var(--ng);color:#fff;font-size:12px;font-weight:800;border-radius:5px;padding:0 8px;margin-left:6px;vertical-align:2px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--faint);margin-top:6px}
+  /* 受付の流れ（図）。SVGにしないのは、スマホ幅と印刷の両方で文字が折り返せるようにするため */
+  .fc{margin-top:10px;display:grid;justify-items:center}
+  .fs{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:8px 18px;font-weight:700;font-size:14.5px;text-align:center}
+  .fd{color:var(--sup);font-size:11.5px;text-align:center;line-height:1.3;padding:3px 0}
+  .fd::before{content:'↓';display:block;font-size:17px;line-height:1.1}
+  .fr{width:100%;display:grid;grid-template-columns:40% 60%;align-items:center}
+  .fq{justify-self:center;border:2px solid var(--sup);border-radius:10px;padding:8px 10px;font-weight:800;font-size:14px;text-align:center;
+    background:rgba(201,162,75,.08);min-width:7.5em}
+  .fy{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px 8px 12px;font-size:12.5px;line-height:1.55;color:var(--sub);margin-left:18px}
+  .fy::before{content:'→';position:absolute;left:-18px;top:50%;transform:translateY(-50%);color:var(--sup);font-size:15px}
+  .fy .yn{display:inline-block;font-weight:800;color:var(--sup);font-size:11.5px;margin-right:6px}
+  .fy b{color:var(--text)}
+  .fg{width:100%;display:grid;gap:8px;margin-top:2px}
+  @media (min-width:520px){ .fg{grid-template-columns:1fr 1fr} }
+  .fv{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.55;color:var(--sub);width:100%}
+  .fv .h{font-weight:800;font-size:14px;color:var(--text);margin-bottom:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .fv.ok{border-left-color:var(--ok)} .fv.warn{border-left-color:var(--warn)} .fv.ng{border-left-color:var(--ng)} .fv.gray{border-left-color:var(--gray)}
+  .fv b{color:#f0d68a}
+  .fend{margin-top:10px;width:100%;border:1px dashed var(--ng);border-radius:10px;padding:8px 12px;font-size:13px;text-align:center;color:var(--sub)}
+  .fprint{font-size:12.5px}
+  /* 「この図だけ印刷」：?flow で開いたときは図以外を隠す */
+  html.flowonly .wrap > *:not(#s-flow):not(.fc):not(.flow-lead){display:none !important}
+  html.flowonly .wrap{padding-top:10px}
+  @media print{
+    :root{--bg:#fff;--panel:#fff;--panel2:#f4f4f4;--line:#999;--text:#111;--sub:#222;--faint:#555;--sup:#8a6a1c}
+    body{background:#fff;color:#111}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .fv b,b.hl{color:#111}
+    .fg{grid-template-columns:1fr 1fr}
+    .fprint{display:none}
+    h2{margin-top:10px}
+    @page{size:A4 portrait;margin:10mm}
+    html.flowonly .wrap{padding:0 0 0;max-width:none}
+    html.flowonly body{zoom:.86}
+  }
   @media print{ nav.toc,.tabs,.copy{display:none} .role{display:block !important} details > .in{display:block} }
 </style>
 </head>
@@ -192,7 +235,7 @@
   </header>
 
   <nav class="toc">
-    <a href="#s-key">大事な5つ</a><a href="#s-people">持ち場</a><a href="#s-role">持ち場ごとの動き</a><a href="#s-paper">紙の名簿</a><a href="#s-verdict">色と対応</a><a href="#s-search">名前検索</a><a href="#s-guests">お客さんの種類</a><a href="#s-brief">スタッフへの指示</a><a href="#s-day">当日の流れ</a><a href="#s-prep">準備物</a><a href="#s-trouble">困ったとき</a><a href="#s-more">仕組み・画面</a><a href="#s-test">練習</a>
+    <a href="#s-key">大事な5つ</a><a href="#s-flow">流れ（図）</a><a href="#s-map">配置（案）</a><a href="#s-people">持ち場</a><a href="#s-role">持ち場ごとの動き</a><a href="#s-paper">紙の名簿</a><a href="#s-verdict">色と対応</a><a href="#s-search">名前検索</a><a href="#s-guests">お客さんの種類</a><a href="#s-brief">スタッフへの指示</a><a href="#s-day">当日の流れ</a><a href="#s-prep">準備物</a><a href="#s-trouble">困ったとき</a><a href="#s-more">仕組み・画面</a><a href="#s-test">練習</a>
   </nav>
 
   <div id="pending" style="margin-top:14px"></div>
@@ -211,6 +254,119 @@
       <li>通信が切れたら<b class="hl">紙の名簿</b>に丸を付けて通す。紙が正。</li>
     </ol>
   </div>
+
+
+  <!-- ============ 受付の流れ（図） ============ -->
+  <!-- 分岐と表示は checkin.html / gas/Tickets.js の実際の挙動どおり（2026-09-24）。あちらを変えたらここも直す -->
+  <h2 id="s-flow">受付の流れ（図）</h2>
+  <p class="small flow-lead">迷ったら、この図を上からたどる。<a class="fprint" href="?flow" target="_blank" rel="noopener">この図だけ印刷する（A4 1枚）</a></p>
+  <div class="fc">
+    <div class="fs">お客さんが来た</div>
+    <div class="fd"></div>
+    <div class="fr"><div class="fq">再入場？</div>
+      <div class="fy"><span class="yn">はい</span>出るときに渡した<b>目印を見て通す</b>。QRは読まない</div></div>
+    <div class="fd">いいえ</div>
+    <div class="fr"><div class="fq">「招待です」？</div>
+      <div class="fy"><span class="yn">はい</span><b>招待レーン</b>へ。紙の名簿で探して丸、席を伝えて通す。無ければ名簿先頭の「未回答のご招待」→ それも無ければ責任者</div></div>
+    <div class="fd">いいえ</div>
+    <div class="fr"><div class="fq">QRを出せる？</div>
+      <div class="fy"><span class="yn">いいえ</span><b>名前検索</b>（<a href="#s-search">05</a>）。出たボタンのとおり。未発行・取消済みの行は責任者</div></div>
+    <div class="fd">はい</div>
+    <div class="fs">カメラにかざす</div>
+    <div class="fd"></div>
+    <div class="fv gray"><div class="h"><span class="chip gray">灰</span>照合中…</div><b>通さずに待つ</b>。10秒続いたら紙の名簿に切り替える</div>
+    <div class="fd">色が変わったら</div>
+    <div class="fg">
+      <div class="fv ok"><div class="h"><span class="chip ok">緑</span>ご入場ください</div>名前と席を<b>声に出して</b>確かめる → お渡し物があれば渡す → 通す</div>
+      <div class="fv warn"><div class="h"><span class="chip warn">黄</span>他にも◯件のご注文</div>通してよい。<b>もう1枚のQRも読む</b></div>
+      <div class="fv warn"><div class="h"><span class="chip warn">黄</span>入場済みです</div>ボタンは<b>押さない</b>。席2つ以上 → 注文者名と席番号で通す／1席 → 責任者</div>
+      <div class="fv ng"><div class="h"><span class="chip ng">赤</span>現金 ¥◯◯ <span class="chip boss">責任者・当日券</span></div>列の横へ → <b>全額</b>受け取る →「現金を受け取った」→ 緑。エラーが出ても<b>返さない</b></div>
+      <div class="fv ng"><div class="h"><span class="chip ng">赤</span>お支払い未確認 <span class="chip boss">責任者</span></div>責任者を呼ぶ → <b>通してよい</b>（後日振込・決定No.67）</div>
+      <div class="fv ng"><div class="h"><span class="chip ng">赤</span>取消済みのご予約 <span class="chip boss">責任者</span></div>責任者を呼ぶ → 通すなら<b>予備席</b>へ</div>
+      <div class="fv ng"><div class="h"><span class="chip ng">赤</span>読み取れない・通信エラー</div><b>かざし直す</b>。黄「入場済み」で時刻が今なら通っている。続くなら名前検索 → 通信が無いなら紙</div>
+      <div class="fv gray"><div class="h">通信が切れた</div><b>紙の名簿</b>に丸を付けて通す。戻ったら画面に入れ直す</div>
+    </div>
+    <div class="fend">赤のあとは<b>「次の人へ」</b>を押してから、次の人のQRへ</div>
+  </div>
+
+  <!-- ============ 配置（案） ============ -->
+  <!-- 会場の形は venue/hall_l_area.pdf（公式平面図・1階）を目で読んで簡略化したもの。寸法は正確ではない。
+       受付・当日券・招待レーンの位置は記録が無いので「案」。当日受付タブで決まったら描き直す。 -->
+  <h2 id="s-map">受付まわりの配置 <span class="tag-draft">案・未決定</span></h2>
+  <p class="small">位置関係をつかむための略図です。<b>机の位置はまだ決まっていません</b>（点線が案）。決まったら描き直します。</p>
+  <div class="map">
+  <svg viewBox="0 0 360 470" role="img" aria-label="1階ホワイエの受付配置の案">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--sup)"/></marker>
+    </defs>
+    <!-- 客席 -->
+    <rect x="70" y="10" width="270" height="92" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
+    <text x="205" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">1階 客席</text>
+    <text x="205" y="70" text-anchor="middle" font-size="10.5" fill="var(--faint)">（舞台はこの上）</text>
+    <!-- クロークと客席扉 -->
+    <rect x="160" y="102" width="90" height="22" fill="var(--panel2)" stroke="var(--line)"/>
+    <text x="205" y="117" text-anchor="middle" font-size="10.5" fill="var(--sub)">クローク</text>
+    <rect x="124" y="98" width="32" height="8" fill="var(--ok)"/><rect x="254" y="98" width="32" height="8" fill="var(--ok)"/>
+    <text x="140" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">客席扉</text>
+    <text x="270" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">客席扉</text>
+    <!-- ホワイエ -->
+    <rect x="70" y="124" width="270" height="276" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+    <text x="205" y="388" text-anchor="middle" font-size="13" font-weight="700" fill="var(--faint)">ホワイエ</text>
+    <!-- 階段（2階へ） -->
+    <rect x="72" y="344" width="36" height="54" fill="var(--panel2)" stroke="var(--line)"/>
+    <rect x="302" y="344" width="36" height="54" fill="var(--panel2)" stroke="var(--line)"/>
+    <text x="90" y="366" text-anchor="middle" font-size="9.5" fill="var(--sub)">階段</text><text x="90" y="379" text-anchor="middle" font-size="9.5" fill="var(--sub)">2階へ</text>
+    <text x="320" y="366" text-anchor="middle" font-size="9.5" fill="var(--sub)">階段</text><text x="320" y="379" text-anchor="middle" font-size="9.5" fill="var(--sub)">2階へ</text>
+    <!-- 窓側 -->
+    <rect x="110" y="400" width="60" height="20" fill="var(--panel2)" stroke="var(--line)"/><text x="140" y="414" text-anchor="middle" font-size="10" fill="var(--sub)">ビュッフェ</text>
+    <rect x="172" y="400" width="66" height="20" fill="var(--panel2)" stroke="var(--line)"/><text x="205" y="414" text-anchor="middle" font-size="10" fill="var(--sub)">カウンター</text>
+    <rect x="240" y="400" width="60" height="20" fill="var(--panel2)" stroke="var(--line)"/><text x="270" y="414" text-anchor="middle" font-size="10" fill="var(--sub)">ショップ</text>
+    <text x="205" y="436" text-anchor="middle" font-size="10" fill="var(--faint)">窓側：物販・フォトブース・DJ・飲食（現調メモ 9/3）</text>
+    <!-- 入口（左） -->
+    <rect x="4" y="150" width="62" height="110" rx="4" fill="var(--panel2)" stroke="var(--line)"/>
+    <text x="35" y="190" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--text)">大ホール</text>
+    <text x="35" y="204" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--text)">エントランス</text>
+    <text x="35" y="224" text-anchor="middle" font-size="9" fill="var(--faint)">外（プラザ側）</text>
+    <text x="35" y="236" text-anchor="middle" font-size="9" fill="var(--faint)">に並んでOK</text>
+    <!-- 受付（案） -->
+    <rect x="80" y="152" width="96" height="104" rx="6" fill="rgba(201,162,75,.08)" stroke="var(--sup)" stroke-dasharray="5 4"/>
+    <text x="128" y="168" text-anchor="middle" font-size="11" font-weight="800" fill="var(--sup)">受付（QR）</text>
+    <line x1="92" y1="180" x2="164" y2="180" stroke="var(--sup)" stroke-width="3"/><text x="128" y="195" text-anchor="middle" font-size="9.5" fill="var(--sub)">机・スマホ ×3</text>
+    <circle cx="128" cy="222" r="9" fill="none" stroke="var(--ng)" stroke-width="2"/><text x="128" y="226" text-anchor="middle" font-size="9" font-weight="800" fill="var(--ng)">責</text>
+    <text x="128" y="246" text-anchor="middle" font-size="9.5" fill="var(--sub)">責任者は後ろ</text>
+    <!-- 招待レーン（案） -->
+    <rect x="80" y="266" width="96" height="36" rx="6" fill="rgba(143,183,201,.08)" stroke="var(--link)" stroke-dasharray="5 4"/>
+    <text x="128" y="282" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--link)">招待レーン</text>
+    <text x="128" y="295" text-anchor="middle" font-size="9" fill="var(--sub)">紙の名簿</text>
+    <!-- 当日券（案） -->
+    <rect x="80" y="308" width="96" height="30" rx="6" fill="rgba(192,105,95,.08)" stroke="var(--ng)" stroke-dasharray="5 4"/>
+    <text x="128" y="327" text-anchor="middle" font-size="10.5" font-weight="800" fill="#e3a39a">当日券の机</text>
+    <!-- 待機 -->
+    <rect x="190" y="200" width="140" height="120" rx="8" fill="none" stroke="var(--faint)" stroke-dasharray="2 4"/>
+    <text x="260" y="248" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--text)">待機エリア</text>
+    <text x="260" y="264" text-anchor="middle" font-size="10" fill="var(--sub)">18:00〜19:00</text>
+    <text x="260" y="278" text-anchor="middle" font-size="9.5" fill="var(--faint)">客席へはまだ入れない</text>
+    <!-- 動線 -->
+    <path d="M66 205 H80" stroke="var(--sup)" stroke-width="2.5" marker-end="url(#ah)"/>
+    <path d="M176 205 H188" stroke="var(--sup)" stroke-width="2.5" marker-end="url(#ah)"/>
+    <path d="M205 198 C205 160 145 150 140 110" fill="none" stroke="var(--ok)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah)"/>
+    <path d="M290 198 C290 170 272 150 270 110" fill="none" stroke="var(--ok)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah)"/>
+    <text x="243" y="172" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">19:00〜 客席へ</text>
+    <path d="M300 320 L316 342" stroke="var(--link)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah)"/>
+    <text x="282" y="338" text-anchor="end" font-size="9.5" fill="var(--link)">2階席（13〜16扉）</text>
+    <text x="6" y="462" font-size="9" fill="var(--faint)">略図。寸法は正確ではない。出典：会場の大ホールエリア平面図（1階）</text>
+  </svg>
+  <div class="legend"><span>実線＝会場にあるもの</span><span>点線＝案（未決定）</span><span style="color:var(--sup)">→ お客さんの流れ</span></div>
+  </div>
+  <details><summary>この案の考え方と、決めること</summary><div class="in"><ul class="facts">
+    <li><b>受付は入ってすぐ。</b>ホワイエで待つ前にQRを済ませる。列は入口の外（プラザ側）に伸ばす（会場：「ドア前なら人が溜まってもOK」）</li>
+    <li><b>招待レーンと当日券の机は、QRの列と分ける。</b>招待は紙の照合、当日券は現金の受け渡しで1人に時間がかかる。同じ列だとQRの人が止まる</li>
+    <li>責任者は受付の後ろに立つ（赤が出たらすぐ呼べる位置）</li>
+    <li>18:00〜19:00はホワイエで待ってもらい、19:00に客席扉を開ける。2階席は左右の階段から13〜16扉へ</li>
+    <li>ベビーカー置き場は壁際（物販の反対側）</li>
+    <li><b>まだ決まっていないこと：</b>机の数と置き場所／当日券の机を分けるか／<b>LB・RB席（1階左右のバルコニー）への入り方</b>（記録が無い）／クロークを使うか</li>
+  </ul></div></details>
 
   <!-- ============ 持ち場 ============ -->
   <h2 id="s-people"><span class="n">01</span>持ち場 <small id="upd"></small></h2>
@@ -612,6 +768,12 @@ var TESTS=[
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+/* ?flow で開いたら図だけ出して印刷ダイアログを出す */
+if(/[?&]flow\b/.test(location.search)){
+  document.documentElement.classList.add('flowonly');
+  window.addEventListener('load', function(){ setTimeout(function(){ try{ window.print(); }catch(e){} }, 400); });
+}
 
 (function renderTests(){
   var box=document.getElementById('tix');
