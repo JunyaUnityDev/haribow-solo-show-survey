@@ -909,14 +909,14 @@ function renderCue(d){
 }
 
 /* ============================================================ 読み込み */
-/* ★開いた直後の1回目だけ、GASがJSONでなくHTML（<!DOCTYPE…）を返すことがある。
-   curl でもページ上の手動fetchでも再現せず、原因は未特定（2026-09-24）。
-   やり直すと通るので、JSONでなければ間を置いて最大3回まで取り直す。
-   返ってきたHTMLの冒頭はコンソールに残す（次に原因を追うため）。 */
+/* ★credentials:'omit' を外さないこと。ブラウザがGoogleにログインしていると、
+   Cookie付きでGASへ行き「現在、ファイルを開くことができません」(404のHTML)が返る。
+   curl では再現しないので気づきにくい（2026-09-24、開くたびに読み込み失敗していた）。
+   念のため、JSONでなければ間を置いて最大3回まで取り直す。 */
 function get(page, tries){
   tries = tries == null ? 3 : tries;
   return fetch(BASE + '?page=' + page + '&k=' + encodeURIComponent(DASH_SECRET) + '&_=' + Date.now(),
-               { cache:'no-store' })
+               { cache:'no-store', credentials:'omit' })
     .then(function(r){ return r.text(); })
     .then(function(t){
       var d;
