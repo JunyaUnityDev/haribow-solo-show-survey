@@ -310,6 +310,26 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 .idx-hd .found{font-size:12px;color:var(--faint)}
 .idx-hd .found b{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--main)}
 .idx-note{margin:-4px 0 14px;font-size:12px;line-height:1.75;color:var(--faint)}
+
+/* ---- この人へメッセージを送る（2026-09-24）。本人のLINEに直接届く ---- */
+.msg .msg-open{margin-top:4px;height:44px;padding:0 20px;border-radius:22px;
+  border:1px solid rgba(99,182,204,.55);background:transparent;color:var(--main);
+  font-size:14px;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.msg .msg-open[aria-expanded="true"]{opacity:.5}
+.msg-form{margin-top:14px}
+.msg-note{margin:0 0 12px;font-size:12px;line-height:1.8;color:var(--faint)}
+.msg-l{display:block;margin:0 0 10px;font-size:12px;color:var(--dim)}
+.msg-l input,.msg-l textarea{display:block;width:100%;margin-top:6px;padding:11px 12px;
+  border:1px solid var(--line2);border-radius:3px;background:rgba(255,255,255,.03);
+  color:var(--ink);font-size:15px;font-family:inherit;line-height:1.7;box-sizing:border-box}
+.msg-l textarea{resize:vertical}
+.msg-foot{display:flex;align-items:center;gap:12px;margin-top:6px}
+.msg-st{flex:1;font-size:12px;color:var(--faint)}
+.msg-st.ok{color:var(--main)}
+.msg-st.ng{color:#e0a3a3}
+.msg-send{height:44px;padding:0 22px;border-radius:22px;border:1px solid var(--main);
+  background:var(--main);color:#06222b;font-size:14px;font-family:inherit;cursor:pointer}
+.msg-send[disabled]{opacity:.45;cursor:default}
 .idx-hd .x{margin-left:auto;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line2);
   background:none;color:var(--dim);font-size:13px;cursor:pointer}
 /* 一覧のタイル（2026-09-16 JUNYA案 A＋B）
@@ -540,6 +560,24 @@ function nameLink(n){
 }
 function isFound(id){ try{ return localStorage.getItem('oshi.found.'+id)==='1'; }catch(e){ return false; } }
 
+/* ---- サーバへの送信口（2026-09-24） ----
+   ★単独公演のGAS。内部用LINEのWebアプリを直接は叩かせない（公開ページに送信の口を晒さないため）。
+     「見つけた」は集計用に投げるだけで、画面の状態は今までどおり localStorage が持つ。
+     通信に失敗しても押した状態は消えない（数が1つ減るだけで、お客さんの体験は壊さない）。 */
+var OSHI_API='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
+function devId(){
+  try{
+    var k='oshi.dev', v=localStorage.getItem(k);
+    if(!v){ v=Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem(k,v); }
+    return v;
+  }catch(e){ return 'nostore'; }
+}
+function postOshi(body){
+  body.dev=devId();
+  return fetch(OSHI_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+                         body:JSON.stringify(body)}).then(function(r){ return r.json(); });
+}
+
 /* ------------------------------------------------------------------
    用語の注釈（2026-09-08）
    ★出どころを勝手に作らない：
@@ -611,11 +649,33 @@ function taskBlock(m,text,note,by){
     '<p class="say">'+esc(text)+'</p>'+
     (note?'<span class="note">'+esc(note)+'</span>':'')+
     '<span class="how">公演中、舞台でこれが出たら下の「見つけた」を押します。押すとボタンの色が変わります。'+
-      'もう一度押せば取り消せます。印はこの端末の中だけに残り（誰にも送られません）、'+
-      '「'+ORDER.length+'人の一覧」に見つけた数が出ます。何人見つけても構いません。</span>'+
+      'もう一度押せば取り消せます。「'+ORDER.length+'人の一覧」に見つけた数が出ます。何人見つけても構いません。'+
+      '<br>公演のあと、'+esc(nm)+' さんには「何人が見つけたか」の数だけが届きます。誰が押したかは分かりません。</span>'+
     '<div class="foot"><span class="src">見つけられたら、'+esc(nm)+' さんはきっと喜びます</span>'+
     '<button type="button" class="stamp" aria-pressed="'+(done?'true':'false')+'"><span class="ring">'+CHECK+'</span>見つけた</button></div>'+
   '</div>';
+}
+
+/* ------------------------------------------------------------------
+   この人へメッセージを送る（2026-09-24）
+   本人のLINEに直接届く。何度でも送れる。
+   ★宛先は本名（データのキー）だが、画面にはプレイヤーネームしか出さない
+   ------------------------------------------------------------------ */
+function msgBlock(m){
+  var nm = shown(m);
+  return '<div class="sec msg" data-to="'+esc(m.n)+'" data-nm="'+esc(nm)+'">'+
+    '<span class="lb">'+esc(nm)+' さんへ</span>'+
+    '<button type="button" class="msg-open">メッセージを送る</button>'+
+    '<div class="msg-form" hidden>'+
+      '<p class="msg-note">本人のLINEにそのまま届きます。今でも、終わってからでも、何度でも送れます。'+
+        '返信は来ません。</p>'+
+      '<label class="msg-l">お名前（相手に表示されます）'+
+        '<input class="msg-from" type="text" maxlength="20" placeholder="例：たろう"></label>'+
+      '<label class="msg-l">メッセージ'+
+        '<textarea class="msg-text" rows="4" maxlength="200" placeholder="今日いちばん良かったところ、伝えたいこと"></textarea></label>'+
+      '<div class="msg-foot"><span class="msg-st"></span>'+
+        '<button type="button" class="msg-send">送る</button></div>'+
+    '</div></div>';
 }
 
 function mottoBlock(m){
@@ -670,6 +730,7 @@ function card(o,i){
     h+=voicesBlock(vs);
     if(m.y) h+=selfBlock(m);
     else h+='<p class="pending">本人のプロフィールは準備中です。</p>';
+    h+=msgBlock(m);
     return h+glossBlock(h)+'</article>';
   }
 
@@ -683,6 +744,7 @@ function card(o,i){
     h+=voicesBlock(vs);
     h+='<p class="pending">本人のプロフィールは準備中です。いまは'+
        (a.m?'一緒に跳んでいるメンバーの言葉と、本人が書いた座右の銘を載せています。':'一緒に跳んでいるメンバーの言葉を載せています。')+'</p>';
+    h+=msgBlock(m);
     return h+glossBlock(h)+'</article>';
   }
 
@@ -701,6 +763,7 @@ function card(o,i){
   h+=actsBlock(m);
   h+=voicesBlock(vs);
   h+=selfBlock(m);
+  h+=msgBlock(m);
   return h+glossBlock(h)+'</article>';
 }
 
@@ -906,8 +969,57 @@ function bindCard(root){
       var on=b.getAttribute('aria-pressed')!=='true';
       b.setAttribute('aria-pressed',on?'true':'false'); t.classList.toggle('done',on);
       try{ localStorage.setItem(k,on?'1':'0'); }catch(e){}
+      /* 集計用。返事は待たない。失敗しても画面は変えない（押した事実は端末に残っている） */
+      var card=t.closest('.card'), nmEl=card&&card.querySelector('.msg');
+      postOshi({survey:'oshi_found', id:t.dataset.key,
+                name:nmEl?nmEl.dataset.to:'', on:on}).catch(function(){});
     });
   });
+  /* メッセージを送る（2026-09-24）。宛先は data-to（本名＝データのキー）。
+     送信後もフォームは開いたままにする。「何度でも送れる」ことを画面で示すため */
+  root.querySelectorAll('.msg').forEach(function(box){
+    var open=box.querySelector('.msg-open'), form=box.querySelector('.msg-form');
+    var from=box.querySelector('.msg-from'), text=box.querySelector('.msg-text');
+    var send=box.querySelector('.msg-send'), st=box.querySelector('.msg-st');
+    open.setAttribute('aria-expanded','false');
+    open.addEventListener('click',function(){
+      var on=form.hidden;
+      form.hidden=!on; open.setAttribute('aria-expanded',on?'true':'false');
+      if(on){
+        try{ var last=localStorage.getItem('oshi.from'); if(last&&!from.value) from.value=last; }catch(e){}
+        from.focus();
+      }
+    });
+    send.addEventListener('click',function(){
+      var f=from.value.trim(), t2=text.value.trim();
+      st.className='msg-st';
+      if(!f){ st.textContent='お名前を入れてください。'; st.classList.add('ng'); from.focus(); return; }
+      if(!t2){ st.textContent='メッセージを入れてください。'; st.classList.add('ng'); text.focus(); return; }
+      send.disabled=true; st.textContent='送っています…';
+      try{ localStorage.setItem('oshi.from',f); }catch(e){}
+      postOshi({survey:'oshi_msg', to:box.dataset.to, from:f, text:t2})
+        .then(function(res){
+          send.disabled=false;
+          if(res&&res.ok){
+            text.value='';
+            st.textContent=box.dataset.nm+' さんに届きました。また送れます。';
+            st.classList.add('ok');
+          }else{
+            var e=res&&res.error, msg='送れませんでした。もう一度お試しください。';
+            if(e==='too_fast')  msg='少し待ってからもう一度押してください。';
+            if(e==='too_many')  msg='この端末からはたくさん送っていただきました。ありがとうございます。';
+            if(e==='too_long')  msg='メッセージが長すぎます（200文字まで）。';
+            st.textContent=msg; st.classList.add('ng');
+          }
+        })
+        .catch(function(){
+          send.disabled=false;
+          st.textContent='送れませんでした。電波の届くところでもう一度お試しください。';
+          st.classList.add('ng');
+        });
+    });
+  });
+
   /* 動画の長さ。メタデータだけ読む（本体は押すまで落とさない） */
   root.querySelectorAll('.pill').forEach(function(b){
     var por=b.closest('.por'), src='assets/cast/'+por.dataset.id+'/'+b.dataset.v, d=b.querySelector('[data-dur]');
