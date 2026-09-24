@@ -181,7 +181,7 @@
   h2.fold[aria-expanded="true"] .tg{transform:rotate(-135deg)}
   /* 畳んだ章のうち、当日ここだけは読んでほしいものに付ける（2026-09-24） */
   h2 .imp{display:inline-block;margin-left:10px;padding:2px 8px;border-radius:2px;vertical-align:middle;
-    font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.1em;
+    font-family:var(--gothic);font-size:10.5px;font-weight:700;letter-spacing:.1em;
     color:var(--sup);border:1px solid rgba(201,162,75,.55)}
   .fold-sum{margin:-6px 0 0;padding-left:20px;font-size:13px;color:var(--faint)}
   h2.fold[aria-expanded="true"] + .fold-sum{display:none}
@@ -1178,10 +1178,27 @@ if (TOKEN) {
     a.href += '&t=' + encodeURIComponent(TOKEN);
   });
 
-  fetch(BASE + '?page=ticket&t=' + encodeURIComponent(TOKEN))
-    .then(function(r){ return r.json(); })
+  /* ★2026-09-24 取得に失敗すると、以前はセクションごと黙って消えていた。
+     一方で本文には「QRコードはこのページのいちばん上にあります」と書いてあるので、
+     お客さんは存在しないものを探すことになる。1回だけ retry し、それでも駄目なら
+     ticket.html と同じ言い方で「名前で入れます」を必ず出す。 */
+  function tkFail_(msg){
+    document.getElementById('tkCard').innerHTML =
+      '<div class="bd" style="padding:18px">' + esc(msg) +
+      '<br>当日は受付でお名前をお伝えいただければ、ご入場いただけます。</div>';
+    document.getElementById('tkSec').style.display = '';
+  }
+  function tkFetch_(retry){
+    return fetch(BASE + '?page=ticket&t=' + encodeURIComponent(TOKEN) + '&_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .catch(function(e){
+        if(retry > 0) return new Promise(function(ok){ setTimeout(ok, 1200); }).then(function(){ return tkFetch_(retry-1); });
+        throw e;
+      });
+  }
+  tkFetch_(1)
     .then(function(d){
-      if (!d || !d.ok) return;
+      if (!d || !d.ok){ tkFail_('この画面ではチケットを表示できませんでした。'); return; }
       var due = d.cashDue
         ? '<p class="due"><b>お支払い前です。</b>当日、受付で現金 ¥'
           + Number(d.amount||0).toLocaleString() + ' をお支払いください。</p>' : '';
@@ -1202,13 +1219,17 @@ if (TOKEN) {
             : '')
         + '  ・<a href="contact.html?t=' + encodeURIComponent(d.token) + '" style="color:var(--main)">お問い合わせはこちら</a>'
         + '</div>';
-      /* QRは端末内で生成（外部サービスに情報を渡さない）。中身はトークン文字列そのもの */
+      /* QRは端末内で生成（外部サービスに情報を渡さない）。中身はトークン文字列そのもの。
+         ★トークンが無いレスポンス（配信チケット等）だと qrcode が例外を投げ、
+           セクションごと消えていた。先に確かめて、名前での入場案内に倒す（2026-09-24） */
+      if(!d.token){ tkFail_('この画面ではQRコードを表示できませんでした。'); return; }
       var qr = qrcode(0, 'M');
       qr.addData(d.token);
       qr.make();
       document.getElementById('pqr').innerHTML = qr.createImgTag(6, 0);
       document.getElementById('tkSec').style.display = '';
     })
+    .catch(function(){ tkFail_('通信が不安定で、チケットを表示できませんでした。'); })
     .catch(function(){ /* 出さないだけ。パンフレットは読める */ });
 }
 </script>
@@ -1245,6 +1266,14 @@ if (TOKEN) {
     }
   }
   addEventListener('hashchange', openFromHash);
+  /* ★2026-09-24 同じ目次を2回目に押すと hashchange が起きず、閉じた見出しへスクロールするだけ
+     （＝押したのに何も出ない）。リンク側でも開く */
+  [].forEach.call(document.querySelectorAll('.toc a'), function(a){
+    a.addEventListener('click', function(){
+      var h = document.getElementById((a.getAttribute('href')||'').replace('#',''));
+      if(h && h.classList.contains('fold')) open_(h, true);
+    });
+  });
   openFromHash();
 })();
 
