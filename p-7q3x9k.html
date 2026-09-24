@@ -909,13 +909,30 @@ function renderCue(d){
 }
 
 /* ============================================================ 読み込み */
-function get(page){
+/* ★開いた直後の1回目だけ、GASがJSONでなくHTML（<!DOCTYPE…）を返すことがある。
+   curl でもページ上の手動fetchでも再現せず、原因は未特定（2026-09-24）。
+   やり直すと通るので、JSONでなければ間を置いて最大3回まで取り直す。
+   返ってきたHTMLの冒頭はコンソールに残す（次に原因を追うため）。 */
+function get(page, tries){
+  tries = tries == null ? 3 : tries;
   return fetch(BASE + '?page=' + page + '&k=' + encodeURIComponent(DASH_SECRET) + '&_=' + Date.now(),
                { cache:'no-store' })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
+    .then(function(r){ return r.text(); })
+    .then(function(t){
+      var d;
+      try { d = JSON.parse(t); }
+      catch(e){
+        console.warn('[firedoc] ' + page + ' がJSONでない応答（残り' + tries + '回）：'
+          + String(t).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,200));
+        throw new Error(page + ' の応答がJSONではありません');
+      }
       if(!d || !d.ok) throw new Error((d && d.error) || page + ' の読み込みに失敗');
       return d;
+    })
+    .catch(function(e){
+      if(tries <= 0) throw e;
+      return new Promise(function(res){ setTimeout(res, 1500); })
+        .then(function(){ return get(page, tries - 1); });
     });
 }
 
