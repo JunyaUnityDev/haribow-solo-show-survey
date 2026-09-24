@@ -666,9 +666,8 @@ function taskBlock(m,text,note,by){
 function msgBlock(m){
   var nm = shown(m);
   return '<div class="msg" data-to="'+esc(m.n)+'" data-nm="'+esc(nm)+'">'+
-    '<p class="msg-h">'+esc(nm)+' さんに、いま伝える</p>'+
-    '<p class="msg-note">書いて「送る」を押すと、'+esc(nm)+' さんのLINEにそのまま届きます。'+
-      '公演中でも、終わってからでも、何度でも送れます。お返事は来ません。</p>'+
+    '<p class="msg-h">'+esc(nm)+' さんにメッセージを送る</p>'+
+    '<p class="msg-note">本人のLINEに届きます。何度でも送れます。返事は来ません。</p>'+
     '<label class="msg-l"><span>お名前</span>'+
       '<input class="msg-from" type="text" maxlength="20" placeholder="例：たろう"></label>'+
     '<label class="msg-l"><span>メッセージ</span>'+
@@ -994,7 +993,7 @@ function bindCard(root){
           send.disabled=false;
           if(res&&res.ok){
             text.value='';
-            st.textContent=box.dataset.nm+' さんに届きました。また送れます。';
+            st.textContent='送りました。';
             st.classList.add('ok');
           }else{
             var e=res&&res.error, msg='送れませんでした。もう一度お試しください。';
