@@ -1739,7 +1739,7 @@ function renderDecisions(decisions){
  *    ② 次に考えること … 決めなくてはならないこと（既存のdecisionBoardが担当）
  *    ③ 次にすること  … 期限超過・今週の期限・止まっている持ち場を1つのリストにする
  *  ★ここに出すのは「動く理由があるもの」だけ。眺めて終わる情報は下の折りたたみへ。 */
-function renderNow(data, orgs, cast){
+function renderNow(data, orgs, cast, bal){
   var b = (data && data.business) || {};
   var f = b.forecast || {}, seats = b.seats || {}, act = b.actual || {};
   var box = document.getElementById('nowStrip');
@@ -1776,6 +1776,25 @@ function renderNow(data, orgs, cast){
            cast?('購入 '+cast.bought+'枚'):'', cast && cast.moved===0);
     /* 2026-09-01 配信を全面中止（決定No.37・ADR-015）。「配信の希望◯人／◯枚ぶん・未販売」の
        タイルを外した。中止後も並んでいると、未回収の売上があるように読める。 */
+  /* 招待席・バルコニー席（2026-09-24 JUNYA指示）。
+     ★招待の案内状況（未案内◯件など）は出さない。見せるのは席の在庫だけ。
+     ★招待席はバルコニー内だけを数える（2階1列36番の予備1席は含まない）。
+     ★バルコニーの「埋まり」＝92席から「招待枠の未割当」を引いた数。カメラ枠（非売）も埋まり側。 */
+  if(bal && bal.count){
+    var bc = bal.count;
+    var invTotal = bc.inv_free + bc.inv_held + bc.inv_fixed;
+    var balTotal = (bal.notes && bal.notes.total) || 92;
+    var extraSold = 0;
+    (bal.rows||[]).forEach(function(r){ (r.seats||[]).forEach(function(x){
+      if(x.use === 'extra' && x.status !== '空' && x.status !== '非売') extraSold++;
+    }); });
+    var balLink = ' <a href="balcony.html" target="_blank" rel="noopener" style="color:inherit;white-space:nowrap">席割り表 →</a>';
+    html += cell('招待席', bc.inv_fixed+'<small>/'+invTotal+' 確定</small>',
+                 '押さえ '+bc.inv_held+'・空き '+bc.inv_free+'（バルコニー内）')
+          + cell('バルコニー席', (balTotal - bc.inv_free)+'<small>/'+balTotal+' 埋まり</small>',
+                 '招待確定 '+bc.inv_fixed+'・押さえ '+bc.inv_held+'・追加席 '+extraSold+'/'+bc.extra
+                 + '・カメラ '+bc.other+balLink);
+  }
   box.innerHTML = html;
 }
 
@@ -1990,6 +2009,11 @@ function load(){
   // 同時に投げる。cast は dashboard の完了を待たない
   var pCast = fetchJson(apiUrl('cast')).catch(function(){ return null; });
   var pOrgs = fetchJson(apiUrl('orgstats')).catch(function(){ return null; });
+  /* 招待席・バルコニーの埋まり（2026-09-24）。balcony.html と同じ ?page=balcony を読む。
+     集計は Balcony.js の getBalconyData_ が座席在庫と招待マスタを突き合わせて出すので、
+     ここでは数え直さない。キャッシュなしなので FRESH は関係ない。 */
+  var pBal = fetchJson(BASE + '?page=balcony&k=' + encodeURIComponent(DASH_SECRET) + '&_=' + Date.now())
+    .catch(function(){ return null; });
   /* 提出状況も一緒に投げる。タブを開いてから読むと、タブの赤い数字（未提出の人数）が
      押すまで出ない。押さない人に気づかせるための数字なので、それでは意味がない */
   loadCastStatus();
@@ -1997,13 +2021,13 @@ function load(){
     renderCastMove(pCast);
     latestData=data;
     /* 1画面目は cast と orgstats が揃ってから描く。どちらか失敗しても残りは出す */
-    Promise.all([pCast, pOrgs]).then(function(res){
-      var c = res[0], o = res[1];
+    Promise.all([pCast, pOrgs, pBal]).then(function(res){
+      var c = res[0], o = res[1], bal = (res[2] && res[2].ok) ? res[2] : null;
       var people = (c && c.people) || [];
       var moved = people.filter(function(p){ return p.sent||p.replied||p.bought; }).length;
       var cs = c ? { moved:moved, people:people.length,
                      bought:(c.totals&&c.totals.bought)||0 } : null;
-      renderNow(data, o, cs);
+      renderNow(data, o, cs, bal);
       renderNext(window.__rows||[], o, people);
     });
     var rows=data.rows.filter(function(r){ return r['プロジェクト名']; });
