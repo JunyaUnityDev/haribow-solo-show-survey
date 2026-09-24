@@ -588,7 +588,12 @@ function devId(){
     var k='oshi.dev', v=localStorage.getItem(k);
     if(!v){ v=Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem(k,v); }
     return v;
-  }catch(e){ return 'nostore'; }
+  }catch(e){
+    /* ★保存できない端末（プライベートブラウズ等）。'nostore' の固定値だと、そういう人たちが
+       全員1つの端末として数えられ、連投制限を互いに踏み合う。画面を開くたびの使い捨てIDにする */
+    if(!window.__devTmp) window.__devTmp = 'tmp-' + Math.random().toString(36).slice(2,12);
+    return window.__devTmp;
+  }
 }
 function postOshi(body){
   body.dev=devId();
@@ -835,7 +840,11 @@ function show(list){
   document.getElementById('intro').classList.add('hide');
   window.scrollTo(0,0);
   bindCard(r);
-  document.getElementById('again').addEventListener('click',function(){ location.reload(); });
+  /* ★2026-09-24 reload だと URL に残った ?p= でまたプロフィールが開く（パンフレットの
+       名前リンクから来た人が全員これに当たる）。クエリを落としてから読み直す */
+  document.getElementById('again').addEventListener('click',function(){
+    location.href = location.pathname + (TK ? '?t=' + encodeURIComponent(TK) : '');
+  });
   document.getElementById('toAll').addEventListener('click',function(){ openIndex(null); });
 }
 
