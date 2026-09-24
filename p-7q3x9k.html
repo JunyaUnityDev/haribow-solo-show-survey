@@ -569,7 +569,9 @@ function renderTG(id, dayKey){
      CSSが無効値として扱って項目が左上へ飛ぶ（実際に起きた） */
   var slot = 5, rows = (range.to - range.from) * 60 / slot;
   g.style.gridTemplateColumns = '46px repeat(' + COLS.length + ',minmax(96px,1fr))';
-  g.style.gridTemplateRows = '22px repeat(' + rows + ',4.4px)';
+  /* 行は時間に比例（4.4px/5分）が基本。ただし中身が入りきらない時だけ伸ばす。
+     固定にすると15分の帯（9/29 会場入りなど）が1行分しかなく、補足が読めなかった（2026-09-24） */
+  g.style.gridTemplateRows = '22px repeat(' + rows + ',minmax(4.4px,auto))';
   var h = '<div class="hd" style="grid-column:1;grid-row:1"></div>';
   COLS.forEach(function(c,i){
     h += '<div class="hd" style="grid-column:'+(i+2)+';grid-row:1">'+esc(c)+'</div>'; });
@@ -627,6 +629,9 @@ function renderTG(id, dayKey){
     var r1 = Math.round((mins(it.s) - range.from*60)/slot) + 2;
     var r2 = Math.round((mins(it.e) - range.from*60)/slot) + 2;
     if(r2 <= r1 + 3) r2 = r1 + 4;                    /* 短い項目でも文字が入る高さを確保 */
+    /* ただし同じ列の次の項目には食い込ませない。9:00-9:15 会場入り → 9:15 各部署準備 で
+       行が重なり文字がかぶっていた（2026-09-24）。足りない高さは行の自動伸長で確保する */
+    if(r2 > it._limRow) r2 = Math.max(r1 + 1, it._limRow);
     var n = it._lanes || 1, k = it._lane || 0;
     var pos = n > 1 ? ';width:' + (100/n) + '%;margin-left:' + (100*k/n) + '%' : '';
     h += '<div class="it ' + esc(it.k) + '" data-r1="' + r1 + '" data-lim="' + it._limRow + '"'
