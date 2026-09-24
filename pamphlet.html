@@ -387,8 +387,11 @@
   .tk .hd .st{font-size:15px;margin:9px 0 0;color:#cfeaf2}
   .tk .qr{background:#fff;padding:20px;text-align:center}
   .tk .qr img{width:200px;height:200px;image-rendering:pixelated;display:inline-block}
-  .tk .bd{padding:15px 18px;font-size:13px;color:var(--dim);line-height:1.95}
-  .tk .bd b{color:var(--ink)}
+  /* ★2026-09-24 ここは受付で詰まらないための注意書きなので、白の太字で出す。
+       灰色の細字だと読み飛ばされる（JUNYA指示） */
+  .tk .bd{padding:15px 18px;font-size:13.5px;color:#fff;font-weight:600;line-height:1.95}
+  .tk .bd b{color:#fff}
+  .tk .bd a{font-weight:600}
   .tk .due{margin:0 0 8px;padding:10px 12px;border-radius:2px;font-size:13.5px;
     background:rgba(201,162,75,.12);border:1px solid rgba(201,162,75,.5);color:var(--sup)}
 
