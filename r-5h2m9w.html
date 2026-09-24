@@ -217,7 +217,7 @@
     <div class="scr-part"><span class="tag">目安</span><b>入場 ／ 予定 ／ 未入場</b><br>「予定」は支払い済みのチケットと団体の人数。<b>ご招待は入っていない。</b>責任者判断で通した人は「入場」にだけ足される。1分ごとと、誰かを通すたびに更新</div>
     <div class="scr-part"><span class="tag">メイン</span><b>カメラ</b>（暗いときは「ライト」ボタン）<br>かざすだけで次々読む。<b>同じQRは10秒間読まない</b>（連続読み防止）。受付中は画面が自動で消えない</div>
     <div class="scr-part"><span class="tag">QRが無い人</span><b>お名前で検索</b><br>名前・ふりがな（ひらがな／カタカナどちらでも）・メールの一部・電話番号の一部・団体名・代表者名で探せる。最大20件。結果の下に、その人に使えるボタンが出る</div>
-    <div class="scr-part"><span class="tag">画面の一番下</span><b>判定の表示</b><br><b>次の人を読むまで消えない。</b>音は緑が高く短い、黄が中くらい、赤が低い。振動は緑が短く1回、黄と赤は2回</div>
+    <div class="scr-part"><span class="tag">画面の一番下</span><b>判定の表示</b><br><b>次の人を読むまで消えない。</b>次の人をかざすと、まず灰色の「照合中…」に変わる。<b>赤（現金・未入金・取消済み）が出たら読み取りが止まり、「次の人へ」を押すまで次のQRを読まない。</b>音は緑が高く短い、黄が中くらい、赤が低い。振動は緑が短く1回、黄と赤は2回</div>
   </div>
 
   <!-- ============ 表示と対応 ============ -->
@@ -225,22 +225,24 @@
   <p class="small"><span class="chip ng">責任者</span> の付いたものは、スタッフが自分で判断しないでください。</p>
   <h3>カメラでQRを読んだとき</h3>
   <div class="rows">
+    <div class="row"><div class="h">灰　照合中…</div>
+      <dl><dt>意味</dt><dd>サーバーに確認している途中</dd><dt>対応</dt><dd><b class="hl">通さない。</b>色が変わるまで待つ。10秒以上続いたら通信が落ちたと見て紙の名簿へ</dd></dl></div>
     <div class="row"><div class="h"><span class="chip ok">緑</span>ご入場ください</div>
-      <dl><dt>意味</dt><dd>支払い済み。入場を記録した</dd><dt>対応</dt><dd>通す。黄色い枠でお渡し物が出ていたら渡す</dd></dl></div>
+      <dl><dt>意味</dt><dd>支払い済み。入場を記録した</dd><dt>対応</dt><dd><b>名前と席を声に出して確かめてから</b>通す。黄色い枠でお渡し物が出ていたら渡す</dd></dl></div>
     <div class="row"><div class="h"><span class="chip warn">黄</span>他にも ◯件 のご注文があります</div>
       <dl><dt>意味</dt><dd>今のQRは入場記録済み。同じ方の別の注文が残っている</dd><dt>対応</dt><dd>もう1枚のQRも読む</dd></dl></div>
     <div class="row"><div class="h"><span class="chip warn">黄</span>入場済みです（◯時◯分に記録）</div>
       <dl><dt>意味</dt><dd>このQRはもう使われている</dd><dt>対応</dt><dd>「取り消して入場にする」は、自分で読み間違えたとわかるときだけ押す。本人が「まだ入っていない」と言うなど、わからなければ責任者へ</dd></dl></div>
     <div class="row boss"><div class="h"><span class="chip ng">赤</span>現金 ¥◯◯ を受け取る <span class="chip ng">責任者</span></div>
-      <dl><dt>意味</dt><dd>当日券で、まだお金を受け取っていない</dd><dt>対応</dt><dd>現金を受け取る → 「現金を受け取った」を押す → 確認を押す → 緑</dd></dl></div>
+      <dl><dt>意味</dt><dd>当日券で、まだお金を受け取っていない</dd><dt>対応</dt><dd>その人を列の横へ出す。現金を受け取る → 「現金を受け取った」を押す → 確認を押す → 緑。<b>読み取りは止まっている</b>ので、後回しにするときは「次の人へ」。ボタンを押したあとにエラーが出ても<b class="hl">現金は返さない</b>（かざし直して緑か黄なら受け取り済み）</dd></dl></div>
     <div class="row boss"><div class="h"><span class="chip ng">赤</span>お支払い未確認 <span class="chip ng">責任者</span></div>
       <dl><dt>意味</dt><dd>振込などが運営側でまだ確認できていない</dd><dt>対応</dt><dd>責任者が「確認できたので入場させる」。支払いは未確定のまま、運営に通知</dd></dl></div>
     <div class="row boss"><div class="h"><span class="chip ng">赤</span>取消済みのご予約です <span class="chip ng">責任者</span></div>
-      <dl><dt>意味</dt><dd>予約が取り消され、席は解放済み</dd><dt>対応</dt><dd>責任者が判断。通す場合は座る場所を現場で決める。運営に通知</dd></dl></div>
+      <dl><dt>意味</dt><dd>予約が取り消され、席は解放済み</dd><dt>対応</dt><dd>責任者が判断。通す場合は座る場所を現場で決める（予備席）。運営に通知。対応が済んだら「次の人へ」</dd></dl></div>
     <div class="row"><div class="h"><span class="chip ng">赤</span>読み取れませんでした</div>
       <dl><dt>意味</dt><dd>該当する予約が無い、または混雑などでサーバーの応答が失敗した</dd><dt>対応</dt><dd>すぐもう一度かざしてよい。続くならお名前検索へ</dd></dl></div>
     <div class="row"><div class="h"><span class="chip ng">赤</span>通信エラー</div>
-      <dl><dt>意味</dt><dd>スマホがネットにつながっていない</dd><dt>対応</dt><dd>電波を確認。戻らなければ紙の名簿で通す（<a href="#s-trouble">困ったとき</a>）</dd></dl></div>
+      <dl><dt>意味</dt><dd>応答が来なかった（25秒で打ち切り）。<b>記録されたかどうかは分からない</b></dd><dt>対応</dt><dd>もう一度かざす。黄の「入場済み」で時刻が今なら、さっきの分で通っている。電波を確認。戻らなければ紙の名簿で通す（<a href="#s-trouble">困ったとき</a>）</dd></dl></div>
     <div class="row"><div class="h"><span class="chip ng">赤</span>このURLでは受付できません／合言葉がありません</div>
       <dl><dt>意味</dt><dd>開いている受付画面のURLが違う</dd><dt>対応</dt><dd>受付責任者から正しいURLを受け取り直す</dd></dl></div>
     <div class="row"><div class="h"><span class="chip ng">赤</span>カメラを起動できません</div>
@@ -257,6 +259,8 @@
       <dl><dt>対応</dt><dd>カメラの赤表示と同じ。責任者が判断して押す</dd></dl></div>
     <div class="row boss"><div class="h">「電子チケットが未発行です」＋「責任者の確認で入場させる」 <span class="chip ng">責任者</span></div>
       <dl><dt>意味</dt><dd>お支払いが確認できず、QR自体がまだ作られていない方</dd><dt>対応</dt><dd><b class="hl">押すと取り消せない。</b>押す前に、注文番号と席をご本人と読み合わせる。支払いは未確定のまま、運営に通知</dd></dl></div>
+    <div class="row"><div class="h">「取消済みのご注文です。この行からは通せません」（ボタンなし）</div>
+      <dl><dt>対応</dt><dd>同じお名前で状態が「済」の行を探す。無ければ責任者へ</dd></dl></div>
     <div class="row"><div class="h">「【ご招待】◯◯」（ボタンなし）</div>
       <dl><dt>対応</dt><dd>紙の名簿に印を付け、席を伝えて通す</dd></dl></div>
     <div class="row"><div class="h">うすく表示された行（◯時◯分 入場済み）</div>
