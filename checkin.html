@@ -50,6 +50,7 @@
   .verdict.ok{background:var(--ok);color:#fff}
   .verdict.warn{background:var(--warn);color:#1a1206}
   .verdict.ng{background:var(--ng);color:#fff}
+  .verdict.checking{background:#3a3f4b;color:#fff}
   .verdict .big{font-size:26px;font-weight:800;line-height:1.25;letter-spacing:.01em}
   .verdict .seat{font-size:19px;font-weight:700;margin-top:2px}
   /* お渡し物（2026-09-03）。席と同じくらい強く出す——ここを読み飛ばされると
@@ -121,6 +122,8 @@
 
   <p class="note">
     ・かざすだけで次の人を読み取れます。結果は次の人を読むまで消えません。<br>
+    ・<b>「照合中…」の間は通さないでください。</b>緑になってから、名前と席を声に出して確かめて通します。<br>
+    ・<b>赤い画面（現金・取消済み・未入金）が出たら、読み取りは止まります。</b>対応が終わったら「次の人へ」を押してください。<br>
     ・同じQRを2回読むと「入場済み」と出ます。二重入場はここで止まります。<br>
     <!-- 分割到着ルール（2026-08-03 JUNYA決定、2026-09-23 団体→2名以上の全注文へ拡大）。
          QRは1注文1枚なので、遅れて来た人がかざしても「入場済み」で弾かれる。
@@ -166,10 +169,19 @@ function saveStaff(){
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
+/* 2026-09-24：25秒で打ち切る。以前は応答が返らないと「照合中」のまま永久に止まり、
+   スタッフには固まったのか待てばいいのか区別が付かなかった。
+   ★打ち切ってもサーバー側では記録が済んでいることがある。だから通信エラーの文言で
+     「かざし直して入場済み＋今の時刻なら通っている」と必ず案内する。 */
+var POST_TIMEOUT_MS=25000;
 function post(survey, extra){
   var body=Object.assign({survey:survey, key:KEY, staff:staffName()}, extra||{});
+  var ac = window.AbortController ? new AbortController() : null;
+  var timer = ac ? setTimeout(function(){ ac.abort(); }, POST_TIMEOUT_MS) : null;
   return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify(body)}).then(function(r){return r.json();});
+    body:JSON.stringify(body), signal: ac ? ac.signal : undefined})
+    .then(function(r){ if(timer) clearTimeout(timer); return r.json(); },
+          function(e){ if(timer) clearTimeout(timer); throw e; });
 }
 
 /* ---- 結果表示（次の人を読むまで消えない） ---- */
@@ -274,9 +286,14 @@ function othersNote(info){
 }
 
 /* ---- チェックイン ---- */
+/* 2026-09-24（QR運用調査 致命①）：照合を始めた瞬間に前の人の結果を消す。
+   以前は結果が返るまで前の人の緑（名前・席）が出たままで、混雑時に
+   「緑だ」と見て次の人を通してしまう状態だった。 */
 function doCheckin(token, fromSearch, force, cash){
   busy=true;
+  var hold=false;   // true＝スタッフが「次の人へ」を押すまで次のQRを読まない
   document.getElementById('reticle').classList.add('busy');
+  showVerdict('checking','照合中…','','この画面が変わるまで通さないでください');
   post('checkin',{token:token, force:!!force, cash:!!cash}).then(function(r){
     var i=r.info||{};
     if(r.ok){
@@ -296,23 +313,30 @@ function doCheckin(token, fromSearch, force, cash){
         i.checkedAt+' に入場記録があります',
         '<button onclick="undo(\''+esc(token)+'\')">取り消して入場にする</button>');
     } else if(r.error==='cash_due'){
+      /* 2026-09-24（致命②）：赤い画面は次の人のスキャンで上書きさせない。
+         以前は1.2秒で読み取りが再開し、現金を受け取る前に次の人をかざすと
+         金額の画面が消えて、未払いのまま入場させてしまえた。 */
+      hold=true;
       feedback('warn');
       showVerdict('ng','現金 ¥'+Number(i.amount||0).toLocaleString()+' を受け取る',
         i.name+' 様　'+(i.seats||'')+'　'+(i.qty||1)+'名',
         'お支払い前です。現金を受け取ってからボタンを押してください',
-        '<button onclick="cashIn(\''+esc(token)+'\','+Number(i.amount||0)+')">現金を受け取った</button>');
+        '<button onclick="cashIn(\''+esc(token)+'\','+Number(i.amount||0)+')">現金を受け取った</button>'+NEXT_BTN);
     } else if(r.error==='voided'){
       // 期限判定と入金の行き違いで取り消された方（特に団体）を、当日その場で救えるようにする。
       // 押すと支払状態は変えずに入場だけ記録し、運営に通知が飛ぶ。
+      hold=true;
       feedback('ng');
       showVerdict('ng','取消済みのご予約です', (i.name?i.name+' 様　'+(i.seats||''):''),
-        '受付責任者が確認できた場合のみ、入場させてください',
-        '<button onclick="forceIn(\''+esc(token)+'\')">確認できたので入場させる</button>');
+        '受付責任者が確認できた場合のみ、入場させてください。'
+        + (i.seats ? '' : 'お席は解除されています。予備席を案内してください'),
+        '<button onclick="forceIn(\''+esc(token)+'\')">確認できたので入場させる</button>'+NEXT_BTN);
     } else if(r.error==='unpaid'){
+      hold=true;
       feedback('ng');
       showVerdict('ng','お支払い未確認', (i.name?i.name+' 様　'+(i.seats||''):''),
         '当日にお振込みされた場合など、確認できていないことがあります',
-        '<button onclick="forceIn(\''+esc(token)+'\')">確認できたので入場させる</button>');
+        '<button onclick="forceIn(\''+esc(token)+'\')">確認できたので入場させる</button>'+NEXT_BTN);
     } else if(r.error==='bad_key'){
       showVerdict('ng','このURLでは受付できません','','正しい受付用URLを開いてください');
     } else {
@@ -325,14 +349,26 @@ function doCheckin(token, fromSearch, force, cash){
   }).catch(function(){
     delete recent[token];   // 通信エラーも同じ。かざし直しをブロックしない
     feedback('ng');
-    showVerdict('ng','通信エラー','','電波をご確認ください。お名前検索も使えます');
+    showVerdict('ng','通信エラー','記録されたか分かりません',
+      'もう一度かざしてください。「入場済み」で時刻が今なら、さっきの分で通っています');
   }).then(function(){
+    if(hold) return;   // 赤い画面はスタッフが「次の人へ」を押すまで残す
     // 少し待ってから次の人を読み始める（結果はそのまま残す）
     setTimeout(function(){
       busy=false;
       document.getElementById('reticle').classList.remove('busy');
     }, fromSearch?0:RESUME_MS);
   });
+}
+
+var NEXT_BTN='<button onclick="nextScan()">次の人へ</button>';
+function releaseScan(){
+  busy=false;
+  document.getElementById('reticle').classList.remove('busy');
+}
+function nextScan(){
+  releaseScan();
+  showIdle('カメラにQRをかざしてください');
 }
 
 function cashIn(token, amount){
@@ -355,6 +391,7 @@ function rowIn(id, kind){
      この経路で通した行はトークンが空なので、押し間違えると受付画面からは戻せない。 */
   if(!confirm('お支払いが未確認のまま入場を記録します。\n\n★この操作は取り消せません。\n注文番号と席を、ご本人と読み合わせてから押してください。\n\n受付責任者の確認は取れていますか？\n（支払状態は変わりません。運営に通知が飛びます）')) return;
   post('checkin_row',{id:id, kind:kind}).then(function(r){
+    releaseScan();   // 赤い画面で止めたまま名前検索から通した場合に、読み取りを戻す
     if(r.ok){
       feedback('ok');
       var i=r.info||{};
@@ -432,6 +469,13 @@ function doLookup(){
          現金未受領の方の行列が受付で完全に止まっていた。
          ★支払状態は変えない。入場時刻とスタッフ名だけ記録し、運営に通知が飛ぶ。
            集金の要否は入金確認コンソール側で後から判断する。 */
+      /* 2026-09-24（致命⑤）：取消済み（無効・キャンセル）でトークンの無い行にはボタンを出さない。
+         以前は状態を見ずに「未入金」扱いで［責任者の確認で入場させる］が出て、
+         席の無い人を通せた（元の席は別の方に売れている可能性がある）。 */
+      else if(!done && !h.token && /無効|キャンセル/.test(String(h.status||''))){
+        btn='<p class="nobtn"><b>取消済みのご注文です。この行からは通せません。</b><br>'
+          + '同じお名前で状態が「済」の行が無いか探してください。無ければ受付責任者へ。</p>';
+      }
       else if(!done && !h.token){
         btn='<p class="nobtn">電子チケットが未発行です。'
           + '<b>お支払いが確認できていない可能性があります。</b><br>'
