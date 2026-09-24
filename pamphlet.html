@@ -225,6 +225,14 @@
   .qa .b .cap{display:block;margin-top:10px;font-size:12px;color:var(--faint)}
   .qa .lk{display:inline-block;margin-top:12px;font-size:13.5px;color:var(--main);
     text-decoration:none;border-bottom:1px solid rgba(99,182,204,.4);padding-bottom:2px}
+  /* ご入場のルール（2026-09-24）。長い文が続くと読まれないので、見出しと中身に分ける */
+  .rules{margin:14px 0 0;display:grid;gap:0}
+  .rules dt{margin:0;padding:12px 0 0;border-top:1px solid var(--line);
+    font-size:13.5px;font-weight:600;color:var(--ink)}
+  .rules dt:first-of-type{padding-top:0;border-top:0}
+  .rules dd{margin:5px 0 12px;font-size:13px;line-height:1.85;color:var(--dim)}
+  .rules dd:last-child{margin-bottom:0}
+  .rules b{color:var(--ink)}
   .voices{display:flex;flex-direction:column;gap:0;margin-top:12px}
   .voices div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
     font-size:13px;color:var(--dim);border-top:1px solid var(--line);padding:9px 0}
@@ -591,14 +599,24 @@
     <div class="qa" style="margin-top:8px">
       <div class="b">
         <p class="t">ご入場について</p>
-        <p><b>QRコードは、ご注文1件につき1枚で全員ぶんです。</b>2枚以上お求めの方も、1枚を読み取れば同時にご入場いただけます。ご一緒の方とそろってお越しいただくのがいちばんスムーズです。</p>
-        <p>別々にお越しになる場合は、受付で<b>ご注文者のお名前と席番号</b>をお伝えください。それでご入場いただけます。団体でお申し込みの方は、代表の方のQRコード1枚で全員ぶんです。</p>
-        <p>別の日に分けてご注文された方は、<b>ご注文ごとにQRコードが分かれています</b>。受付で順にご提示ください。</p>
-        <p class="cap">ご招待の方はQRコードがありません。受付でお名前をお伝えください。</p>
+        <p>受付でQRコードをご提示ください。QRコードは、このページのいちばん上の「あなたのチケット」に出ています。</p>
+        <dl class="rules">
+          <dt>QRコードは1枚で全員ぶん</dt>
+          <dd>2枚以上お求めの方も、1枚を読み取れば同時にご入場いただけます。ご一緒の方とそろってお越しください。</dd>
+          <dt>別々に来られる方</dt>
+          <dd>受付で<b>ご注文者のお名前と席番号</b>をお伝えください。QRコードがなくてもご入場いただけます。</dd>
+          <dt>団体でお申し込みの方</dt>
+          <dd>代表の方のQRコード1枚で全員ぶんです。</dd>
+          <dt>何度かに分けてご注文された方</dt>
+          <dd>ご注文ごとにQRコードが分かれています。受付で順にご提示ください。</dd>
+          <dt>ご招待の方</dt>
+          <dd>QRコードはありません。受付でお名前をお伝えください。</dd>
+        </dl>
       </div>
       <div class="b">
         <p class="t">ホール内の電波について</p>
         <p>客席では電波が届きにくいことがあります。<b>このページと電子チケットは、会場に入る前に一度開いておいてください。</b>一度開けば、電波がなくてもお読みいただけます。</p>
+        <p class="cap">QRコードのスクリーンショットを撮っておくと、より確実です。画面が開けない場合も、受付でお名前をお伝えいただければご入場いただけます。</p>
       </div>
       <div class="b">
         <p class="t">ご一緒の方へのお渡し</p>
