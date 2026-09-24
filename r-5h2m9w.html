@@ -304,12 +304,18 @@
     <rect x="70" y="10" width="270" height="92" rx="6" fill="var(--panel2)" stroke="var(--line)"/>
     <text x="205" y="52" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">1階 客席</text>
     <text x="205" y="70" text-anchor="middle" font-size="10.5" fill="var(--faint)">（舞台はこの上）</text>
+    <rect x="70" y="10" width="14" height="92" fill="rgba(143,183,201,.25)" stroke="var(--link)"/>
+    <rect x="326" y="10" width="14" height="92" fill="rgba(143,183,201,.25)" stroke="var(--link)"/>
+    <text x="90" y="24" font-size="9.5" font-weight="700" fill="var(--link)">LB席</text>
+    <text x="90" y="36" font-size="9" fill="var(--link)">5・6・7扉</text>
+    <text x="320" y="24" text-anchor="end" font-size="9.5" font-weight="700" fill="var(--link)">RB席</text>
+    <text x="320" y="36" text-anchor="end" font-size="9" fill="var(--link)">10・11・12扉</text>
     <!-- クロークと客席扉 -->
     <rect x="160" y="102" width="90" height="22" fill="var(--panel2)" stroke="var(--line)"/>
     <text x="205" y="117" text-anchor="middle" font-size="10.5" fill="var(--sub)">クローク</text>
     <rect x="124" y="98" width="32" height="8" fill="var(--ok)"/><rect x="254" y="98" width="32" height="8" fill="var(--ok)"/>
-    <text x="140" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">客席扉</text>
-    <text x="270" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">客席扉</text>
+    <text x="140" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">8扉</text>
+    <text x="270" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">9扉</text>
     <!-- ホワイエ -->
     <rect x="70" y="124" width="270" height="276" fill="none" stroke="var(--line)" stroke-width="1.5"/>
     <text x="205" y="388" text-anchor="middle" font-size="13" font-weight="700" fill="var(--faint)">ホワイエ</text>
@@ -359,14 +365,28 @@
   </svg>
   <div class="legend"><span>実線＝会場にあるもの</span><span>点線＝案（未決定）</span><span style="color:var(--sup)">→ お客さんの流れ</span></div>
   </div>
+  <!-- 扉は会場公式の客席図（venue/hall_l_seat.pdf・persimmon.or.jp/media/hall_l_seat.pdf）どおり。
+       LBは3区画に分かれていて、区画ごとに扉が1つ。RBは左右対称で番号が逆順。 -->
+  <div class="card" style="margin-top:8px">
+    <b style="font-size:14px">LB・RB席の扉（会場の客席図より）</b>
+    <table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px">
+      <tr style="color:var(--faint);font-size:12px"><td style="padding:4px 0">席番号</td><td>LB席（左）</td><td>RB席（右）</td></tr>
+      <tr style="border-top:1px solid var(--line)"><td style="padding:6px 0">1〜8番（舞台寄り）</td><td><b>5扉</b></td><td><b>12扉</b></td></tr>
+      <tr style="border-top:1px solid var(--line)"><td style="padding:6px 0">9〜16番</td><td><b>6扉</b></td><td><b>11扉</b></td></tr>
+      <tr style="border-top:1px solid var(--line)"><td style="padding:6px 0">17〜24番（後ろ寄り）</td><td><b>7扉</b></td><td><b>10扉</b></td></tr>
+    </table>
+    <p class="muted" style="margin:8px 0 0">1列・2列とも同じ扉。扉は客席の外側（左右の廊下側）にあり、ホワイエ中央の8扉・9扉からは入れない。
+      ★ホワイエから左右の廊下へどう回るかは平面図だけでは確かめきれていないので、<b>リハの日に一度歩いて確かめる</b>（7扉・10扉がいちばん後ろ＝ホワイエに近い）。</p>
+  </div>
   <details><summary>この案の考え方と、決めること</summary><div class="in"><ul class="facts">
     <li><b>受付は入ってすぐ。</b>ホワイエで待つ前にQRを済ませる。列は入口の外（プラザ側）に伸ばす（会場：「ドア前なら人が溜まってもOK」）</li>
     <li><b>招待レーンと当日券の机は、QRの列と分ける。</b>招待は紙の照合、当日券は現金の受け渡しで1人に時間がかかる。同じ列だとQRの人が止まる</li>
     <li>責任者は受付の後ろに立つ（赤が出たらすぐ呼べる位置）</li>
     <li>18:00〜19:00はホワイエで待ってもらい、19:00に客席扉を開ける。2階席は左右の階段から13〜16扉へ</li>
     <li>ベビーカー置き場は壁際（物販の反対側）</li>
-    <li><b>LB・RB席（1階左右のバルコニー）の方も、受付は同じ</b>（ご招待12組25名は招待レーン、購入の3名はQR）。<b>受付のあと、どの扉・階段から席へ行くかが未確認</b>なので、決まるまでは席番号を伝えて場内スタッフに引き継ぐ</li>
-    <li><b>まだ決まっていないこと：</b>机の数と置き場所／当日券の机を分けるか／LB・RB席への行き方（会場に確認）／クロークを使うか</li>
+    <li><b>LB・RB席（1階左右のバルコニー）の方も、受付は同じ</b>（ご招待12組25名は招待レーン、購入の3名はQR）。受付のあと、<b>席番号と扉を伝える</b>（下の表）。紙の名簿の席の欄にも扉が出ている</li>
+    <li><b>1階の後ろの席（前方以外）</b>はクロークの両脇の <b>8扉・9扉</b> から。2階席は左右の階段を上がって <b>13〜16扉</b></li>
+    <li><b>まだ決まっていないこと：</b>机の数と置き場所／当日券の机を分けるか／クロークを使うか／ホワイエから5〜7扉・10〜12扉の廊下までの誘導（下の注意）</li>
   </ul></div></details>
 
   <!-- ============ 持ち場 ============ -->
@@ -453,6 +473,7 @@
     <div class="phase"><div class="ph">受付中</div><ul>
       <li>お名前（団体名・代表者名）を聞き、紙の名簿で探す。受付画面の名前検索でも出る</li>
       <li>見つかったら<b class="hl">紙に丸を付け、席を伝えて通す</b><small>受付画面には入場の記録が残らない。この紙の丸が唯一の記録</small></li>
+      <li>ご招待の多くは<b>LB・RB席</b>。席番号と一緒に<b>扉</b>も伝える（名簿の席の欄に出ている。<a href="#s-map">扉の表</a>）</li>
       <li>来場予定の人数を超えて来た → 責任者へ（追加席は別の注文としてQRを持っている場合がある）</li>
       <li>名簿の本体に無い → 先頭の「未回答のご招待」を見る。押さえている席があれば伝えて通す。無ければ責任者へ<small>検索で出なくても、紙を見るまでは「招待されていない」と判断しない</small></li>
     </ul></div>
