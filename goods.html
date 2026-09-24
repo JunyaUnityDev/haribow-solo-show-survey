@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<script>
+/* ★GAS宛てのfetchはCookieを付けない（2026-09-24）。Googleにログイン中のブラウザだと
+   Cookie付きでGASへ行き「現在、ファイルを開くことができません」(404のHTML)が返り、
+   読み込みも送信も失敗する。curlでは再現しない。個別に credentials を指定した呼び出しはそのまま。 */
+(function(){
+  var f = window.fetch; if(!f) return;
+  window.fetch = function(u, o){
+    var s = typeof u === 'string' ? u : (u && u.url) || '';
+    if(/^https:\/\/script\.google(usercontent)?\.com\//.test(s) && !(o && o.credentials)){
+      o = Object.assign({}, o, { credentials:'omit' });
+    }
+    return f.call(this, u, o);
+  };
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
