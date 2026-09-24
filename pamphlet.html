@@ -165,7 +165,9 @@
      ★カードの高さは文章の量で決まっていたので、短い演目だと写真が90pxの帯になり、
        人の顔がまるごと切れていた。min-height で帯を広げ、文字は下に寄せている。
      ★背景の位置は写真ごとに違う（--fy）。写真を差し替えたら --fy も付け直すこと。 */
-  .act.ph{border-color:rgba(242,239,230,.12);min-height:172px;
+  /* ★2026-09-24 番号と本文が重なっていた（例：07 Roar の「完全新作」バッジに 07 がかぶる）。
+       本文は下寄せなので、短いカードでは番号の位置まで上がってくる。上に番号ぶんの余白を確保する */
+  .act.ph{border-color:rgba(242,239,230,.12);min-height:172px;padding-top:52px;
     display:flex;flex-direction:column;justify-content:flex-end}
   .act.ph .bg{position:absolute;inset:0;background-size:cover;
     background-position:center var(--fy,32%);
@@ -175,11 +177,10 @@
   /* シルクの1枚だけ元の写真が暗すぎて、brightness(.44) だと何も見えない。
      ★他の写真に .dark を付けないこと（明るい写真だと文字が読めなくなる） */
   .act.ph.dark .bg{filter:grayscale(.2) brightness(1) contrast(1.12)}
-  /* ゲスト2組は「どんな人か全く知らないお客さんがほとんど」（2026-09-22 刀祢槙斗）。
-     写真を大きく・明るく出して、顔と雰囲気が分かるようにする */
-  .act.ph.guest{min-height:290px}
-  .act.ph.guest .bg{filter:grayscale(.05) brightness(.72) contrast(1.05)}
-  .act.ph.guest::after{background:linear-gradient(180deg,rgba(7,13,16,.12) 0%,rgba(7,13,16,.55) 52%,rgba(7,13,16,.94) 100%)}
+  /* ゲスト2組（2026-09-22 刀祢槙斗「どんな人か全く知らないお客さんがほとんど」）。
+     ★2026-09-24 JUNYA判断で、カードだけ大きくするのは取りやめ。高さは他と揃え、
+       写真の明るさだけ少し上げて顔が分かるようにする */
+  .act.ph.guest .bg{filter:grayscale(.1) brightness(.6) contrast(1.05)}
   .act.ph .tx{position:relative;z-index:2}
   .act.ph .d{color:#c6cfd3}
   /* 上演順（2026-09-10）。番号は『構成台本』タブから取る。ここには順番を持たない。
@@ -442,7 +443,7 @@
         <p class="d">世界30カ国以上が集う2025 IJRU世界選手権を制した、HARIBOW世界一の演技。</p>
       </div>
     </div>
-    <div class="act ph guest" style="--fy:50%">
+    <div class="act ph guest" style="--fy:38%">
       <div class="bg" style="background-image:url(assets/lineup/cheer-remans.jpg)"></div>
       <div class="tx">
         <span class="badge teal">限定コラボ</span>
@@ -546,7 +547,7 @@
       <!-- サムネ（2026-09-16 作り直し）：動画 1.25秒の「全員でHポーズ」の1コマ＋タイトル。
            字幕が焼き込まれているので、下をグラデで沈めて見出しを載せて隠している。
            ?v= は差し替え時のキャッシュ避け。画像を作り直したら数字を上げる -->
-      <video controls playsinline preload="none" poster="media/welcome-poster.jpg?v=2">
+      <video controls playsinline preload="none" poster="media/welcome-poster.jpg?v=3">
         <source src="media/welcome.mp4" type="video/mp4">
         お使いの環境では動画を再生できません。
       </video>
