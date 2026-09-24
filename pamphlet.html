@@ -155,6 +155,19 @@
     font-family:var(--serif);font-size:14px;color:var(--faint);letter-spacing:.08em}
   .lead{font-size:14.5px;color:var(--dim);margin:0 0 16px}
 
+  /* ---------- 開く／閉じる（2026-09-24 JUNYA「文字が長い。押したら開くように」） ----------
+     対象＝公演情報・ごあいさつ・HARIBOWのこれまで の3章。既定は閉じる。
+     ★見出しそのものを押す。閉じている章には見出しの下に一行だけ要約を出す（何が入っているか分かるように）
+     ★目次やリンクで #c0x に飛んだときは自動で開く（下の JS）。閉じたまま飛ぶと何も無い画面になる */
+  h2.fold{cursor:pointer;-webkit-tap-highlight-color:transparent;padding-right:64px}
+  h2.fold .tg{position:absolute;right:26px;top:.38em;width:13px;height:13px;
+    border-right:1px solid var(--rope);border-bottom:1px solid var(--rope);
+    transform:rotate(45deg);transition:transform .25s ease}
+  h2.fold[aria-expanded="true"] .tg{transform:rotate(-135deg)}
+  .fold-sum{margin:-6px 0 0;padding-left:20px;font-size:13px;color:var(--faint)}
+  h2.fold[aria-expanded="true"] + .fold-sum{display:none}
+  .foldbox[hidden]{display:none}
+
   /* ---------- 演目 ---------- */
   .act{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);
     border-radius:3px;padding:15px 17px;margin-bottom:8px}
@@ -494,7 +507,9 @@
   </section>
 
   <section>
-    <h2 id="c11" data-ch="02">公演情報</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c11-b" id="c11" data-ch="02">公演情報<span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">日時・会場・終演の予定・撮影について</p>
+    <div class="foldbox" id="c11-b" hidden>
     <div class="info-card">
       <dl style="margin:0">
         <dt>日時</dt>
@@ -511,6 +526,7 @@
           <span style="color:var(--faint);font-size:12.5px">フラッシュ・三脚・自撮り棒はご遠慮ください。演者の安全と後ろのお客様の視界のためです。</span></dd>
       </dl>
     </div>
+</div>
   </section>
 
   <!-- ごあいさつ（2026-09-16 差し替え）。2026-07-27の仮文を置き換えたもの。
@@ -519,7 +535,9 @@
        ★「世界一」の主語はチーム。個人には紐づけない（org/profile.md の鉄則）。
        ★「舞台に立つのは31人」とは書かない。ゲストが2組いるので嘘になる。 -->
   <section>
-    <h2 id="c01" data-ch="03">ごあいさつ</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c01-b" id="c01" data-ch="03">ごあいさつ<span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">HARIBOWから、今夜のごあいさつ</p>
+    <div class="foldbox" id="c01-b" hidden>
     <div class="greet">
       <p>本日はお越しいただきありがとうございます。</p>
       <p>HARIBOWは公園や路上での練習から始まったチームです。<br>
@@ -536,6 +554,7 @@
          名前を覚えて帰っていただけたら嬉しいです。</p>
       <p class="sig">HARIBOW 一同</p>
     </div>
+</div>
   </section>
 
   <!-- ウェルカム動画（2026-09-07追加）。実体は media/welcome.mp4（縦1080×1920・66.6秒・字幕入り）。
@@ -620,7 +639,9 @@
   </section>
 
   <section>
-    <h2 id="c08" data-ch="08">HARIBOWのこれまで</h2>
+    <h2 class="fold" role="button" tabindex="0" aria-expanded="false" aria-controls="c08-b" id="c08" data-ch="08">HARIBOWのこれまで<span class="tg" aria-hidden="true"></span></h2>
+    <p class="fold-sum">世界選手権・BGT・シルク・アリーナツアーの実績</p>
+    <div class="foldbox" id="c08-b" hidden>
     <div class="achv">
       <div><b>ダブルダッチ、世界の頂点</b>2025 IJRU世界選手権 優勝（世界30カ国以上が集う舞台で世界一に）</div>
       <div><b>世界のタレントショー</b>Britain's Got Talent で史上初の“観客ゴールデンブザー”、決勝進出。イタリア・スペイン・フランスのタレントショーにも出演</div>
@@ -629,6 +650,7 @@
       <div><b>世界的ビッグイベント</b>NBA アブダビ、約2万人アリーナのハーフタイムショー</div>
       <div><b>欧州7拠点・同時公演（2025）</b>同じ時間に7つの舞台を回した。総勢35名を派遣</div>
     </div>
+</div>
   </section>
 
   <section>
@@ -1075,6 +1097,38 @@ if (TOKEN) {
 /* ---------- スクロールで出てくる（2026-09-16） ----------
    CSS の .rv / .in と対。対象を足したいときは SEL に足すだけでいい。
    ★表紙と当日の帯は対象にしない。開いた瞬間に見えているべきもの */
+/* ---------- 開く／閉じる（2026-09-24 JUNYA「文字が長い。押したら開くように」） ----------
+   対象＝公演情報・ごあいさつ・HARIBOWのこれまで。既定は閉じた状態。
+   ★#c0x で飛んできたときは開く。閉じたまま飛ぶと、見出しだけの画面に着地して「壊れている」ように見える。
+   ★開いた中身はスクロール演出（.rv）の監視に入っていないので、開いた瞬間に .in を付けて出す。 */
+(function(){
+  function open_(h, on){
+    var box = document.getElementById(h.getAttribute('aria-controls'));
+    if(!box) return;
+    h.setAttribute('aria-expanded', on ? 'true' : 'false');
+    box.hidden = !on;
+    if(on) [].forEach.call(box.querySelectorAll('.rv'), function(el){ el.classList.add('in'); });
+  }
+  var heads = [].slice.call(document.querySelectorAll('h2.fold'));
+  heads.forEach(function(h){
+    h.addEventListener('click', function(){ open_(h, h.getAttribute('aria-expanded') !== 'true'); });
+    h.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open_(h, h.getAttribute('aria-expanded') !== 'true'); }
+    });
+  });
+  function openFromHash(){
+    var id = (location.hash || '').replace('#','');
+    if(!id) return;
+    var h = document.getElementById(id);
+    if(h && h.classList.contains('fold')){
+      open_(h, true);
+      setTimeout(function(){ h.scrollIntoView({block:'start'}); }, 0);
+    }
+  }
+  addEventListener('hashchange', openFromHash);
+  openFromHash();
+})();
+
 (function(){
   if(!('IntersectionObserver' in window)) return;
   try{ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
