@@ -311,25 +311,27 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 .idx-hd .found b{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--main)}
 .idx-note{margin:-4px 0 14px;font-size:12px;line-height:1.75;color:var(--faint)}
 
-/* ---- この人へメッセージを送る（2026-09-24）。本人のLINEに直接届く ---- */
-.msg .msg-open{margin-top:4px;height:44px;padding:0 20px;border-radius:22px;
-  border:1px solid rgba(99,182,204,.55);background:transparent;color:var(--main);
-  font-size:14px;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.msg .msg-open[aria-expanded="true"]{opacity:.5}
-.msg-form{margin-top:14px}
-.msg-note{margin:0 0 12px;font-size:12px;line-height:1.8;color:var(--faint)}
-.msg-l{display:block;margin:0 0 10px;font-size:12px;color:var(--dim)}
-.msg-l input,.msg-l textarea{display:block;width:100%;margin-top:6px;padding:11px 12px;
-  border:1px solid var(--line2);border-radius:3px;background:rgba(255,255,255,.03);
-  color:var(--ink);font-size:15px;font-family:inherit;line-height:1.7;box-sizing:border-box}
-.msg-l textarea{resize:vertical}
-.msg-foot{display:flex;align-items:center;gap:12px;margin-top:6px}
-.msg-st{flex:1;font-size:12px;color:var(--faint)}
+/* ---- この人へメッセージを送る（2026-09-24。2026-09-24 夜に折りたたみをやめた） ----
+   ★畳まない。畳むと「そういう機能がある」ことに気づかれない。開いた入力欄そのものが案内になる */
+.msg{margin:26px 0 0;padding:20px 18px;border:1px solid rgba(99,182,204,.45);border-radius:3px;
+  background:rgba(99,182,204,.06)}
+.msg-h{margin:0 0 8px;font-family:var(--mincho);font-weight:600;font-size:18px;color:var(--ink)}
+.msg-note{margin:0 0 16px;font-size:12.5px;line-height:1.85;color:var(--dim)}
+.msg-l{display:block;margin:0 0 12px}
+.msg-l span{display:block;margin:0 0 6px;font-size:12px;letter-spacing:.06em;color:var(--main)}
+.msg-l input,.msg-l textarea{display:block;width:100%;padding:12px 13px;
+  border:1px solid var(--line2);border-radius:3px;background:rgba(7,13,16,.55);
+  color:var(--ink);font-size:16px;font-family:inherit;line-height:1.7;box-sizing:border-box}
+.msg-l textarea{resize:vertical;min-height:96px}
+.msg-l input::placeholder,.msg-l textarea::placeholder{color:rgba(242,239,230,.28)}
+.msg-send{display:block;width:100%;height:50px;margin-top:4px;border-radius:25px;
+  border:1px solid var(--main);background:var(--main);color:#06222b;
+  font-size:15px;font-family:inherit;font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.msg-send[disabled]{opacity:.45;cursor:default}
+.msg-st{margin:12px 0 0;font-size:13px;line-height:1.7;color:var(--faint);min-height:1em}
 .msg-st.ok{color:var(--main)}
 .msg-st.ng{color:#e0a3a3}
-.msg-send{height:44px;padding:0 22px;border-radius:22px;border:1px solid var(--main);
-  background:var(--main);color:#06222b;font-size:14px;font-family:inherit;cursor:pointer}
-.msg-send[disabled]{opacity:.45;cursor:default}
 .idx-hd .x{margin-left:auto;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line2);
   background:none;color:var(--dim);font-size:13px;cursor:pointer}
 /* 一覧のタイル（2026-09-16 JUNYA案 A＋B）
@@ -663,19 +665,17 @@ function taskBlock(m,text,note,by){
    ------------------------------------------------------------------ */
 function msgBlock(m){
   var nm = shown(m);
-  return '<div class="sec msg" data-to="'+esc(m.n)+'" data-nm="'+esc(nm)+'">'+
-    '<span class="lb">'+esc(nm)+' さんへ</span>'+
-    '<button type="button" class="msg-open">メッセージを送る</button>'+
-    '<div class="msg-form" hidden>'+
-      '<p class="msg-note">本人のLINEにそのまま届きます。今でも、終わってからでも、何度でも送れます。'+
-        '返信は来ません。</p>'+
-      '<label class="msg-l">お名前（相手に表示されます）'+
-        '<input class="msg-from" type="text" maxlength="20" placeholder="例：たろう"></label>'+
-      '<label class="msg-l">メッセージ'+
-        '<textarea class="msg-text" rows="4" maxlength="200" placeholder="今日いちばん良かったところ、伝えたいこと"></textarea></label>'+
-      '<div class="msg-foot"><span class="msg-st"></span>'+
-        '<button type="button" class="msg-send">送る</button></div>'+
-    '</div></div>';
+  return '<div class="msg" data-to="'+esc(m.n)+'" data-nm="'+esc(nm)+'">'+
+    '<p class="msg-h">'+esc(nm)+' さんに、いま伝える</p>'+
+    '<p class="msg-note">書いて「送る」を押すと、'+esc(nm)+' さんのLINEにそのまま届きます。'+
+      '公演中でも、終わってからでも、何度でも送れます。お返事は来ません。</p>'+
+    '<label class="msg-l"><span>お名前</span>'+
+      '<input class="msg-from" type="text" maxlength="20" placeholder="例：たろう"></label>'+
+    '<label class="msg-l"><span>メッセージ</span>'+
+      '<textarea class="msg-text" rows="4" maxlength="200" placeholder="例：'+esc(nm)+'さんのソロ、鳥肌立ちました"></textarea></label>'+
+    '<button type="button" class="msg-send">'+esc(nm)+' さんに送る</button>'+
+    '<p class="msg-st"></p>'+
+  '</div>';
 }
 
 function mottoBlock(m){
@@ -978,18 +978,10 @@ function bindCard(root){
   /* メッセージを送る（2026-09-24）。宛先は data-to（本名＝データのキー）。
      送信後もフォームは開いたままにする。「何度でも送れる」ことを画面で示すため */
   root.querySelectorAll('.msg').forEach(function(box){
-    var open=box.querySelector('.msg-open'), form=box.querySelector('.msg-form');
     var from=box.querySelector('.msg-from'), text=box.querySelector('.msg-text');
     var send=box.querySelector('.msg-send'), st=box.querySelector('.msg-st');
-    open.setAttribute('aria-expanded','false');
-    open.addEventListener('click',function(){
-      var on=form.hidden;
-      form.hidden=!on; open.setAttribute('aria-expanded',on?'true':'false');
-      if(on){
-        try{ var last=localStorage.getItem('oshi.from'); if(last&&!from.value) from.value=last; }catch(e){}
-        from.focus();
-      }
-    });
+    /* 一度書いた名前は次の人にも出す（32人ぶん毎回打たせない） */
+    try{ var last=localStorage.getItem('oshi.from'); if(last) from.value=last; }catch(e){}
     send.addEventListener('click',function(){
       var f=from.value.trim(), t2=text.value.trim();
       st.className='msg-st';
