@@ -595,10 +595,18 @@ function devId(){
     return window.__devTmp;
   }
 }
-function postOshi(body){
+function postOshi(body,retry){
   body.dev=devId();
   return fetch(OSHI_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-                         body:JSON.stringify(body)}).then(function(r){ return r.json(); });
+                         body:JSON.stringify(body)}).then(function(r){ return r.json(); })
+    .catch(function(e){
+      /* ★GASのエンドポイントは、たまにJSONでないもの（HTMLのエラーページ）を返す。
+         「見つけた」は同じ端末×同じ人で1行を書き換える作りなので、送り直しても二重にならない。
+         メッセージは二重に届きうるので、ここでは再送しない（呼び出し側で retry を渡さない） */
+      if(retry > 0) return new Promise(function(ok){ setTimeout(ok,1500); })
+        .then(function(){ return postOshi(body, retry-1); });
+      throw e;
+    });
 }
 
 /* ------------------------------------------------------------------
@@ -999,7 +1007,7 @@ function bindCard(root){
       /* 集計用。返事は待たない。失敗しても画面は変えない（押した事実は端末に残っている） */
       var card=t.closest('.card'), nmEl=card&&card.querySelector('.msg');
       postOshi({survey:'oshi_found', id:t.dataset.key,
-                name:nmEl?nmEl.dataset.to:'', on:on}).catch(function(){});
+                name:nmEl?nmEl.dataset.to:'', on:on}, 2).catch(function(){});
     });
   });
   /* メッセージを送る（2026-09-24）。宛先は data-to（本名＝データのキー）。
