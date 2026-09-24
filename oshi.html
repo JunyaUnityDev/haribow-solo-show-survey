@@ -309,6 +309,7 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 .idx-hd h2{margin:0;font-family:var(--mincho);font-weight:600;font-size:18px;letter-spacing:.04em}
 .idx-hd .found{font-size:12px;color:var(--faint)}
 .idx-hd .found b{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--main)}
+.idx-note{margin:-4px 0 14px;font-size:12px;line-height:1.75;color:var(--faint)}
 .idx-hd .x{margin-left:auto;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line2);
   background:none;color:var(--dim);font-size:13px;cursor:pointer}
 /* 一覧のタイル（2026-09-16 JUNYA案 A＋B）
@@ -609,8 +610,9 @@ function taskBlock(m,text,note,by){
     '<span class="lb">'+lb+'</span>'+
     '<p class="say">'+esc(text)+'</p>'+
     (note?'<span class="note">'+esc(note)+'</span>':'')+
-    '<span class="how">舞台でこれが出たら、下の「見つけた」を押してください。押した印はこの端末に残り、'+
-      '一覧にいくつ見つけたかが出ます。</span>'+
+    '<span class="how">公演中、舞台でこれが出たら下の「見つけた」を押します。押すとボタンの色が変わります。'+
+      'もう一度押せば取り消せます。印はこの端末の中だけに残り（誰にも送られません）、'+
+      '「'+ORDER.length+'人の一覧」に見つけた数が出ます。何人見つけても構いません。</span>'+
     '<div class="foot"><span class="src">見つけられたら、'+esc(nm)+' さんはきっと喜びます</span>'+
     '<button type="button" class="stamp" aria-pressed="'+(done?'true':'false')+'"><span class="ring">'+CHECK+'</span>見つけた</button></div>'+
   '</div>';
@@ -722,7 +724,8 @@ function selfBlock(m){
 function show(list){
   var h='<span class="ey">Your Three</span>'+
     '<h1>この3人を、<br>見てください。</h1>'+
-    '<p class="lead">覚えるのは名前だけで大丈夫です。<br><b>「今日これを探す」は、見つけたら押してください。</b></p>'+
+    '<p class="lead">覚えるのは名前だけで大丈夫です。<br>'+
+      '<b>3人それぞれに「癖」が1つ書いてあります。公演中に舞台でそれが出たら、「見つけた」を押してください。</b></p>'+
     '<hr class="rope2" style="margin-bottom:30px">';
   list.forEach(function(o,i){ h+=card(o,i); });
 
@@ -849,7 +852,11 @@ function openIndex(cur){
   var found=ORDER.filter(function(n){ return isFound(BY[n].id); }).length;
   var h='<div class="idx-in"><div class="idx-hd"><h2>出演者 '+ORDER.length+'人</h2>'+
     (found?'<span class="found">見つけた <b>'+found+'</b></span>':'')+
-    '<button type="button" class="x" id="idxX">閉じる</button></div><div class="grid">';
+    '<button type="button" class="x" id="idxX">閉じる</button></div>'+
+    /* ★0人のときだけ出す。何のチェックなのかが分からないまま一覧に来る人がいるため（2026-09-24） */
+    (found?'':'<p class="idx-note">名前を押すとプロフィールが開きます。'+
+      '公演中にその人の癖を見つけたら「見つけた」を押すと、ここに印が付きます。</p>')+
+    '<div class="grid">';
   ORDER.forEach(function(n){
     var m=BY[n], nm=shown(m), a=m.a||{};
     h+='<button type="button" class="tile'+(a.p?'':' none')+(n===cur?' cur':'')+'" data-n="'+esc(n)+'">'+
