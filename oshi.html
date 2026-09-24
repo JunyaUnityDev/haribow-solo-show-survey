@@ -677,13 +677,15 @@ function taskBlock(m,text,note,by){
 /* ------------------------------------------------------------------
    この人へメッセージを送る（2026-09-24）
    本人のLINEに直接届く。何度でも送れる。
+   ★お客さんの画面には「LINE」と書かない（2026-09-24 JUNYA）。どこへ届くかは内部の話で、
+     お客さんに必要なのは「本人に届く」という事実だけ。
    ★宛先は本名（データのキー）だが、画面にはプレイヤーネームしか出さない
    ------------------------------------------------------------------ */
 function msgBlock(m){
   var nm = shown(m);
   return '<div class="msg" data-to="'+esc(m.n)+'" data-nm="'+esc(nm)+'">'+
     '<p class="msg-h">'+esc(nm)+' さんにメッセージを送る</p>'+
-    '<p class="msg-note">本人のLINEに届きます。皆様からのメッセージが力になります！</p>'+
+    '<p class="msg-note">本人に届きます。皆様からのメッセージが力になります！</p>'+
     '<p class="msg-sub">公演前でも公演後でも、いつでも何度でも送れます！　返事は来ません。</p>'+
     '<label class="msg-l"><span>お名前</span>'+
       '<input class="msg-from" type="text" maxlength="20" placeholder="例：たろう"></label>'+
