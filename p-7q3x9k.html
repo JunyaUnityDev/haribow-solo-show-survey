@@ -810,7 +810,7 @@ function calcCue(d){
   out.push({lane:perf, s:CALC['開演'], e:CALC['終演'], t:'本 番',
             sub:'開演〜終演（カーテンコールを含む）', k:'show', _auto:true});
   out.push({lane:ops, s:CALC['終演'], e:leave, t:'客出し → 撤去・搬出',
-            sub:'会場利用時間により' + leave + 'まで／残りは翌日', k:'tmp', _auto:true});
+            sub:leave + ' 完全撤収（退館）／撤去しきれない分は翌日9/30', k:'fix', _auto:true});
   D.days['9/29'] = out;
 }
 
