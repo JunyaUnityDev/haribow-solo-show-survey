@@ -316,7 +316,8 @@ select{width:100%;margin-top:10px;background:var(--panel);color:var(--ink);borde
 .msg{margin:26px 0 0;padding:20px 18px;border:1px solid rgba(99,182,204,.45);border-radius:3px;
   background:rgba(99,182,204,.06)}
 .msg-h{margin:0 0 8px;font-family:var(--mincho);font-weight:600;font-size:18px;color:var(--ink)}
-.msg-note{margin:0 0 16px;font-size:12.5px;line-height:1.85;color:var(--dim)}
+.msg-note{margin:0 0 4px;font-size:13.5px;line-height:1.8;color:var(--ink)}
+.msg-sub{margin:0 0 16px;font-size:12px;line-height:1.8;color:var(--faint)}
 .msg-l{display:block;margin:0 0 12px}
 .msg-l span{display:block;margin:0 0 6px;font-size:12px;letter-spacing:.06em;color:var(--main)}
 .msg-l input,.msg-l textarea{display:block;width:100%;padding:12px 13px;
@@ -667,7 +668,8 @@ function msgBlock(m){
   var nm = shown(m);
   return '<div class="msg" data-to="'+esc(m.n)+'" data-nm="'+esc(nm)+'">'+
     '<p class="msg-h">'+esc(nm)+' さんにメッセージを送る</p>'+
-    '<p class="msg-note">本人のLINEに届きます。何度でも送れます。返事は来ません。</p>'+
+    '<p class="msg-note">本人のLINEに届きます。皆様からのメッセージが力になります！</p>'+
+    '<p class="msg-sub">何度でも送れます。返事は来ません。</p>'+
     '<label class="msg-l"><span>お名前</span>'+
       '<input class="msg-from" type="text" maxlength="20" placeholder="例：たろう"></label>'+
     '<label class="msg-l"><span>メッセージ</span>'+
@@ -993,7 +995,7 @@ function bindCard(root){
           send.disabled=false;
           if(res&&res.ok){
             text.value='';
-            st.textContent='送りました。';
+            st.textContent='送りました。ありがとうございます！';
             st.classList.add('ok');
           }else{
             var e=res&&res.error, msg='送れませんでした。もう一度お試しください。';
