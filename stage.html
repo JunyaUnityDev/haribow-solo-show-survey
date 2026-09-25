@@ -303,10 +303,12 @@ function ttBlock(title){
   }
   return null;
 }
-/* その行に自分が関係するか：'me'＝自分が出る演目、'all'＝全員、''＝関係なし */
+/* その行に自分が関係するか：'me'＝自分が出る演目、'all'＝全員、''＝関係なし
+   ★備考の「全員○」「全員揃う」は**その演目のメンバー全員**の意味。出演者全員ではない
+     （9/29「Roar 全員○」で、Roarに出ない人にまで全員と出ていた）。全員扱いはランスルーリハだけ */
 function ttMark(r){
   if(/演者なし/.test(r.note)) return '';
-  if(/全員/.test(r.note) || /ランスルー/.test(r.title)) return 'all';
+  if(/ランスルーリハ/.test(r.title)) return 'all';
   var b=ttBlock(r.title);
   return (b && castOf(b).indexOf(ME)>=0) ? 'me' : '';
 }
