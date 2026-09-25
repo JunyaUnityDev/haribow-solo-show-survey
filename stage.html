@@ -123,6 +123,27 @@
   }
   .note{font-size:12px;color:var(--dim);margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
   .err{color:var(--out);font-weight:700}
+  /* 入り時間・リハの時間割（2026-09-25）。表は既存の table のスマホ畳みに巻き込まれるので div で組む */
+  .arrive{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:16px}
+  .arrive h2{font-size:14px;margin:0 0 8px}
+  .arrive .day{padding:9px 0;border-top:1px solid var(--line)}
+  .arrive .day:first-of-type{border-top:0;padding-top:0}
+  .arrive .dl{font-size:12px;color:var(--dim)}
+  .arrive .at{font-size:20px;font-weight:700;letter-spacing:.02em;color:var(--in)}
+  .arrive .at.none{font-size:14px;color:var(--dim);font-weight:400}
+  .arrive .sub{font-size:12px;color:var(--dim)}
+  .arrive .mine{font-size:12px;margin-top:4px}
+  .arrive .mine b{color:var(--ink)}
+  details.tt{margin:8px 0 0}
+  details.tt summary{cursor:pointer;font-size:12px;color:var(--dim)}
+  .ttr{display:grid;grid-template-columns:3.4em 1fr;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
+  .ttr .tm{font-weight:700}
+  .ttr .k{font-size:10px;letter-spacing:.06em;color:var(--dim);margin-right:6px}
+  .ttr .nt{font-size:11px;color:var(--dim)}
+  .ttr.me .tm,.ttr.me .ti{color:var(--in)}
+  .ttr .tag{display:inline-block;font-size:10px;font-weight:700;border:1px solid var(--in);color:var(--in);
+       border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:1px}
+  .ttr .tag.all{border-color:var(--dim);color:var(--dim)}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -158,7 +179,8 @@
     <b>「まだ決まっていません」</b>＝運営がこれから決めます。<b>「チームで決めてOK」</b>＝その演目のチームで決めて構いません。
     <b>「—」</b>で始まるものは、そもそも出入りが無いところです。<br>
     袖のどこから、までは決めていません。<b>細部は当日リハーサル（9/29 10:00〜、ランスルー 15:00〜17:00）で決めます。</b><br>
-    このページは『出ハケ』シートと構成台本をそのまま読んでいます。順番や尺が変わると自動で変わります。
+    このページは『出ハケ』シートと構成台本をそのまま読んでいます。順番や尺が変わると自動で変わります。<br>
+    入り時間とリハーサルの時間割は、運営のタイムテーブル（9/28・9/29）をそのまま読んでいます。
   </p>
 </div>
 
@@ -263,6 +285,75 @@ function ioHtml(label, cls, r){
   return '<span class="'+cls+'"><em class="val">'+md(v)+'</em></span>';
 }
 
+/* ============================================================
+ *  前日リハーサル・当日の入り時間（2026-09-25）
+ *  データは D.tt（GASが『Go BEYOND 2026 TIMETABLE』の TT_9/28・TT_9/29 と演者スケジュールを読む）。
+ *  時間割の行が自分の演目かどうかは、行の名前と構成台本のブロック名の頭で突き合わせる。
+ * ============================================================ */
+function nz(s){ return String(s||'').replace(/[\s　]/g,'').toLowerCase(); }
+var TT_ALIAS={ 'ddcj':'DOUBLE DUTCH CONTEST JAPAN 2023', 'airfootworks':'AIR FOOTWORKS' };
+function ttBlock(title){
+  var t=nz(title); if(!t || /^映像|^mc/.test(t)) return null;
+  for(var k in TT_ALIAS){ if(t.indexOf(k)===0){ t=nz(TT_ALIAS[k]); break; } }
+  var p=D.program||[];
+  for(var i=0;i<p.length;i++){
+    var b=nz(p[i].name), n=Math.min(4, b.length, t.length), j=0;
+    while(j<b.length && j<t.length && b[j]===t[j]) j++;
+    if(j>=n && n>=2) return p[i].name;
+  }
+  return null;
+}
+/* その行に自分が関係するか：'me'＝自分が出る演目、'all'＝全員、''＝関係なし */
+function ttMark(r){
+  if(/演者なし/.test(r.note)) return '';
+  if(/全員/.test(r.note) || /ランスルー/.test(r.title)) return 'all';
+  var b=ttBlock(r.title);
+  return (b && castOf(b).indexOf(ME)>=0) ? 'me' : '';
+}
+function ttRowsHtml(rows, withMark){
+  return rows.map(function(r){
+    var mk = withMark ? ttMark(r) : '';
+    return '<div class="ttr'+(mk==='me'?' me':'')+'"><div class="tm">'+esc(r.t)+'</div><div>'+
+      '<span class="k">'+esc(r.kind)+'</span><span class="ti">'+esc(r.title)+'</span>'+
+      (mk==='me'?'<span class="tag">自分</span>':mk==='all'?'<span class="tag all">全員</span>':'')+
+      (r.note?'<div class="nt">'+esc(r.note)+'</div>':'')+'</div></div>';
+  }).join('');
+}
+function arriveHtml(){
+  var tt=D.tt; if(!tt || !tt.ok || !(tt.days||[]).length) return '';
+  var out=['<div class="arrive"><h2>入り時間とリハーサル</h2>'];
+  tt.days.forEach(function(day){
+    var a=day.arrivals && day.arrivals[ME];
+    var av=(tt.avail && tt.avail[ME] && tt.avail[ME][day.date]) || '';
+    var line;
+    if(a) line='<div class="at">'+esc(a.t)+' 入り</div>'+(a.memo?'<div class="sub">'+esc(a.memo)+'</div>':'');
+    else if(av==='×') line='<div class="at none">この日は来ない予定です</div>';
+    else line='<div class="at none">入り時間はまだ決まっていません'+
+      (av?'（参加できる時間：'+esc(av)+'）':'')+'</div>';
+    var mine=(day.rows||[]).filter(function(r){ return ttMark(r)==='me'; });
+    var alls=(day.rows||[]).filter(function(r){ return ttMark(r)==='all'; });
+    var ls=[];
+    if(mine.length) ls.push('自分が出るリハ：<b>'+mine.map(function(r){return esc(r.t)+' '+esc(r.title);}).join('</b>／<b>')+'</b>');
+    if(alls.length) ls.push('全員：'+alls.map(function(r){return esc(r.t)+' '+esc(r.title);}).join('／'));
+    out.push('<div class="day"><div class="dl">'+esc(day.label)+'</div>'+line+
+      (ls.length?'<div class="mine">'+ls.join('<br>')+'</div>':'')+
+      '<details class="tt"><summary>この日の時間割を全部見る</summary>'+ttRowsHtml(day.rows||[], true)+'</details></div>');
+  });
+  out.push('</div>');
+  return out.join('');
+}
+/* 全体タブ用：時間割と入り時間表をそのまま */
+function arriveAllHtml(){
+  var tt=D.tt; if(!tt || !tt.ok || !(tt.days||[]).length) return '';
+  return tt.days.map(function(day){
+    return '<div class="arrive"><h2>'+esc(day.label)+'</h2>'+ttRowsHtml(day.rows||[], false)+
+      '<div style="margin-top:10px;font-size:12px;font-weight:700">入り時間</div>'+
+      (day.arrivalList||[]).map(function(a){
+        return '<div class="ttr"><div class="tm">'+esc(a.t)+'</div><div>'+esc(a.who)+
+          (a.memo?'<div class="nt">'+esc(a.memo)+'</div>':'')+'</div></div>'; }).join('')+'</div>';
+  }).join('');
+}
+
 function renderNames(){
   var box=el('names'); box.innerHTML='';
   (D.members||[]).forEach(function(n){
@@ -292,6 +383,7 @@ function renderMine(){
   out.push('<p class="me"><b>'+esc(dn(ME))+'</b><a href="javascript:reset()">別の人を選ぶ</a></p>');
   var mine=[];
   for(var i=0;i<p.length;i++){ if(castOf(p[i].name).indexOf(ME)>=0) mine.push(i); }
+  out.push(arriveHtml());
   out.push('<p class="sum">出番は <b>'+mine.length+'</b> 回（全'+p.length+'ブロック中）</p>');
   out.push('<div class="stagemap"><div class="st">舞 台</div>'+
     '<div>下手（しもて）<br>客席から見て左</div><div>中央</div><div>上手（かみて）<br>客席から見て右</div>'+
@@ -377,7 +469,7 @@ function renderAll(){
       '<td data-l="入り">'+(m["in"]?md(m["in"]):dash)+'</td><td data-l="ハケ">'+(m.out?md(m.out):dash)+'</td>'+
       '<td data-l="物の置き場所">'+(m.props?md(m.props):dash)+'</td></tr>');
   }
-  el('viewAll').innerHTML=seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
+  el('viewAll').innerHTML=arriveAllHtml()+seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
     '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+
     rows.join('')+'</tbody></table>';
 }
