@@ -367,7 +367,9 @@
       <label style="margin-top:14px;display:block">お支払い方法</label>
       <div class="paymethods">
         <button type="button" class="pm gm" onclick="gMethod('square',this)">カード決済（Square）</button>
-        <button type="button" class="pm gm" onclick="gMethod('bank',this)">銀行振込</button>
+        <!-- 2026-09-26 団体の再開放（9/27まで・支払期限9/28）はカード決済のみ。振込の受付は9/26夜まで残っているが、
+             9/28の着金を本番前日に照合する余裕がないため団体タブでは出さない（decisions/DEADLINES.md）。 -->
+        <button type="button" class="pm gm" style="display:none" onclick="gMethod('bank',this)">銀行振込</button>
       </div>
       <p id="gMethodNote" style="font-size:11.5px;color:var(--dim);margin:8px 0 0;line-height:1.7;display:none"></p>
       <!-- 振込人名義は必須。団体名と振込名義がまず一致しないため、これが無いと
