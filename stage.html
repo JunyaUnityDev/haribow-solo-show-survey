@@ -19,7 +19,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>舞台の出ハケ｜Go BEYOND</title>
+<title>当日の動き｜Go BEYOND</title>
 <style>
   :root{
     --bg:#f4f1ec; --panel:#fffdfa; --line:#ddd6cb; --ink:#2e2a24; --dim:#7d7466;
@@ -144,6 +144,39 @@
   .ttr .tag{display:inline-block;font-size:10px;font-weight:700;border:1px solid var(--in);color:var(--in);
        border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:1px}
   .ttr .tag.all{border-color:var(--dim);color:var(--dim)}
+  /* v2（演者スタッフシート・2026-09-26）：スタッフ／役割／持ち物 */
+  .names h3{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.06em;width:100%;margin:8px 0 0}
+  .names h3:first-child{margin-top:0}
+  .names button small{font-size:10px;color:var(--in);margin-left:4px}
+  .badge{display:inline-block;font-size:11px;font-weight:700;border:1px solid var(--line);color:var(--dim);
+       border-radius:6px;padding:0 7px;vertical-align:3px}
+  .role{font-size:13px;margin:0 0 12px}
+  .kit{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:16px}
+  .kit h2{font-size:14px;margin:0 0 6px}
+  .kit label{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:start;padding:6px 0;
+       border-top:1px solid var(--line);font-size:14px;cursor:pointer}
+  .kit label:first-of-type{border-top:0}
+  .kit input{width:18px;height:18px;margin:3px 0 0}
+  .kit .src{display:block;font-size:11px;color:var(--dim)}
+  .kit input:checked + span{color:var(--dim);text-decoration:line-through}
+  .acts{margin-top:9px;display:grid;gap:6px}
+  .act{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:baseline;font-size:13px;
+       padding:7px 10px;border-radius:8px;border:1px solid var(--line)}
+  .act .ty{font-size:10px;font-weight:700;letter-spacing:.04em;border-radius:5px;padding:1px 6px;
+       background:var(--bg);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+  .act .ty.t-役割{color:var(--in);border-color:var(--in)}
+  .act .ty.t-スタッフ作業{color:var(--accent);border-color:var(--accent)}
+  .act .it{font-size:12px;margin-top:2px}
+  .act .nt{font-size:11px;color:var(--dim);margin-top:2px}
+  .card.staff{border-style:dashed}
+  .card.staff .meta{color:var(--accent)}
+  details.desc{margin-top:8px;font-size:12px;color:var(--dim)}
+  details.desc summary{cursor:pointer}
+  details.desc div{margin-top:4px;color:var(--ink)}
+  .todo-list{background:var(--panel);border:1px solid var(--warn);border-radius:12px;padding:14px 15px;margin-bottom:16px}
+  .todo-list h2{font-size:14px;margin:0 0 6px;color:var(--warn)}
+  .todo-list .ttr .tm{font-weight:700;font-size:12px}
+  .note a{color:var(--ink)}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -157,7 +190,7 @@
     </div>
   </header>
 
-  <h1>舞台の出ハケ</h1>
+  <h1>当日の動き・持ち物</h1>
   <p class="lead">2026年9月29日（火）めぐろパーシモンホール 大ホール／開演19:30<br>
     <span id="upd"></span></p>
 
@@ -167,7 +200,7 @@
   <div id="viewMe" hidden>
     <div class="pick" id="pickBox">
       <label for="q">名前を選ぶ</label>
-      <input type="search" id="q" placeholder="名前の一部を入れる（例：まほろ）" autocomplete="off">
+      <input type="search" id="q" placeholder="名前の一部を入れる（例：まほろ・やまだい）" autocomplete="off">
       <div class="names" id="names"></div>
     </div>
     <div id="mine" hidden></div>
@@ -179,7 +212,7 @@
     <b>「まだ決まっていません」</b>＝運営がこれから決めます。<b>「チームで決めてOK」</b>＝その演目のチームで決めて構いません。
     <b>「—」</b>で始まるものは、そもそも出入りが無いところです。<br>
     袖のどこから、までは決めていません。<b>細部は当日リハーサル（9/29 10:00〜、ランスルー 15:00〜17:00）で決めます。</b><br>
-    このページは『出ハケ』シートと構成台本をそのまま読んでいます。順番や尺が変わると自動で変わります。<br>
+    <span id="srcNote">このページは『出ハケ』シートと構成台本をそのまま読んでいます。</span>順番や尺が変わると自動で変わります。<br>
     入り時間とリハーサルの時間割は、運営のタイムテーブル（9/28・9/29）をそのまま読んでいます。
   </p>
 </div>
@@ -203,8 +236,15 @@ function mdBlock(s){
 
 try{ ME = qs.get('name') || localStorage.getItem('hbw_stage_me') || ''; }catch(e){ ME = qs.get('name')||''; }
 
-fetch(BASE+'?page=stagemove').then(function(r){return r.json();}).then(function(d){
+/* v2＝『GoBEYOND 演者スタッフシート』を読む版（2026-09-26）。GAS側が未デプロイ・失敗なら従来の出ハケ（v1）で出す */
+function getJson(page){ return fetch(BASE+'?page='+page).then(function(r){return r.json();}); }
+getJson('stagemove2').then(function(d){ if(d && d.ok && d.v2) return d; throw new Error('no v2'); })
+.catch(function(){ return getJson('stagemove'); })
+.then(function(d){
   if(!d || !d.ok) throw new Error('bad');
+  if(d.v2){
+    el('srcNote').innerHTML='このページは『<a href="'+esc(d.sheetUrl)+'" target="_blank" rel="noopener">GoBEYOND 演者スタッフシート</a>』と構成台本をそのまま読んでいます。<b>直したい時はシートを直してください</b>（ページを開き直すと変わります）。';
+  }
   D=d; el('loading').hidden=true; el('upd').textContent='最終更新 '+(d.updatedAt||'');
   renderNames(); setTab(TAB); if(ME) pick(ME);
 }).catch(function(){
@@ -356,18 +396,28 @@ function arriveAllHtml(){
   }).join('');
 }
 
+function kindOf(n){ return (D.people && D.people[n] && D.people[n].kind) || '演者'; }
 function renderNames(){
   var box=el('names'); box.innerHTML='';
-  (D.members||[]).forEach(function(n){
-    var b=document.createElement('button'); b.type='button'; b.textContent=dn(n);
-    b.dataset.nick=n;
-    b.onclick=function(){ pick(n); };
-    box.appendChild(b);
+  var groups = D.v2 ? [['演者', function(n){ return /演者/.test(kindOf(n)); }],
+                       ['スタッフ', function(n){ return !/演者/.test(kindOf(n)); }]]
+                    : [['', function(){ return true; }]];
+  groups.forEach(function(g){
+    var list=(D.members||[]).filter(g[1]); if(!list.length) return;
+    if(g[0]){ var h=document.createElement('h3'); h.textContent=g[0]; box.appendChild(h); }
+    list.forEach(function(n){
+      var b=document.createElement('button'); b.type='button'; b.textContent=dn(n);
+      if(kindOf(n)==='演者＋スタッフ'){ var sm=document.createElement('small'); sm.textContent='スタッフも'; b.appendChild(sm); }
+      b.dataset.nick=n;
+      var pe=D.people && D.people[n]; b.dataset.yobi=(pe && pe.yobi)||'';
+      b.onclick=function(){ pick(n); };
+      box.appendChild(b);
+    });
   });
   el('q').addEventListener('input', function(){
     var v=this.value.trim();
-    Array.prototype.forEach.call(box.children, function(b){
-      b.hidden = v && b.textContent.indexOf(v)<0 && (b.dataset.nick||'').indexOf(v)<0;
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){
+      b.hidden = v && b.textContent.indexOf(v)<0 && (b.dataset.nick||'').indexOf(v)<0 && (b.dataset.yobi||'').indexOf(v)<0;
     });
   });
 }
@@ -377,26 +427,100 @@ function pick(n){
   el('pickBox').hidden=true; renderMine();
 }
 function reset(){ el('pickBox').hidden=false; el('mine').hidden=true; el('q').value='';
-  Array.prototype.forEach.call(el('names').children,function(b){b.hidden=false;}); }
+  Array.prototype.forEach.call(el('names').querySelectorAll('button'),function(b){b.hidden=false;}); }
+
+/* ============================================================
+ *  v2：演者スタッフシートの『動き』（D.acts）。1行＝1人の動き1つ。
+ *  入り・ハケ（個人）は GAS 側で perPerson にも入っていて、従来の「入り／ハケ」欄に出る。
+ *  それ以外（役割・スタッフ作業・着替え・待機・持ち物・その他）はカードの下に並べる。
+ * ============================================================ */
+function actsOf(k){ return (D.acts && D.acts[k]) || []; }
+function isIoOwn(a){ return a.day==='本番' && !a.group && (a.type==='入り'||a.type==='ハケ'); }
+var TYPE_ORDER=['役割','待機','スタッフ作業','着替え','持ち物','入り','ハケ','その他'];
+function byType(x,y){ return TYPE_ORDER.indexOf(x.type)-TYPE_ORDER.indexOf(y.type); }
+function changeHtml(a){
+  var rest=(a.what||'').replace(/^このあと早着替え/,'');
+  return '<div class="quick">⚠ <b>この演目のあと、'+esc(a.where||'（場所未定）')+'で早着替え</b>'+md(rest)+
+    (a.items? '<br><b>'+esc(a.items)+'を'+esc(a.where||'そこ')+'に持って行く</b>':'')+
+    (a.memo? '<br>'+md(a.memo):'')+'</div>';
+}
+function actHtml(a, showWhen){
+  if(a.type==='着替え' && !showWhen) return changeHtml(a);
+  return '<div class="act"><span class="ty t-'+esc(a.type||'その他')+'">'+esc(a.type||'その他')+'</span><div>'+
+    (showWhen && a.when? '<b>'+esc(a.when)+'</b>　':'')+
+    (a.where? '<b>'+esc(a.where)+'</b>　':'')+md(a.what||'')+
+    (a.items? '<div class="it">持ち物：'+md(a.items)+'</div>':'')+
+    (a.memo? '<div class="nt">'+mdBlock(a.memo)+'</div>':'')+
+    (a.group? '<div class="nt">（'+esc(a.group)+'向け）</div>':'')+'</div></div>';
+}
+/* 持ち物：『人』の持ち物＋『動き』の持ち物欄。チェックはこの端末にだけ残る（無くても表示は壊れない） */
+function kitHtml(){
+  var list=[], pe=D.people && D.people[ME];
+  if(pe && pe.items) pe.items.split(/[、,，\n／]+/).forEach(function(x){ x=x.trim(); if(x) list.push({t:x, src:'いつも'}); });
+  actsOf(ME).forEach(function(a){
+    if(!a.items) return;
+    list.push({t:a.items, src:(a.day==='本番'?'':a.day+' ')+(a.when||'')+(a.type==='着替え'?'のあと着替え':a.type?'（'+a.type+'）':'')});
+  });
+  if(!list.length) return '';
+  var saved={}; try{ saved=JSON.parse(localStorage.getItem('hbw_kit_'+ME)||'{}'); }catch(e){}
+  return '<div class="kit"><h2>持ち物（'+list.length+'）</h2>'+list.map(function(x){
+    var k=x.t+'|'+x.src;
+    return '<label><input type="checkbox" data-k="'+esc(k)+'"'+(saved[k]?' checked':'')+' onchange="kitSave(this)">'+
+      '<span>'+md(x.t)+(x.src?'<span class="src">'+esc(x.src)+'</span>':'')+'</span></label>';
+  }).join('')+'</div>';
+}
+function kitSave(cb){
+  try{ var o=JSON.parse(localStorage.getItem('hbw_kit_'+ME)||'{}');
+       if(cb.checked) o[cb.dataset.k]=1; else delete o[cb.dataset.k];
+       localStorage.setItem('hbw_kit_'+ME, JSON.stringify(o)); }catch(e){}
+}
+/* リハーサルでの自分の動き（日＝9/28リハ・9/29リハ の行） */
+function rehHtml(){
+  var days={}, order=[];
+  actsOf(ME).forEach(function(a){ if(a.day==='本番') return;
+    if(!days[a.day]){ days[a.day]=[]; order.push(a.day); } days[a.day].push(a); });
+  if(!order.length) return '';
+  order.sort();
+  return '<div class="arrive"><h2>リハーサルでの自分の動き</h2>'+order.map(function(d){
+    return '<div class="day"><div class="dl">'+esc(d)+'</div><div class="acts">'+
+      days[d].map(function(a){ return actHtml(a,true); }).join('')+'</div></div>';
+  }).join('')+'</div>';
+}
 
 function renderMine(){
   var host=el('mine'); host.hidden=false;
   var p=D.program, out=[];
-  out.push('<p class="me"><b>'+esc(dn(ME))+'</b><a href="javascript:reset()">別の人を選ぶ</a></p>');
-  var mine=[];
-  for(var i=0;i<p.length;i++){ if(castOf(p[i].name).indexOf(ME)>=0) mine.push(i); }
+  var pe=D.people && D.people[ME];
+  out.push('<p class="me"><b>'+esc(dn(ME))+'</b>'+(D.v2 && pe? '<span class="badge">'+esc(pe.kind)+'</span>':'')+
+    '<a href="javascript:reset()">別の人を選ぶ</a></p>');
+  if(pe && pe.role) out.push('<p class="role">役割：<b>'+md(pe.role)+'</b></p>');
+  var acts=actsOf(ME);
+  var onBlock=function(name){ return acts.filter(function(a){ return a.day==='本番' && a.when===name; }); };
+  var mine=[], nCast=0, nStaff=0;
+  for(var i=0;i<p.length;i++){
+    var cast=castOf(p[i].name).indexOf(ME)>=0;
+    if(cast){ mine.push(i); nCast++; }
+    else if(onBlock(p[i].name).length){ mine.push(i); nStaff++; }
+  }
+  var blockNames=p.map(function(b){ return b.name; });
+  var loose=acts.filter(function(a){ return a.day==='本番' && blockNames.indexOf(a.when)<0; });
+  out.push(kitHtml());
   out.push(arriveHtml());
-  out.push('<p class="sum">出番は <b>'+mine.length+'</b> 回（全'+p.length+'ブロック中）</p>');
-  out.push('<div class="stagemap"><div class="st">舞 台</div>'+
+  out.push(rehHtml());
+  out.push('<p class="sum">'+(nCast? '出番は <b>'+nCast+'</b> 回（全'+p.length+'ブロック中）':'演目への出番はありません')+
+    (nStaff? '／演目以外の担当 <b>'+nStaff+'</b> か所':'')+'</p>');
+  if(nCast) out.push('<div class="stagemap"><div class="st">舞 台</div>'+
     '<div>下手（しもて）<br>客席から見て左</div><div>中央</div><div>上手（かみて）<br>客席から見て右</div>'+
     '<div class="kyaku">客 席（扉 A・B＝下手側／C・D＝上手側）</div></div>');
-  if(!mine.length){ out.push('<div class="card">この公演での出番はありません。</div>'); host.innerHTML=out.join(''); return; }
+  if(!mine.length && !loose.length){
+    out.push('<div class="card">本番中の動きはまだ書かれていません。</div>'); host.innerHTML=out.join(''); return;
+  }
 
   var prevIdx=null, usesSeat=false;
   mine.forEach(function(i){
     var b=p[i], f=flow(i), m=mv(b.name);
-    var isStay = f.stay.indexOf(ME)>=0;
-    var goesOn = (i<p.length-1) && castOf(p[i+1].name).indexOf(ME)>=0;   // 次のブロックにも出る
+    var isCast = f.cur.indexOf(ME)>=0;
+    var mineHere = onBlock(b.name);
     /* 出番が飛んでいる時だけ「この間は出番なし」。
        隣り合うブロックで出していたので「20:36〜20:36」のような空の帯が出ていた（2026-09-20 修正） */
     if(prevIdx!==null && i>prevIdx+1){
@@ -408,6 +532,18 @@ function renderMine(){
       out.push('<details class="gap"><summary>出番なし　'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+
         '（'+between.length+'本）</summary>'+between.join('')+'</details>');
     }
+    prevIdx=i;
+    var desc = m.desc? '<details class="desc"><summary>どんな演目？</summary><div>'+md(m.desc)+'</div></details>':'';
+
+    /* 演目に出ない人（スタッフ作業・MC等）：入り／ハケ欄は出さず、動きだけ */
+    if(!isCast){
+      out.push('<div class="card staff"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
+        '<span class="bn">'+esc(b.name)+'</span></div><div class="meta">この演目では出演しない／やること</div>'+
+        '<div class="acts">'+mineHere.sort(byType).map(function(a){ return actHtml(a); }).join('')+'</div>'+desc+'</div>');
+      return;
+    }
+    var isStay = f.stay.indexOf(ME)>=0;
+    var goesOn = (i<p.length-1) && castOf(p[i+1].name).indexOf(ME)>=0;   // 次のブロックにも出る
     /* 入りもハケも必ず出す。「次のブロックにも出るから」とハケを隠すと、
        袖が変わる人（例：DDCJ2023で下手へハケて、Cirqueに下手から入り直す）の動きが消える */
     var entry = ioFor(ME,b.name,'in'), exit = ioFor(ME,b.name,'out');
@@ -428,16 +564,18 @@ function renderMine(){
       notes.push('このあと間を置かず「'+esc(p[i+1].name)+'」に続けて出ます（転換'+
         Math.round(b.trans*60)+'秒）。');
     }
-    /* いつ・どこに集合するか。入りの場所から出す（舞台に居続ける人には出さない）。
-       「出番の時刻」だけ分かっても動けない——1つ前が始まったら持ち場へ、が実際の動き方 */
-    /* 早着替え（C部）。**その演目のあと**に着替える人へ、赤で警告を出す */
-    var qc = (D.quick && D.quick[ME] || []).filter(function(q){
-      return b.name===q.block || b.name.slice(0,q.block.length)===q.block; });
-    var qcHtml = qc.map(function(q){
+    /* 早着替え。v2は『動き』の種類＝着替え、v1は『出ハケ』C部。**その演目のあと**に着替える人へ赤で警告 */
+    var qcHtml = D.v2 ? '' : (D.quick && D.quick[ME] || []).filter(function(q){
+      return b.name===q.block || b.name.slice(0,q.block.length)===q.block; }).map(function(q){
       return '<div class="quick">⚠ <b>この演目のあと、'+esc(q.place||'（場所未定）')+'で早着替え</b>'+
         (q.span? '（'+esc(q.span)+'）':'')+
         (q.costume? '<br><b>'+esc(q.costume)+'を'+esc(q.place||'そこ')+'に持って行く必要あり</b>':'')+
         (q.memo? '<br>'+md(q.memo):'')+'</div>'; }).join('');
+    var extra = mineHere.filter(function(a){ return !isIoOwn(a); }).sort(byType);
+    var changes = extra.filter(function(a){ return a.type==='着替え'; }).map(function(a){ return changeHtml(a); }).join('');
+    var others = extra.filter(function(a){ return a.type!=='着替え'; });
+    /* いつ・どこに集合するか。入りの場所から出す（舞台に居続ける人には出さない）。
+       「出番の時刻」だけ分かっても動けない——1つ前が始まったら持ち場へ、が実際の動き方 */
     var stand = standbyOf(entry.v);
     var cue = i>=2 ? p[i-2] : (i===1 ? p[0] : null);   // 2つ前まで（頭は開演前）
     var standHtml = (stand && !isStay)
@@ -448,18 +586,38 @@ function renderMine(){
       '<span class="bn">'+esc(b.name)+'</span></div>'+
       '<div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div>'+
       '<div class="io">'+io.join('')+'</div>'+
-      qcHtml+standHtml+
+      (others.length? '<div class="acts">'+others.map(function(a){ return actHtml(a); }).join('')+'</div>':'')+
+      qcHtml+changes+standHtml+
       (notes.length? '<div class="props">'+notes.join('<br>')+'</div>':'')+
+      (m.costume? '<div class="props">衣装<br>'+mdBlock(m.costume)+'</div>':'')+
       (m.props? '<div class="props">舞台で動かすもの<br>'+mdBlock(m.props)+'</div>':'')+
-      '</div>');
+      desc+'</div>');
     if(/客席\s*[A-D]/.test(entry.v||'')) usesSeat=true;
-    prevIdx=i;
   });
+  if(loose.length) out.push('<div class="card staff"><div class="bn">そのほかの動き（本番）</div>'+
+    '<div class="acts">'+loose.sort(byType).map(function(a){ return actHtml(a,true); }).join('')+'</div></div>');
   /* 客席から出る人にだけ図を出す（舞台袖だけの人には関係ない） */
   if(usesSeat) out.push(seatMapHtml());
   host.innerHTML=out.join('');
 }
 
+/* 担当が決まっていない作業（『動き』で名前が空の行）。ここが空になるまで当日は回らない */
+function unassignedHtml(){
+  var u=D.unassigned||[]; if(!u.length) return '';
+  return '<div class="todo-list"><h2>担当が決まっていない作業（'+u.length+'件）</h2>'+
+    u.map(function(a){ return '<div class="ttr"><div class="tm">'+esc(a.day==='本番'?'':a.day)+'</div><div>'+
+      '<b>'+esc(a.when)+'</b>'+(a.where?'　'+esc(a.where):'')+'<div>'+md(a.what)+'</div>'+
+      (a.memo?'<div class="nt">'+md(a.memo)+'</div>':'')+'</div></div>'; }).join('')+
+    (D.sheetUrl?'<p style="font-size:12px;margin:8px 0 0">決まったら <a href="'+esc(D.sheetUrl)+'" target="_blank" rel="noopener">シートの『動き』</a> で名前を入れる</p>':'')+'</div>';
+}
+function staffListHtml(){
+  if(!D.people) return '';
+  var list=(D.members||[]).filter(function(n){ return /スタッフ/.test(kindOf(n)); });
+  if(!list.length) return '';
+  return '<div class="arrive"><h2>スタッフ（'+list.length+'名）</h2>'+list.map(function(n){
+    var pe=D.people[n]; return '<div class="ttr" style="grid-template-columns:6.5em 1fr"><div class="tm" style="font-size:12px">'+esc(dn(n))+'</div><div>'+
+      (pe.role? md(pe.role):'<i class="todo" style="color:var(--dim)">役割まだ</i>')+'</div></div>'; }).join('')+'</div>';
+}
 function renderAll(){
   var p=D.program, rows=[];
   for(var i=0;i<p.length;i++){
@@ -471,7 +629,7 @@ function renderAll(){
       '<td data-l="入り">'+(m["in"]?md(m["in"]):dash)+'</td><td data-l="ハケ">'+(m.out?md(m.out):dash)+'</td>'+
       '<td data-l="物の置き場所">'+(m.props?md(m.props):dash)+'</td></tr>');
   }
-  el('viewAll').innerHTML=arriveAllHtml()+seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
+  el('viewAll').innerHTML=unassignedHtml()+staffListHtml()+arriveAllHtml()+seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
     '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+
     rows.join('')+'</tbody></table>';
 }
