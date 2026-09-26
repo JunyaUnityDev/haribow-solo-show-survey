@@ -459,20 +459,33 @@ function actHtml(a, showWhen){
     (a.memo? '<div class="nt">'+mdBlock(a.memo)+'</div>':'')+
     (a.group? '<div class="nt">（'+esc(a.group)+'向け）</div>':'')+'</div></div>';
 }
-/* 持ち物：『人』の持ち物＋『動き』の持ち物欄。チェックはこの端末にだけ残る（無くても表示は壊れない） */
+/* 持ち物：『人』の持ち物＋『動き』の持ち物欄＋出る演目の衣装（『演目』H列）。すべてシートから。
+   「A／B」は別々の物として分け、同じ物は1つにまとめて「何で使うか」を並べる（2026-09-27 JUNYA：ジャージが2回出ていた）。
+   チェックはこの端末にだけ残る（無くても表示は壊れない） */
 function kitHtml(){
-  var list=[], pe=D.people && D.people[ME];
-  if(pe && pe.items) pe.items.split(/[、,，\n／]+/).forEach(function(x){ x=x.trim(); if(x) list.push({t:x, src:'いつも'}); });
+  var map={}, order=[], pe=D.people && D.people[ME];
+  function push(txt, src){
+    String(txt||'').split(/[、,，\n／]+/).forEach(function(t){
+      t=t.trim(); if(!t) return;
+      if(!map[t]){ map[t]=[]; order.push(t); }
+      if(src && map[t].indexOf(src)<0) map[t].push(src);
+    });
+  }
+  if(pe && pe.items) push(pe.items, '');
+  (D.program||[]).forEach(function(b){
+    var m=D.moves && D.moves[b.name];
+    if(m && m.kit && castOf(b.name).indexOf(ME)>=0) push(m.kit, b.name);
+  });
   actsOf(ME).forEach(function(a){
     if(!a.items) return;
-    list.push({t:a.items, src:(a.day==='本番'?'':a.day+' ')+(a.when||'')+(a.type==='着替え'?'のあと着替え':a.type?'（'+a.type+'）':'')});
+    push(a.items, (a.day==='本番'?'':a.day+' ')+(a.when||'')+(a.type==='着替え'?'のあと着替え':''));
   });
-  if(!list.length) return '';
+  if(!order.length) return '';
   var saved={}; try{ saved=JSON.parse(localStorage.getItem('hbw_kit_'+ME)||'{}'); }catch(e){}
-  return '<div class="kit"><h2>持ち物（'+list.length+'）</h2>'+list.map(function(x){
-    var k=x.t+'|'+x.src;
-    return '<label><input type="checkbox" data-k="'+esc(k)+'"'+(saved[k]?' checked':'')+' onchange="kitSave(this)">'+
-      '<span>'+md(x.t)+(x.src?'<span class="src">'+esc(x.src)+'</span>':'')+'</span></label>';
+  return '<div class="kit"><h2>持ち物（'+order.length+'）</h2>'+order.map(function(t){
+    var src=map[t].filter(Boolean).join('・');
+    return '<label><input type="checkbox" data-k="'+esc(t)+'"'+(saved[t]?' checked':'')+' onchange="kitSave(this)">'+
+      '<span>'+md(t)+(src?'<span class="src">'+esc(src)+'</span>':'')+'</span></label>';
   }).join('')+'</div>';
 }
 function kitSave(cb){
