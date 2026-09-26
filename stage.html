@@ -306,6 +306,9 @@ function seatMapHtml(){
 /* 入りの書き方から「どこに集合するか」を出す。舞台に居続ける人には集合場所が無い */
 function standbyOf(v){
   v = v||'';
+  /* アンコールの登場場所（2026-09-26 松澤竜介のLINE）。花道・客席ドアは袖ではないのでそのまま出す */
+  var h = v.match(/(客席ドア|花道)\s*([上下]手)/);
+  if(h) return h[1]==='客席ドア' ? '客席ドア（'+h[2]+'）の外' : h[2]+'側の花道';
   var m = v.match(/客席\s*([A-D])/);
   if(m) return '客席 '+m[1]+ ' の扉の外';
   if(/舞台上|続き|そのまま|登場しない/.test(v)) return '';
@@ -436,12 +439,15 @@ function reset(){ el('pickBox').hidden=false; el('mine').hidden=true; el('q').va
  * ============================================================ */
 function actsOf(k){ return (D.acts && D.acts[k]) || []; }
 function isIoOwn(a){ return a.day==='本番' && !a.group && (a.type==='入り'||a.type==='ハケ'); }
-var TYPE_ORDER=['役割','待機','スタッフ作業','着替え','持ち物','入り','ハケ','その他'];
+var TYPE_ORDER=['集合','役割','待機','スタッフ作業','着替え','持ち物','入り','ハケ','その他'];
 function byType(x,y){ return TYPE_ORDER.indexOf(x.type)-TYPE_ORDER.indexOf(y.type); }
 function changeHtml(a){
-  var rest=(a.what||'').replace(/^このあと早着替え/,'');
-  return '<div class="quick">⚠ <b>この演目のあと、'+esc(a.where||'（場所未定）')+'で早着替え</b>'+md(rest)+
-    (a.items? '<br><b>'+esc(a.items)+'を'+esc(a.where||'そこ')+'に持って行く</b>':'')+
+  var rest=(a.what||'').replace(/^このあと早着替え/,'').replace(/^（([\s\S]*)）$/,'$1');
+  /* 場所が「◯◯が決める」「未定」のときは「〜で着替え」「〜に持って行く」の文にしない（2026-09-26） */
+  var fixed = a.where && !/決め|未定|裁量/.test(a.where);
+  return '<div class="quick">⚠ <b>この演目のあと、'+(fixed? esc(a.where)+'で早着替え':'早着替え')+'</b>'+(rest?'（'+md(rest)+'）':'')+
+    (!fixed && a.where? '<br>場所：'+esc(a.where):'')+
+    (a.items? '<br><b>'+esc(a.items)+'を'+(fixed? esc(a.where)+'に':'')+'持って行く</b>':'')+
     (a.memo? '<br>'+md(a.memo):'')+'</div>';
 }
 function actHtml(a, showWhen){
@@ -481,7 +487,9 @@ function rehHtml(){
     if(!days[a.day]){ days[a.day]=[]; order.push(a.day); } days[a.day].push(a); });
   if(!order.length) return '';
   order.sort();
+  function tm(w){ var m=String(w||'').match(/^(\d{1,2}):(\d{2})/); return m? m[1]*60+ +m[2] : -1; }  // 時刻なし（全員向けの注意）を先に
   return '<div class="arrive"><h2>リハーサルでの自分の動き</h2>'+order.map(function(d){
+    days[d].sort(function(x,y){ return tm(x.when)-tm(y.when); });
     return '<div class="day"><div class="dl">'+esc(d)+'</div><div class="acts">'+
       days[d].map(function(a){ return actHtml(a,true); }).join('')+'</div></div>';
   }).join('')+'</div>';
