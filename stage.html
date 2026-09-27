@@ -233,6 +233,25 @@
   table.kbt thead .me{background:var(--warn)}
   .legend{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;margin:8px 0}
   .legend span{padding:1px 7px;border-radius:5px;color:#2e2a24}
+  /* 本番も一覧にそろえる（2026-09-27） */
+  .tl.show .row.block .ti{font-size:16px}
+  .tl.show .row.block .io{margin-top:6px}
+  .tl.show .row.move .t{color:var(--in)}
+  .tl.show .row.move .ti{font-weight:400;color:var(--in)}
+  .tl.show .row.staff .ti{color:var(--accent)}
+  .tl .tag{display:inline-block;font-size:10px;font-weight:700;border:1px solid var(--line);color:var(--dim);border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:2px}
+  details.gaprow{padding:6px 0;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
+  details.gaprow summary{cursor:pointer}
+  details.gaprow .btw{padding-left:14px}
+  details.figs{margin:0 0 12px;font-size:13px}
+  details.figs summary{cursor:pointer;color:var(--dim)}
+  .next{background:var(--panel);border:2px solid var(--in);border-radius:12px;padding:10px 14px;margin:0 0 10px;font-size:15px}
+  .next .k{font-size:11px;color:var(--dim);margin-right:8px}
+  .next b{font-size:18px;color:var(--in);margin-right:4px}
+  .chips.jump{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;margin:0 0 8px}
+  .chips.jump a{padding:6px 12px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);font-size:12px;text-decoration:none}
+  section{scroll-margin-top:52px}
+  h2.sec{font-size:15px;margin:18px 0 8px}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -613,9 +632,14 @@ function blockImgHtml(name){
     '<figcaption style="font-size:11px;color:var(--dim);margin-top:4px">'+esc(g.cap)+'（押すと大きく見られます）</figcaption></figure>';
 }
 
-/* 本番 */
+/* 本番（2026-09-27 作り直し）：リハの日と同じ「時刻｜やること」の一覧。
+   移動（◯◯が始まったら △△へ）も1行として時刻の順に並べる。演目の中身は行の中、補足は「くわしく」。 */
+function tlRow(t, t2, cls, title, body){
+  return '<div class="row'+(cls?' '+cls:'')+'"><div class="t">'+esc(t||'')+(t2?'<small>〜'+esc(t2)+'</small>':'')+'</div><div>'+
+    (title?'<div class="ti">'+title+'</div>':'')+(body||'')+'</div></div>';
+}
 function showHtml(){
-  var p=D.program, out=[], acts=actsOf(ME);
+  var p=D.program, out=[], acts=actsOf(ME), rows=[];
   var onBlock=function(name){ return acts.filter(function(a){ return a.day==='本番' && a.when===name; }); };
   var mine=[], nCast=0;
   for(var i=0;i<p.length;i++){
@@ -627,27 +651,24 @@ function showHtml(){
   var pre=loose.filter(function(a){ return /開場|開演前/.test(a.when); }), post=loose.filter(function(a){ return /終演/.test(a.when); });
   loose=loose.filter(function(a){ return pre.indexOf(a)<0 && post.indexOf(a)<0; });
   out.push('<p class="sum">'+(nCast? '出番 <b>'+nCast+'</b> 回':'演目への出番はありません')+'　開演 19:30</p>');
-  if(pre.length) out.push('<div class="card staff"><div class="top"><span class="time">開場〜19:30</span><span class="bn">開演まで</span></div>'+
-    '<div class="acts">'+pre.map(function(a){ return actHtml(a); }).join('')+'</div></div>');
   if(!mine.length && !loose.length && !post.length && !pre.length){ out.push('<div class="empty">本番中の動きはまだ書かれていません。</div>'); return out.join(''); }
-  if(nCast) out.push('<div class="stagemap"><div class="st">舞 台</div>'+
-    '<div>下手（しもて）<br>客席から見て左</div><div>中央</div><div>上手（かみて）<br>客席から見て右</div>'+
-    '<div class="kyaku">客 席（扉 A・B＝下手側／C・D＝上手側）</div></div>');
-  var prevIdx=null, usesSeat=false;
+
+  if(pre.length) rows.push(tlRow('開場', '19:30', 'job', '開演まで', '<div class="acts">'+pre.map(function(a){ return actHtml(a); }).join('')+'</div>'));
+  var prevIdx=null, usesSeat=false, usesSide=false;
   mine.forEach(function(i){
     var b=p[i], f=flow(i), m=mv(b.name), isCast=f.cur.indexOf(ME)>=0, here=onBlock(b.name);
     if(prevIdx!==null && i>prevIdx+1){
       var between=[]; for(var j=prevIdx+1;j<i;j++) between.push('<div class="btw">'+esc(p[j].st)+'　'+esc(p[j].name)+'</div>');
-      out.push('<details class="gap"><summary>出番なし　'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+'（'+between.length+'本）</summary>'+between.join('')+'</details>');
+      rows.push('<details class="gaprow"><summary>空き　'+esc(p[prevIdx].en)+' 〜 '+esc(b.st)+'（ほかの演目 '+between.length+'本）</summary>'+between.join('')+'</details>');
     }
     prevIdx=i;
     var more=[];
     if(m.desc) more.push('<div class="x"><b>どんな演目</b><br>'+md(m.desc)+'</div>');
+    var meta='<div class="n">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div>';
     if(!isCast){
-      out.push('<div class="card staff"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
-        '<span class="bn">'+esc(b.name)+'</span></div><div class="meta">出演しない／やること</div>'+
+      rows.push(tlRow(b.st, b.en, 'block staff', esc(b.name)+'<span class="tag">出演しない</span>', meta+
         '<div class="acts">'+here.sort(byType).map(function(a){ return actHtml(a); }).join('')+'</div>'+
-        (more.length?'<details class="more"><summary>くわしく</summary>'+more.join('')+'</details>':'')+'</div>');
+        (more.length?'<details class="more"><summary>くわしく</summary>'+more.join('')+'</details>':'')));
       return;
     }
     var isStay=f.stay.indexOf(ME)>=0, goesOn=(i<p.length-1) && castOf(p[i+1].name).indexOf(ME)>=0;
@@ -656,11 +677,12 @@ function showHtml(){
     var changes=extra.filter(function(a){ return a.type==='着替え'; }).map(changeHtml).join('');
     var others=extra.filter(function(a){ return a.type!=='着替え'; });
     var stand=standbyOf(entry.v), cue=i>=2? p[i-2] : (i===1? p[0] : null);
-    /* 前の演目から続けて出る人でも、扉・花道から入るなら回り込みが要る（ED→アンコールで客席の扉へ回る） */
-    var standHtml = !stand ? '' :
-      !isStay ? '<div class="stand">⏱ <b>'+esc(cue? cue.st : '19:30')+'</b>「'+esc(cue? cue.name : '開演前')+
-        '」が始まったら <b>'+esc(stand)+'</b> へ</div>' :
-      /扉|花道/.test(stand) ? '<div class="stand">⏱ 「'+esc(p[i-1].name)+'」が終わったら <b>'+esc(stand)+'</b> へ</div>' : '';
+    /* 移動の行。前の演目から続けて出る人でも、扉・花道から入るなら回り込みが要る（ED→アンコール） */
+    if(stand && !isStay)
+      rows.push(tlRow(cue? cue.st : '19:30', '', 'move', '<b>'+esc(stand)+'</b> へ',
+        '<div class="n">「'+esc(cue? cue.name : '開演前')+'」が始まったら</div>'));
+    else if(stand && /扉|花道/.test(stand))
+      rows.push(tlRow(p[i-1].en, '', 'move', '<b>'+esc(stand)+'</b> へ', '<div class="n">「'+esc(p[i-1].name)+'」が終わったら</div>'));
     if(isStay) more.push('<div class="x">前の「'+esc(p[i-1].name)+'」から続けて出ます（転換'+Math.round(p[i-1].trans*60)+'秒）</div>');
     if(goesOn) more.push('<div class="x">このあと「'+esc(p[i+1].name)+'」に続けて出ます（転換'+Math.round(b.trans*60)+'秒）</div>');
     if((entry.own && m["in"] && m["in"]!==entry.v) || (exit.own && m.out && m.out!==exit.v))
@@ -668,21 +690,45 @@ function showHtml(){
     if(m.costume) more.push('<div class="x"><b>衣装（全体）</b><br>'+mdBlock(m.costume)+'</div>');
     if(m.props) more.push('<div class="x"><b>舞台で使う物</b><br>'+mdBlock(m.props)+'</div>');
     if(m.memo) more.push('<div class="x"><b>メモ</b><br>'+mdBlock(m.memo)+'</div>');
-    out.push('<div class="card"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
-      '<span class="bn">'+esc(b.name)+'</span></div>'+
+    rows.push(tlRow(b.st, b.en, 'block', esc(b.name), meta+
       '<div class="io">'+ioHtml('入り','i',entry)+ioHtml('ハケ','o',exit)+'</div>'+
-      (m.kit? '<div class="cos">衣装：<b>'+esc(m.kit)+'</b></div>':'')+blockImgHtml(b.name)+
+      (m.kit? '<div class="cos">衣装：<b>'+esc(m.kit)+'</b></div>':'')+
       (others.length? '<div class="acts">'+others.map(function(a){ return actHtml(a); }).join('')+'</div>':'')+
-      changes+standHtml+
-      (more.length?'<details class="more"><summary>くわしく</summary>'+more.join('')+'</details>':'')+'</div>');
+      changes+blockImgHtml(b.name)+
+      (more.length?'<details class="more"><summary>くわしく</summary>'+more.join('')+'</details>':'')));
     if(/客席\s*[A-D]|[A-D]扉/.test(entry.v||'')) usesSeat=true;
+    if(/上手|下手/.test((entry.v||'')+(exit.v||''))) usesSide=true;
   });
-  if(loose.length) out.push('<div class="card staff"><div class="bn">そのほか（本番）</div>'+
-    '<div class="acts">'+loose.sort(byType).map(function(a){ return actHtml(a,true); }).join('')+'</div></div>');
-  if(post.length) out.push('<div class="card staff"><div class="top"><span class="time">終演後</span></div>'+
-    '<div class="acts">'+post.map(function(a){ return actHtml(a); }).join('')+'</div></div>');
-  if(usesSeat) out.push(seatMapHtml());
+  if(loose.length) rows.push(tlRow('', '', 'job', 'そのほか', '<div class="acts">'+loose.sort(byType).map(function(a){ return actHtml(a,true); }).join('')+'</div>'));
+  if(post.length) rows.push(tlRow('終演後', '', 'job', '', '<div class="acts">'+post.map(function(a){ return actHtml(a); }).join('')+'</div>'));
+  out.push('<div class="tl show">'+rows.join('')+'</div>');
+  /* 図は畳んで一番下に（毎回は要らないが、迷った時にすぐ見られる） */
+  if(usesSide || usesSeat) out.push('<details class="figs"><summary>図を見る（上手・下手'+(usesSeat?'／客席の扉':'')+'）</summary>'+
+    '<div class="stagemap" style="margin-top:10px"><div class="st">舞 台</div>'+
+    '<div>下手（しもて）<br>客席から見て左</div><div>中央</div><div>上手（かみて）<br>客席から見て右</div>'+
+    '<div class="kyaku">客 席（扉 A・B＝下手側／C・D＝上手側）</div></div>'+(usesSeat? seatMapHtml():'')+'</details>');
   return out.join('');
+}
+
+/* 次の予定（2026-09-27）。開いた時刻から、自分の予定のうち次に来るものを1つ出す。当日スクロールせずに分かるように */
+function nextHtml(){
+  var items=[];
+  function add(ymd, t, text){ var m=tmin(t); if(m<0) return; items.push({at:new Date(ymd+'T'+('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2)+':00+09:00'), t:t, text:text}); }
+  [['9/28','2026-09-28'],['9/29','2026-09-29']].forEach(function(d){
+    var day=((D.tt&&D.tt.days)||[]).filter(function(x){ return x.date===d[0]; })[0], a=day&&day.arrivals&&day.arrivals[ME];
+    if(a) add(d[1], a.t, d[0]+' 会場入り');
+    actsOf(ME).forEach(function(x){ if(x.day===d[0]+'リハ' && x.when){ var w=splitWhen(x.when); add(d[1], w.t, d[0]+' '+(w.title||x.what)); } });
+  });
+  (D.program||[]).forEach(function(b){
+    var here=actsOf(ME).some(function(a){ return a.day==='本番' && a.when===b.name; });
+    if(castOf(b.name).indexOf(ME)>=0 || here) add('2026-09-29', b.st, '本番 '+b.name);
+  });
+  items.sort(function(x,y){ return x.at-y.at; });
+  var now=new Date(), nx=items.filter(function(x){ return x.at>=now; })[0];
+  if(!nx) return '';
+  var mins=Math.round((nx.at-now)/60000);
+  var when = mins<60 ? 'あと'+mins+'分' : mins<24*60 ? 'あと'+Math.floor(mins/60)+'時間'+(mins%60?mins%60+'分':'') : '';
+  return '<div class="next"><span class="k">次の予定</span><b>'+esc(nx.t)+'</b> '+esc(nx.text)+(when?'<span class="k">（'+when+'）</span>':'')+'</div>';
 }
 
 function renderMine(){
@@ -692,6 +738,7 @@ function renderMine(){
   out.push('<p class="me"><b>'+esc(dn(ME))+'</b>'+(D.v2 && pe? '<span class="badge">'+esc(pe.kind)+'</span>':'')+
     '<a href="javascript:reset()">別の人を選ぶ</a></p>');
   if(pe && pe.role) out.push('<p class="role">役割：<b>'+md(pe.role)+'</b></p>');
+  out.push(nextHtml());
   var tabs=[['kit','持ち物',''],['d28','9/28','前日'],['d29','9/29','リハ'],['show','9/29','本番']];
   out.push('<div class="seg">'+tabs.map(function(t){
     return '<button type="button" aria-pressed="'+(SUB===t[0])+'" onclick="setSub(\''+t[0]+'\')">'+t[1]+(t[2]?'<small>'+t[2]+'</small>':'')+'</button>';
@@ -763,9 +810,17 @@ function renderAll(){
       '<td data-l="物の置き場所">'+(m.props?md(m.props):dash)+'</td></tr>');
   }
   var imgs=Object.keys(BLOCK_IMG).map(function(k){ return '<div class="arrive"><h2>'+esc(k)+'</h2>'+blockImgHtml(k)+'</div>'; }).join('');
-  el('viewAll').innerHTML=unassignedHtml()+staffListHtml()+imgs+arriveAllHtml()+seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
-    '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+
-    rows.join('')+'</tbody></table>';
+  /* 全体は長いので目次を付けて、見たい所へ飛べるようにする（2026-09-27） */
+  var sec=[
+    ['a-todo','担当まだ', unassignedHtml()],
+    ['a-job','係', staffListHtml()],
+    ['a-prog','演目の一覧', '<h2 class="sec">演目の一覧（入り・ハケ・物）</h2><table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
+      '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>'],
+    ['a-tt','時間割', '<h2 class="sec">9/28・9/29 の時間割と入り時間</h2>'+arriveAllHtml()],
+    ['a-fig','図', '<h2 class="sec">図</h2>'+imgs+seatMapHtml()]
+  ].filter(function(x){ return x[2]; });
+  el('viewAll').innerHTML='<div class="chips jump">'+sec.map(function(x){ return '<a href="#'+x[0]+'">'+x[1]+'</a>'; }).join('')+'</div>'+
+    sec.map(function(x){ return '<section id="'+x[0]+'">'+x[2]+'</section>'; }).join('');
 }
 
 /* ============================================================
