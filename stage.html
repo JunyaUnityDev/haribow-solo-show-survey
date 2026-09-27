@@ -262,6 +262,9 @@
   table.kbt tbody td.t{font-size:12px}
   .tl .row .b b{font-weight:700}
   .act b{font-weight:700}
+  .tl .no{display:inline-block;min-width:1.6em;font-size:11px;color:var(--dim);font-weight:400}
+  .tl.show .row.quiet .ti{font-size:13px;font-weight:400;color:var(--dim)}
+  .tl.show .row.quiet .t{font-size:13px;color:var(--dim)}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -816,23 +819,31 @@ function staffListHtml(){
   return out.join('');
 }
 function renderAll(){
+  /* 演目の一覧（2026-09-27 作り直し）：7列の表は入り・ハケが縦に折れて読めなかった。
+     自分の画面と同じ「時刻｜中身」の一覧にし、人数は言葉で書く（中身は同じ） */
   var p=D.program, rows=[];
   for(var i=0;i<p.length;i++){
     var b=p[i], f=flow(i), m=mv(b.name);
-    var dash='<i class="todo">—</i>';
-    rows.push('<tr><td class="c" data-l="#">'+b.n+'</td><td class="c" data-l="時刻">'+esc(b.st)+' 〜 '+esc(b.en)+'</td>'+
-      '<td data-l="ブロック"><b>'+esc(b.name)+'</b><div class="meta">'+esc(b.kind)+' ／ 尺'+esc(b.dur)+'分 ／ 出演'+f.cur.length+'名</div></td>'+
-      '<td class="c" data-l="人数">入'+f["in"].length+' ／ 続'+f.stay.length+' ／ 出'+f.out.length+'</td>'+
-      '<td data-l="入り">'+(m["in"]?md(m["in"]):dash)+'</td><td data-l="ハケ">'+(m.out?md(m.out):dash)+'</td>'+
-      '<td data-l="物の置き場所">'+(m.props?md(m.props):dash)+'</td></tr>');
+    var noPeople=!f.cur.length && /^—/.test(m["in"]||'—');
+    if(noPeople){
+      rows.push(tlRow(b.st, b.en, 'quiet', '<span class="no">'+b.n+'</span>'+esc(b.name), '<div class="n">人は出ない'+(m.props?'／'+md(m.props):'')+'</div>'));
+      continue;
+    }
+    var line=function(label, cls, v){ return v? '<span class="'+cls+'"><em class="val">'+placeBold(v)+'</em></span>' : ''; };
+    rows.push(tlRow(b.st, b.en, 'block', '<span class="no">'+b.n+'</span>'+esc(b.name),
+      '<div class="n">'+esc(b.kind)+'・'+esc(b.dur)+'分・<b>'+f.cur.length+'名</b>'+
+        (f.cur.length? '（新しく出る'+f["in"].length+'人・前から続けて'+f.stay.length+'人・このあとハケる'+f.out.length+'人）':'')+'</div>'+
+      '<div class="io">'+line('入り','i',m["in"])+line('ハケ','o',m.out)+'</div>'+
+      (m.props? '<div class="cos">舞台で使う物：'+md(m.props)+'</div>':'')));
   }
+  var progHtml='<h2 class="sec">演目の一覧（入り・ハケ・物）</h2><p class="lead" style="margin:0 0 8px">全員共通の入り・ハケです。自分だけ違う所は「自分の出番」に出ます。</p>'+
+    '<div class="tl show">'+rows.join('')+'</div>';
   var imgs=Object.keys(BLOCK_IMG).map(function(k){ return '<div class="arrive"><h2>'+esc(k)+'</h2>'+blockImgHtml(k)+'</div>'; }).join('');
   /* 全体は長いので目次を付けて、見たい所へ飛べるようにする（2026-09-27） */
   var sec=[
     ['a-todo','担当まだ', unassignedHtml()],
     ['a-job','係', staffListHtml()],
-    ['a-prog','演目の一覧', '<h2 class="sec">演目の一覧（入り・ハケ・物）</h2><table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
-      '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>'],
+    ['a-prog','演目の一覧', progHtml],
     ['a-tt','時間割', '<h2 class="sec">9/28・9/29 の時間割と入り時間</h2>'+arriveAllHtml()],
     ['a-fig','図', '<h2 class="sec">図</h2>'+imgs+seatMapHtml()]
   ].filter(function(x){ return x[2]; });
