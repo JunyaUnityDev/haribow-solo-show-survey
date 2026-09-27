@@ -333,6 +333,8 @@ function seatMapHtml(){
 function standbyOf(v){
   v = v||'';
   /* アンコールの登場場所（2026-09-26 松澤竜介のLINE）。花道・客席ドアは袖ではないのでそのまま出す */
+  var dr = v.match(/([A-D])扉/);
+  if(dr) return '客席 '+dr[1]+' の扉の外';
   var h = v.match(/(客席ドア|花道)\s*([上下]手)/);
   if(h) return h[1]==='客席ドア' ? '客席ドア（'+h[2]+'）の外' : h[2]+'側の花道';
   var m = v.match(/客席\s*([A-D])/);
@@ -573,6 +575,15 @@ function dayHtml(date){
   return out.join('');
 }
 
+/* 演目ごとの図。画像はこのリポジトリの media/ に置く（2026-09-27 松澤竜介「出ハケのサイトに写真を挿入して」） */
+var BLOCK_IMG={ 'アンコール':{src:'media/encore_positions_20260927.jpg', cap:'アンコール後の立ち位置（客席から見た図）。自分の番号の位置へ'} };
+function blockImgHtml(name){
+  var g=BLOCK_IMG[name]; if(!g) return '';
+  return '<figure style="margin:10px 0 0"><img src="'+g.src+'" alt="'+esc(g.cap)+'" loading="lazy" '+
+    'style="width:100%;height:auto;border-radius:8px;display:block;cursor:zoom-in" onclick="window.open(this.src)">'+
+    '<figcaption style="font-size:11px;color:var(--dim);margin-top:4px">'+esc(g.cap)+'（押すと大きく見られます）</figcaption></figure>';
+}
+
 /* 本番 */
 function showHtml(){
   var p=D.program, out=[], acts=actsOf(ME);
@@ -616,8 +627,11 @@ function showHtml(){
     var changes=extra.filter(function(a){ return a.type==='着替え'; }).map(changeHtml).join('');
     var others=extra.filter(function(a){ return a.type!=='着替え'; });
     var stand=standbyOf(entry.v), cue=i>=2? p[i-2] : (i===1? p[0] : null);
-    var standHtml=(stand && !isStay)? '<div class="stand">⏱ <b>'+esc(cue? cue.st : '19:30')+'</b>「'+esc(cue? cue.name : '開演前')+
-      '」が始まったら <b>'+esc(stand)+'</b> へ</div>' : '';
+    /* 前の演目から続けて出る人でも、扉・花道から入るなら回り込みが要る（ED→アンコールで客席の扉へ回る） */
+    var standHtml = !stand ? '' :
+      !isStay ? '<div class="stand">⏱ <b>'+esc(cue? cue.st : '19:30')+'</b>「'+esc(cue? cue.name : '開演前')+
+        '」が始まったら <b>'+esc(stand)+'</b> へ</div>' :
+      /扉|花道/.test(stand) ? '<div class="stand">⏱ 「'+esc(p[i-1].name)+'」が終わったら <b>'+esc(stand)+'</b> へ</div>' : '';
     if(isStay) more.push('<div class="x">前の「'+esc(p[i-1].name)+'」から続けて出ます（転換'+Math.round(p[i-1].trans*60)+'秒）</div>');
     if(goesOn) more.push('<div class="x">このあと「'+esc(p[i+1].name)+'」に続けて出ます（転換'+Math.round(b.trans*60)+'秒）</div>');
     if((entry.own && m["in"] && m["in"]!==entry.v) || (exit.own && m.out && m.out!==exit.v))
@@ -628,11 +642,11 @@ function showHtml(){
     out.push('<div class="card"><div class="top"><span class="time">'+esc(b.st)+'〜'+esc(b.en)+'</span>'+
       '<span class="bn">'+esc(b.name)+'</span></div>'+
       '<div class="io">'+ioHtml('入り','i',entry)+ioHtml('ハケ','o',exit)+'</div>'+
-      (m.kit? '<div class="cos">衣装：<b>'+esc(m.kit)+'</b></div>':'')+
+      (m.kit? '<div class="cos">衣装：<b>'+esc(m.kit)+'</b></div>':'')+blockImgHtml(b.name)+
       (others.length? '<div class="acts">'+others.map(function(a){ return actHtml(a); }).join('')+'</div>':'')+
       changes+standHtml+
       (more.length?'<details class="more"><summary>くわしく</summary>'+more.join('')+'</details>':'')+'</div>');
-    if(/客席\s*[A-D]/.test(entry.v||'')) usesSeat=true;
+    if(/客席\s*[A-D]|[A-D]扉/.test(entry.v||'')) usesSeat=true;
   });
   if(loose.length) out.push('<div class="card staff"><div class="bn">そのほか（本番）</div>'+
     '<div class="acts">'+loose.sort(byType).map(function(a){ return actHtml(a,true); }).join('')+'</div></div>');
@@ -719,7 +733,8 @@ function renderAll(){
       '<td data-l="入り">'+(m["in"]?md(m["in"]):dash)+'</td><td data-l="ハケ">'+(m.out?md(m.out):dash)+'</td>'+
       '<td data-l="物の置き場所">'+(m.props?md(m.props):dash)+'</td></tr>');
   }
-  el('viewAll').innerHTML=unassignedHtml()+staffListHtml()+arriveAllHtml()+seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
+  var imgs=Object.keys(BLOCK_IMG).map(function(k){ return '<div class="arrive"><h2>'+esc(k)+'</h2>'+blockImgHtml(k)+'</div>'; }).join('');
+  el('viewAll').innerHTML=unassignedHtml()+staffListHtml()+imgs+arriveAllHtml()+seatMapHtml()+'<table><thead><tr><th>#</th><th>時刻</th><th>ブロック</th>'+
     '<th>人数</th><th>入り</th><th>ハケ</th><th>物の置き場所</th></tr></thead><tbody>'+
     rows.join('')+'</tbody></table>';
 }
