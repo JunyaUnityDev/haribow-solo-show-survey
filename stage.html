@@ -206,6 +206,33 @@
   details.more summary{cursor:pointer}
   details.more div.x{margin-top:6px;color:var(--ink)}
   details.more div.x + div.x{padding-top:6px;border-top:1px dashed var(--line)}
+  /* 香盤（2026-09-27）：1人1列×時刻。表の中だけ横スクロール。時刻列と名前行は固定 */
+  .kbctl{margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .chips button{padding:5px 10px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);
+       font-size:12px;font-family:inherit;cursor:pointer}
+  .chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+  .kbwrap{overflow:auto;max-height:78vh;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  table.kbt{border-collapse:separate;border-spacing:0;font-size:11px;width:auto}
+  table.kbt,table.kbt thead,table.kbt tbody{display:revert}
+  table.kbt tr{display:table-row;background:none;border:0;padding:0;margin:0;border-radius:0}
+  table.kbt th,table.kbt td{display:table-cell;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+       padding:4px 5px;min-width:74px;max-width:96px;vertical-align:top;line-height:1.35;text-align:left;font-size:11px}
+  table.kbt td::before{content:none!important}
+  table.kbt thead th{position:sticky;top:0;z-index:2;background:var(--accent);color:var(--accent-ink);font-weight:700}
+  table.kbt thead tr.g th{top:0;font-size:10px;font-weight:400}
+  table.kbt thead tr.n th{top:22px}
+  table.kbt .t{position:sticky;left:0;z-index:1;background:var(--bg);min-width:84px;max-width:110px;font-weight:700}
+  table.kbt thead .t{z-index:3;background:var(--accent)}
+  table.kbt .t small{display:block;font-weight:400;color:var(--dim)}
+  /* 色の名前は kb- を付ける（.arrive 等ページの別の部品と名前がぶつかって崩れた・2026-09-27） */
+  table.kbt td.kb-stage{background:#dfe9dc;color:#2e2a24} table.kbt td.kb-job{background:#f6ecc9;color:#2e2a24}
+  table.kbt td.kb-change{background:#f3d6d0;color:#8a2a20;font-weight:700} table.kbt td.kb-meet{background:#dde6ef;color:#2e2a24}
+  table.kbt td.kb-arrive{background:#e9e4f0;color:#2e2a24} table.kbt td.kb-wait{background:#ecebe8;color:#2e2a24}
+  table.kbt .me{box-shadow:inset 2px 0 0 var(--warn),inset -2px 0 0 var(--warn)}
+  table.kbt thead .me{background:var(--warn)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;margin:8px 0}
+  .legend span{padding:1px 7px;border-radius:5px;color:#2e2a24}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -215,6 +242,7 @@
     <img src="https://junyaunitydev.github.io/haribow-audition-second-site/assets/haribow-logo.png" alt="HARIBOW">
     <div class="tabs">
       <button id="tMe" aria-pressed="true" onclick="setTab('me')">自分の出番</button>
+      <button id="tKb" aria-pressed="false" onclick="setTab('kb')">香盤</button>
       <button id="tAll" aria-pressed="false" onclick="setTab('all')">全体</button>
     </div>
   </header>
@@ -235,6 +263,7 @@
     <div id="mine" hidden></div>
   </div>
 
+  <div id="viewKb" hidden></div>
   <div id="viewAll" hidden></div>
 
   <p class="note">
@@ -272,7 +301,7 @@ getJson('stagemove2').then(function(d){ if(d && d.ok && d.v2) return d; throw ne
     el('srcNote').innerHTML='中身は『<a href="'+esc(d.sheetUrl)+'" target="_blank" rel="noopener">GoBEYOND 演者スタッフシート</a>』。<b>直す時はシートを直す</b>（開き直すと変わります）。';
   }
   D=d; el('loading').hidden=true; el('upd').textContent='最終更新 '+(d.updatedAt||'');
-  renderNames(); setTab(TAB); if(ME) pick(ME);
+  renderNames(); if(qs.get('tab')==='kb') TAB='kb'; setTab(TAB); if(ME) pick(ME);
 }).catch(function(){
   el('loading').hidden=true;
   el('fail').hidden=false;
@@ -739,12 +768,49 @@ function renderAll(){
     rows.join('')+'</tbody></table>';
 }
 
+/* ============================================================
+ *  香盤（2026-09-27 JUNYA：イベントのキャストタイムテーブルのような1枚の表）
+ *  データは GAS の D.kouban（シート『香盤』タブと同じ中身）。ここでは並べて色を付けるだけ。
+ * ============================================================ */
+var KB_DAY=null, KB_G=null;
+function renderKb(){
+  var host=el('viewKb'), k=D.kouban;
+  if(!k){ host.innerHTML='<div class="empty">香盤はまだ読み込めていません。少し待って開き直してください。</div>'; return; }
+  if(KB_DAY===null){ var s=defaultSub(); KB_DAY = s==='d28'||s==='kit' ? 0 : s==='d29' ? 1 : 2; }
+  if(KB_G===null){ var mc=k.cols.filter(function(c){ return c.key===ME; })[0]; KB_G = mc ? mc.group : '全員'; }
+  var day=k.days[KB_DAY], idx=[];
+  k.cols.forEach(function(c,i){ if(KB_G==='全員' || c.group===KB_G) idx.push(i); });
+  var out=['<div class="kbctl"><div class="seg" style="grid-template-columns:repeat(3,1fr);position:static">'+
+    [['9/28','前日'],['9/29','リハ'],['9/29','本番']].map(function(t,i){
+      return '<button type="button" aria-pressed="'+(KB_DAY===i)+'" onclick="KB_DAY='+i+';renderKb()">'+t[0]+'<small>'+t[1]+'</small></button>'; }).join('')+'</div>'+
+    '<div class="chips">'+['全員'].concat(k.groups).map(function(g){
+      return '<button type="button" aria-pressed="'+(KB_G===g)+'" onclick="KB_G=\''+g+'\';renderKb()">'+esc(g)+'</button>'; }).join('')+'</div>'+
+    '<div class="legend"><span style="background:#dfe9dc">出番</span><span style="background:#f6ecc9">係</span>'+
+    '<span style="background:#f3d6d0">着替え</span><span style="background:#dde6ef">集合・リハ</span><span style="background:#e9e4f0">会場入り</span>'+
+    (ME?'<span style="border:2px solid var(--warn)">'+esc(dn(ME))+'（自分）</span>':'')+'</div></div>'];
+  var gRow='<tr class="g"><th class="t"></th>', nRow='<tr class="n"><th class="t">'+esc(day.label.replace(/（[^）]*）/,''))+'</th>', last='';
+  idx.forEach(function(i){ var c=k.cols[i], me=c.key===ME?' me':'';
+    gRow+='<th class="'+me+'">'+(c.group!==last?esc(c.group):'')+'</th>'; last=c.group;
+    nRow+='<th class="'+me+'">'+esc(c.name)+'</th>'; });
+  var body=day.rows.filter(function(r){ return KB_DAY===2 || idx.some(function(i){ return r.cells[i]; }); }).map(function(r){
+    return '<tr><td class="t">'+esc(r.t)+'<small>'+esc(r.title)+'</small></td>'+idx.map(function(i){
+      var x=r.cells[i], me=k.cols[i].key===ME?' me':'';
+      return '<td class="'+(x?'kb-'+x[1]:'')+me+'">'+(x?esc(x[0]):'')+'</td>'; }).join('')+'</tr>';
+  }).join('');
+  out.push('<div class="kbwrap"><table class="kbt"><thead>'+gRow+'</tr>'+nRow+'</tr></thead><tbody>'+body+'</tbody></table></div>');
+  out.push('<p class="note" style="margin-top:8px">横にスクロールできます。シートの『香盤』タブにも同じ表があります（直すのは『動き』）。</p>');
+  host.innerHTML=out.join('');
+}
+
 function setTab(t){
   TAB=t;
   el('tMe').setAttribute('aria-pressed', t==='me');
+  el('tKb').setAttribute('aria-pressed', t==='kb');
   el('tAll').setAttribute('aria-pressed', t==='all');
   el('viewMe').hidden = (t!=='me');
+  el('viewKb').hidden = (t!=='kb');
   el('viewAll').hidden = (t!=='all');
+  if(t==='kb' && D) renderKb();
   if(t==='all' && D) renderAll();
 }
 </script>
