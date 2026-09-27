@@ -252,6 +252,16 @@
   .chips.jump a{padding:6px 12px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);font-size:12px;text-decoration:none}
   section{scroll-margin-top:52px}
   h2.sec{font-size:15px;margin:18px 0 8px}
+  /* 仕上げ（2026-09-27）：大事な所を太字・表を読みやすく */
+  .io .val b{font-weight:700}
+  .kit label b{font-weight:700}
+  table.kbt td.kb-stage,table.kbt td.kb-change{font-weight:700}
+  table.kbt tbody tr:nth-child(even) td:not([class*="kb-"]){background:rgba(0,0,0,.018)}
+  table.kbt tbody tr:nth-child(even) td.t{background:var(--bg)}
+  table.kbt .gs{border-left:2px solid var(--accent)!important}
+  table.kbt tbody td.t{font-size:12px}
+  .tl .row .b b{font-weight:700}
+  .act b{font-weight:700}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -394,14 +404,21 @@ function standbyOf(v){
   return '';
 }
 /* 値の出し方。空＝未定、「—」始まり＝該当なし、チーム裁量＝チームで決めてよい */
+/* 入り・ハケの値は「場所　補足」の形。場所を太字にして一目で分かるように（2026-09-27）。
+   全角スペースが無い短い値（「上手」「下手」等）は全体を太字 */
+function placeBold(v){
+  var i=v.indexOf('　');
+  if(i>0) return '<b>'+md(v.slice(0,i))+'</b>　'+md(v.slice(i+1));
+  return v.length<=12 ? '<b>'+md(v)+'</b>' : md(v);
+}
 function ioHtml(label, cls, r){
   var v = r.v||'';
   if(!v) return '<span class="'+cls+'"><em class="val"><i class="todo">まだ決まっていません</i></em></span>';
   if(v.charAt(0)==='—') return '<span class="'+cls+' na"><em class="val">'+md(v)+'</em></span>';
   if(/チーム裁量|チームで決め|各自で決め|自由/.test(v))
-    return '<span class="'+cls+' free"><em class="val">'+md(v)+
+    return '<span class="'+cls+' free"><em class="val">'+placeBold(v)+
       '　<b class="lv">チームで決めてOK</b></em></span>';
-  return '<span class="'+cls+'"><em class="val">'+md(v)+'</em></span>';
+  return '<span class="'+cls+'"><em class="val">'+placeBold(v)+'</em></span>';
 }
 
 /* ============================================================
@@ -562,7 +579,7 @@ function kitHtml(){
   return '<div class="kit"><h2>持ち物（'+order.length+'）</h2>'+order.map(function(t){
     var src=map[t].filter(Boolean).join('・');
     return '<label><input type="checkbox" data-k="'+esc(t)+'"'+(saved[t]?' checked':'')+' onchange="kitSave(this)">'+
-      '<span>'+md(t)+(src?'<span class="src">'+esc(src)+'</span>':'')+'</span></label>';
+      '<span><b>'+md(t)+'</b>'+(src?'<span class="src">'+esc(src)+'</span>':'')+'</span></label>';
   }).join('')+'</div>';
 }
 function kitSave(cb){
@@ -610,10 +627,10 @@ function dayHtml(date){
   else out.push('<div class="tl">'+rows.map(function(x){
     var w=splitWhen(x.when);
     var title = w.title || (x.type==='持ち物' ? '持ち物' : '');
-    var body=[x.where, x.what].filter(Boolean).join('　');
+    var body=(x.where?'<b>'+esc(x.where)+'</b>'+(x.what?'　':''):'')+(x.what?md(x.what):'');
     return '<div class="row'+(x.group?' all':'')+'"><div class="t">'+esc(w.t||'—')+(w.t2?'<small>〜'+esc(w.t2)+'</small>':'')+'</div><div>'+
       (title?'<div class="ti">'+esc(title)+'</div>':'')+
-      (body?'<div class="b">'+md(body)+'</div>':'')+
+      (body?'<div class="b">'+body+'</div>':'')+
       (x.items?'<div class="b">持ち物：'+md(x.items)+'</div>':'')+
       (x.memo?'<div class="n">'+md(x.memo)+'</div>':'')+
       (x.group?'<div class="n">'+esc(x.group)+'向け</div>':'')+'</div></div>';
@@ -844,12 +861,13 @@ function renderKb(){
     '<span style="background:#f3d6d0">着替え</span><span style="background:#dde6ef">集合・リハ</span><span style="background:#e9e4f0">会場入り</span>'+
     (ME?'<span style="border:2px solid var(--warn)">'+esc(dn(ME))+'（自分）</span>':'')+'</div></div>'];
   var gRow='<tr class="g"><th class="t"></th>', nRow='<tr class="n"><th class="t">'+esc(day.label.replace(/（[^）]*）/,''))+'</th>', last='';
-  idx.forEach(function(i){ var c=k.cols[i], me=c.key===ME?' me':'';
+  var gs={}; idx.forEach(function(i,n){ if(n>0 && k.cols[i].group!==k.cols[idx[n-1]].group) gs[i]=1; });
+  idx.forEach(function(i){ var c=k.cols[i], me=(c.key===ME?' me':'')+(gs[i]?' gs':'');
     gRow+='<th class="'+me+'">'+(c.group!==last?esc(c.group):'')+'</th>'; last=c.group;
     nRow+='<th class="'+me+'">'+esc(c.name)+'</th>'; });
   var body=day.rows.filter(function(r){ return KB_DAY===2 || idx.some(function(i){ return r.cells[i]; }); }).map(function(r){
     return '<tr><td class="t">'+esc(r.t)+'<small>'+esc(r.title)+'</small></td>'+idx.map(function(i){
-      var x=r.cells[i], me=k.cols[i].key===ME?' me':'';
+      var x=r.cells[i], me=(k.cols[i].key===ME?' me':'')+(gs[i]?' gs':'');
       return '<td class="'+(x?'kb-'+x[1]:'')+me+'">'+(x?esc(x[0]):'')+'</td>'; }).join('')+'</tr>';
   }).join('');
   out.push('<div class="kbwrap"><table class="kbt"><thead>'+gRow+'</tr>'+nRow+'</tr></thead><tbody>'+body+'</tbody></table></div>');
