@@ -277,6 +277,7 @@
   .sdrow .who span{font-size:13px;padding:2px 8px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
   .sdrow .who span.mine{border-color:var(--in);background:var(--in);color:var(--accent-ink);font-weight:700}
   .sdrow .wt{margin-top:6px;font-size:13px}
+  .sdrow .who .door{font-style:normal;font-size:10px;font-weight:700;margin-left:5px;padding:0 4px;border-radius:4px;background:var(--accent);color:var(--accent-ink)}
   .sdrow .nt{margin-top:2px;font-size:11px;color:var(--dim)}
   header .tabs{flex-wrap:wrap;justify-content:flex-end}
   [hidden]{display:none!important}
@@ -906,23 +907,33 @@ function renderKb(){
  *  集団同期コーナーの動き（2026-09-28 三輪卓海の依頼）
  *  シート『集団同期コーナーの動き』（1行＝同じ場所に行く人のまとまり）をそのまま並べる。自分の所に色
  * ============================================================ */
+/* 扉は各自の客席 A〜D が優先（2026-09-28 JUNYA）。卓海の組分け（2番／3番ドア）と並べて見せる */
+function sdDoor(key, scene){
+  if(!key || !/OP|AGT/.test(scene)) return '';
+  var io=D.perPerson && D.perPerson[key] && D.perPerson[key]['OP＋AGT'];
+  var m=io && String(io['in']||'').match(/客席\s*([A-D])/);
+  return m ? m[1] : '';
+}
 function renderSd(){
   var host=el('viewSd'), list=D.shudan||[];
   var out=['<h2 class="sec" style="margin-top:4px">集団同期コーナーの動き</h2>'];
   if(!list.length){ host.innerHTML=out.join('')+'<div class="empty">まだ書かれていません。</div>'; return; }
   var mine=list.filter(function(r){ return ME && r.keys.indexOf(ME)>=0; });
   if(mine.length) out.push('<div class="next"><span class="k">'+esc(dn(ME))+'は</span>'+mine.map(function(r){
-    return esc(r.scene)+'：<b>'+esc(r.where)+'</b>'; }).join('<br>')+'</div>');
+    var d=sdDoor(ME, r.scene);
+    return esc(r.scene)+'：<b>'+esc(r.where)+'</b>'+(d?'<br><span class="k">あなたの扉</span><b>客席 '+d+'</b>':''); }).join('<br>')+'</div>');
   var scenes=[]; list.forEach(function(r){ if(scenes.indexOf(r.scene)<0) scenes.push(r.scene); });
   scenes.forEach(function(sc){
     out.push('<div class="sdscene"><h3>'+esc(sc)+'</h3>'+list.filter(function(r){ return r.scene===sc; }).map(function(r){
       var me=ME && r.keys.indexOf(ME)>=0;
       return '<div class="sdrow'+(me?' mine':'')+'"><div class="wh">'+esc(r.where)+'<span class="cnt">'+r.who.length+'人</span></div>'+
-        '<div class="who">'+r.who.map(function(n,i){ return '<span'+(r.keys[i]===ME?' class="mine"':'')+'>'+esc(n)+'</span>'; }).join('')+'</div>'+
+        '<div class="who">'+r.who.map(function(n,i){ var d=sdDoor(r.keys[i], r.scene);
+          return '<span'+(r.keys[i]===ME?' class="mine"':'')+'>'+esc(n)+(d?'<i class="door">'+d+'</i>':'')+'</span>'; }).join('')+'</div>'+
         (r.what?'<div class="wt">'+md(r.what)+'</div>':'')+(r.memo?'<div class="nt">'+md(r.memo)+'</div>':'')+'</div>';
     }).join('')+'</div>');
   });
-  out.push('<p class="note" style="margin-top:8px">三輪卓海の連絡をもとにしたシート『集団同期コーナーの動き』をそのまま出しています。</p>');
+  out.push('<p class="note" style="margin-top:8px">三輪卓海の連絡をもとにしたシート『集団同期コーナーの動き』をそのまま出しています。'+
+    '名前の横の <b>A〜D</b> は客席の扉です。<b>扉はこのA〜Dが優先</b>です（「自分の出番」と同じ）。</p>');
   host.innerHTML=out.join('');
 }
 
