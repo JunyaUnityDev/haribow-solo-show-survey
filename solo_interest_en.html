@@ -1,108 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<title>HARIBOW Solo Show Interest Survey</title>
-<style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:560px;margin:0 auto;padding:22px 16px 80px}
-.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
-h1{font-size:20px;font-weight:800;margin:0 0 6px}
-h1 b{color:var(--blue)}
-.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
-label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
-select,input{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
-select:last-child,input:last-child{margin-bottom:0}
-.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
-.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
-.muted{color:var(--faint);font-size:12.5px}
-.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
-.done{text-align:center;padding:40px 20px}
-.done .ck{font-size:40px;color:var(--ok);font-weight:800}
-.done h2{font-size:20px;margin:12px 0 6px}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Closed | HARIBOW Go BEYOND</title>
+<!-- 2026-11-06 公演終了に伴い閉鎖。元の中身は git 履歴にある（このコミットの親）。 -->
+<style>:root{--bg:#0d1416;--fg:#ece8dc;--dim:#9aa6a6;--ac:#3f8f8a;--line:#24343a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;line-height:1.9}
+main{max-width:560px;width:100%;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:40px 4px}
+.ey{font-size:12px;letter-spacing:.2em;color:var(--ac);margin:0 0 14px}
+h1{font-size:22px;font-weight:700;margin:0 0 20px;line-height:1.6}
+p{margin:0 0 14px;font-size:15px}.dim{color:var(--dim);font-size:13.5px}
+.links{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+a.b{display:inline-block;padding:11px 18px;border:1px solid var(--ac);border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+a.b.p{background:var(--ac)}</style>
 </head>
 <body>
-<div class="wrap">
-  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go BEYOND">
-  <h1>Solo Show — Quick Survey</h1>
-  <p class="lead">HARIBOW is doing its first solo theater show in Tokyo on Sept 29, 2026, expected to start around 7-8 PM Japan time (JST). We're checking whether an online livestream would be worth setting up.</p>
-
-  <div id="form">
-    <div class="card">
-      <label>Name / Handle</label>
-      <input type="text" id="name" placeholder="e.g. Alex">
-
-      <label>Had you heard of this show before now?</label>
-      <select id="heard">
-        <option value="">Select</option>
-        <option>Yes</option>
-        <option>No</option>
-      </select>
-
-      <label>Would you watch a paid livestream if we offered one?</label>
-      <select id="watch">
-        <option value="">Select</option>
-        <option>Yes</option>
-        <option>Maybe</option>
-        <option>No</option>
-      </select>
-
-      <label>Would you still want to watch it even if it's not live (e.g. a recording afterward)?</label>
-      <select id="watchRecorded">
-        <option value="">Select</option>
-        <option>Yes</option>
-        <option>Maybe</option>
-        <option>No</option>
-      </select>
-
-      <label>Where are you located? (optional)</label>
-      <input type="text" id="location" placeholder="e.g. USA, Brazil, France...">
-    </div>
-    <div class="card">
-      <button class="btn" id="send">Submit</button>
-      <div class="err" id="err">Please answer the required questions.</div>
-      <p class="muted" style="margin:10px 0 0">Your answer is only used for internal planning.</p>
-    </div>
-  </div>
-
-  <div class="done" id="done" style="display:none">
-    <div class="ck">✓</div>
-    <h2>Thank you!</h2>
-    <p class="muted">Your response has been recorded.</p>
-  </div>
-</div>
-
-<script>
-document.getElementById('send').addEventListener('click',function(){
-  var name=document.getElementById('name').value.trim();
-  var heard=document.getElementById('heard').value;
-  var watch=document.getElementById('watch').value;
-  var watchRecorded=document.getElementById('watchRecorded').value;
-  var location=document.getElementById('location').value.trim();
-  if(!heard||!watch||!watchRecorded){
-    document.getElementById('err').style.display='block';
-    window.scrollTo(0,document.body.scrollHeight);
-    return;
-  }
-  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='Submitting…';
-  google.script.run.withSuccessHandler(function(){
-    document.getElementById('form').style.display='none';
-    document.getElementById('done').style.display='block';
-    window.scrollTo(0,0);
-  }).withFailureHandler(function(e){
-    btn.disabled=false; btn.textContent='Submit';
-    document.getElementById('err').textContent='Submission failed: '+((e&&e.message)||e)+' Please try again.';
-    document.getElementById('err').style.display='block';
-  }).submitSoloInterestEn({name:name,heard:heard,watch:watch,watchRecorded:watchRecorded,location:location});
-});
-</script>
+<main>
+<p class="ey">HARIBOW Go BEYOND</p>
+<h1>This page is closed</h1>
+<p>HARIBOW's first solo show "Go BEYOND" took place on September 29, 2026 at Meguro Persimmon Hall, Tokyo.<br>Thank you to everyone who came and supported us.</p>
+<p class="dim">Applications and responses on this page are no longer accepted.</p>
+<div class="links"><a class="b p" href="https://global.haribow.com/">Official site</a></div>
+</main>
 </body>
 </html>

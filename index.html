@@ -1,82 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<title>チケット｜HARIBOW単独公演「Go BEYOND」</title>
-<meta name="description" content="HARIBOW単独公演「Go BEYOND」2026年9月29日(火) めぐろパーシモンホール 大ホール。チケットのご購入はこちらから。">
-<!--
-  2026-08-29：このページを差し替えた。
-  ★それまで ticket.haribow.com のルートは7月の「興味関心アンケート」のままだった。
-    チケット販売が始まって以降、ドメインだけ打った人が「行ってみたいと思いますか」に着地していた
-    （全体監査で軽微として2回連続で報告されていたもの）。
-  ★旧アンケートは interest_archive.html に丸ごと残してある。solo_interest.html も別途生きている。
-  ★ここに締切の日付を書かないこと。日付の正典は gas/Deadlines.js で、
-    このリポに日付を書くと gas_tests/check_deadlines.js の検出対象になる。
-    公演日だけは締切ではないので書いている。
--->
-<style>
-  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --text:#f3f1ea; --faint:#8b919e;
-         --accent:#2a3f52; --accentline:#39536b; --teal:#7fb8b0; }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
-    -webkit-text-size-adjust:100%;font-feature-settings:"palt"}
-  .wrap{max-width:520px;margin:0 auto;padding:56px 20px 64px}
-  .logo{display:block;width:132px;margin:0 auto 30px;opacity:.95}
-  h1{font-size:15px;letter-spacing:.16em;text-align:center;font-weight:700;margin:0 0 6px}
-  .sub{font-size:12px;color:var(--faint);text-align:center;letter-spacing:.1em;margin:0 0 30px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 20px 22px;margin-bottom:14px}
-  .when{font-size:17px;font-weight:700;line-height:1.6;letter-spacing:.02em}
-  .where{font-size:13px;color:var(--faint);margin-top:8px;line-height:1.8}
-  .btn{display:block;width:100%;padding:15px;border-radius:10px;border:1px solid var(--accentline);
-    background:var(--accent);color:#fff;font-size:15px;font-weight:700;text-align:center;
-    text-decoration:none;margin-top:18px}
-  .btn.ghost{background:transparent;border-color:var(--line);color:var(--text);font-weight:600;font-size:14px;margin-top:10px}
-  .links{margin-top:26px;text-align:center;font-size:13px;line-height:2.4}
-  .links a{color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(127,184,176,.35);padding-bottom:1px}
-  .note{margin-top:30px;font-size:11.5px;color:var(--faint);line-height:1.9;
-    border-top:1px solid var(--line);padding-top:16px}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>受付は終了しました｜HARIBOW Go BEYOND</title>
+<!-- 2026-11-06 公演終了に伴い閉鎖。元の中身は git 履歴にある（このコミットの親）。 -->
+<style>:root{--bg:#0d1416;--fg:#ece8dc;--dim:#9aa6a6;--ac:#3f8f8a;--line:#24343a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;line-height:1.9}
+main{max-width:560px;width:100%;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:40px 4px}
+.ey{font-size:12px;letter-spacing:.2em;color:var(--ac);margin:0 0 14px}
+h1{font-size:22px;font-weight:700;margin:0 0 20px;line-height:1.6}
+p{margin:0 0 14px;font-size:15px}.dim{color:var(--dim);font-size:13.5px}
+.links{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+a.b{display:inline-block;padding:11px 18px;border:1px solid var(--ac);border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+a.b.p{background:var(--ac)}</style>
 </head>
 <body>
-<div class="wrap">
-  <img class="logo" src="assets/go-beyond-logo.png" alt="Go BEYOND" onerror="this.style.display='none'">
-  <h1>HARIBOW単独公演「Go BEYOND」</h1>
-  <p class="sub">TICKETS</p>
-
-  <div class="card">
-    <div class="when">2026年9月29日（火）<br>開場 18:00 ／ 開演 19:30</div>
-    <div class="where">めぐろパーシモンホール 大ホール<br>東京都目黒区八雲1-1-1／東急東横線「都立大学」駅 徒歩7分</div>
-    <a class="btn" href="seats.html">チケットを購入する</a>
-    <!-- 2026-09-21 グッズの事前受注（決定No.48・指示書）。お渡しは公演当日の会場のみ。
-         ★受付の開閉は『物販設定』の「販売中」が持つ。ここのボタンを出し入れして開閉しないこと
-           （ボタンを消しても、URLを知っている人には売れてしまう）。
-         ★販売中=FALSE のあいだ、このリンク先は「ただいま受け付けておりません」と出る。 -->
-    <a class="btn ghost" href="goods.html">グッズを事前に予約する（会場でお渡し）</a>
-    <!-- 2026-09-01 配信を全面中止（決定No.37・ADR-015）。「当日ご来場になれない方へ（生配信）」の
-         ボタンを削除。アーカイブも無いため、来場できない方への代替導線は存在しない。
-         代わりの文言を置かない。 -->
-    <!-- 2026-09-21 団体申込ボタンを削除。団体の新規受付は9/12で終了している（決定No.6・ADR-003）。
-         出したままだと、お客さんがフォームを全部埋めた最後に seats.html:1686 の
-         alert（team_closed）で断られる。8/17以降に空いたサイド席は個人指定席として
-         「チケットを購入する」から買えるので、代わりの導線は置かない。 -->
-  </div>
-
-  <div class="links">
-    <a href="https://go-beyond.haribow.com">公式サイト（演目・来場ガイド）</a><br>
-    <a href="ticket.html">ご購入済みの方（電子チケット）</a><br>
-    <a href="contact.html">お問い合わせ</a><br>
-    <a href="tokushoho.html">特定商取引法に基づく表記</a>
-  </div>
-
-  <p class="note">
-    ご不明な点は <a href="mailto:info@haribow.com" style="color:var(--teal)">info@haribow.com</a> までお気軽にお問い合わせください。<br>
-    車椅子でのご来場をご希望の方は、購入画面からはお申し込みいただけません。上記メールアドレスまでご連絡ください。
-  </p>
-</div>
+<main>
+<p class="ey">HARIBOW Go BEYOND</p>
+<h1>受付は終了しました</h1>
+<p>HARIBOW 初の単独公演「Go BEYOND」（2026年9月29日・めぐろパーシモンホール 大ホール）は終了しました。<br>ご来場いただいた皆さま、応援してくださった皆さま、ありがとうございました。</p>
+<p class="dim">このページでのお申し込み・ご回答の受付は終了しています。</p>
+<div class="links"><a class="b p" href="https://go-beyond.haribow.com/">公式サイト</a><a class="b" href="contact.html">お問い合わせ</a></div>
+</main>
 </body>
 </html>

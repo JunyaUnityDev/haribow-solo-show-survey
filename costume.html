@@ -1,220 +1,28 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script>
-/* ★GAS宛てのfetchはCookieを付けない（2026-09-24）。Googleにログイン中のブラウザだと
-   Cookie付きでGASへ行き「現在、ファイルを開くことができません」(404のHTML)が返り、
-   読み込みも送信も失敗する。curlでは再現しない。個別に credentials を指定した呼び出しはそのまま。 */
-(function(){
-  var f = window.fetch; if(!f) return;
-  window.fetch = function(u, o){
-    var s = typeof u === 'string' ? u : (u && u.url) || '';
-    if(/^https:\/\/script\.google(usercontent)?\.com\//.test(s) && !(o && o.credentials)){
-      o = Object.assign({}, o, { credentials:'omit' });
-    }
-    return f.call(this, u, o);
-  };
-})();
-</script>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>衣装費｜HARIBOW単独公演</title>
-<style>
-  :root{ --bg:#0a0b0e; --panel:#14161c; --line:#2a2d35; --text:#f3f1ea; --faint:#8b919e;
-         --ok:#2e8b5f; --warn:#c9a24b; --ng:#b5544e; --accent:#2a3f52; --accentline:#39536b; }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
-    -webkit-text-size-adjust:100%}
-  .wrap{max-width:560px;margin:0 auto;padding:14px 12px 90px}
-  .bar{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
-  .bar h1{font-size:15px;margin:0;flex:1;letter-spacing:.06em;font-weight:700}
-  .who{font-size:12px;color:var(--faint)}
-  .lead{font-size:12px;color:var(--faint);line-height:1.7;margin:8px 0 14px}
-
-  .stats{display:flex;gap:6px;margin-bottom:14px}
-  .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}
-  .stat b{display:block;font-size:18px;line-height:1.3;font-variant-numeric:tabular-nums}
-  .stat span{font-size:10px;color:var(--faint)}
-  .stat.over b{color:#e08b84}
-
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px}
-  .card.undec{border-color:#4a3f22}
-  .card.untouched{border-color:#3a2b1a}
-  .nm{font-size:16px;font-weight:700;line-height:1.4}
-  .meta{font-size:11.5px;color:var(--faint);margin-top:5px;line-height:1.7;word-break:break-all}
-
-  .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
-  .seg button{padding:10px 4px;border-radius:8px;border:1px solid var(--line);
-    background:transparent;color:var(--faint);font-size:12.5px;font-weight:700;cursor:pointer}
-  .seg button.on{background:var(--accent);border-color:var(--accentline);color:#fff}
-  .seg button.on.undec{background:#4a3f22;border-color:#6b5c33;color:#e8d9a8}
-  .seg button.on.shared{background:#233d33;border-color:#356b52;color:#a8e8c9}
-
-  .fields{margin-top:9px;display:none}
-  .fields.show{display:block}
-  .row2{display:flex;gap:7px}
-  .fld{flex:1;margin-top:7px}
-  .fld label{display:block;font-size:11px;color:var(--faint);margin-bottom:3px}
-  input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);
-    background:#0f1116;color:var(--text);font-size:16px;font-family:inherit}
-  textarea{min-height:56px;resize:vertical}
-  .btn{width:100%;padding:11px;border-radius:9px;border:1px solid var(--accentline);
-    background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-top:9px}
-  .btn:disabled{opacity:.5}
-  .note{font-size:11.5px;color:var(--faint);line-height:1.8;margin-top:20px;
-    border-top:1px solid var(--line);padding-top:13px}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:50;
-    background:#e9e6dc;color:#14161c;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:700;
-    box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .18s}
-  .toast.on{opacity:1}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>公開を終了しました｜HARIBOW Go BEYOND</title>
+<!-- 2026-11-06 公演終了に伴い閉鎖。元の中身は git 履歴にある（このコミットの親）。 -->
+<style>:root{--bg:#0d1416;--fg:#ece8dc;--dim:#9aa6a6;--ac:#3f8f8a;--line:#24343a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;line-height:1.9}
+main{max-width:560px;width:100%;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:40px 4px}
+.ey{font-size:12px;letter-spacing:.2em;color:var(--ac);margin:0 0 14px}
+h1{font-size:22px;font-weight:700;margin:0 0 20px;line-height:1.6}
+p{margin:0 0 14px;font-size:15px}.dim{color:var(--dim);font-size:13.5px}
+.links{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+a.b{display:inline-block;padding:11px 18px;border:1px solid var(--ac);border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+a.b.p{background:var(--ac)}</style>
 </head>
 <body>
-<div class="wrap">
-  <div class="bar"><h1>衣装費</h1><span class="who" id="who"></span></div>
-  <p class="lead" id="lead">読み込んでいます。最初の1回だけ20秒ほどかかります…</p>
-
-  <div id="body" style="display:none">
-    <div class="stats">
-      <div class="stat"><b id="sTotal">¥0</b><span>いま合計</span></div>
-      <div class="stat" id="sRemainBox"><b id="sRemain">¥0</b><span>上限まで残り</span></div>
-      <div class="stat"><b id="sShared">¥0</b><span>別案件と共用</span></div>
-      <div class="stat"><b id="sUndec">0</b><span>未定・未入力</span></div>
-    </div>
-    <div id="list"></div>
-    <button class="btn" style="background:transparent;border-color:var(--line);color:var(--faint)"
-            onclick="load(true)">最新にする</button>
-    <p class="note">
-      何度でも書き換えられます。あとで変わっても大丈夫なので、いまの見込みで入れてください。<br>
-      迷っているものは「未定」を押してください。空欄のままだと「まだ見ていない」と区別がつきません。<br>
-      領収書はURL（Googleドライブや写真のリンク）を貼るだけで大丈夫です。<br>
-      上限は10万円です。超えても入力はできますが、赤で出ます。<br>
-      <b style="color:#a8e8c9">「新規（他案件でも使う）」</b>は、買うけれど今後のHARIBOW案件でも使うものです。
-      金額は記録しますが、<b>単独公演の衣装費（上限10万円）には加算しません</b>。団体の資産として別枠で集計します。<br><br>
-      <b style="color:#c9a24b">ページが開けないとき</b>：Googleに複数のアカウントでログインしていると弾かれることがあります。
-      <b>info@haribow.com でログインしたブラウザ</b>で開いてください。シークレットウィンドウで開き直しても直ります。
-    </p>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-var BASE='https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-var OP=new URLSearchParams(location.search).get('op')||'';
-var data=null, busy=false;
-
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
-  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-function yen(n){ return '¥'+(Number(n)||0).toLocaleString(); }
-function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
-  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('on'); },2600); }
-
-function load(isReload){
-  if(!OP){ document.getElementById('lead').textContent='URLが正しくありません。配布された専用URLをそのまま開いてください。'; return; }
-  return fetch(BASE+'?page=costume&op='+encodeURIComponent(OP)+'&t='+Date.now())
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(!d||!d.ok){
-        document.getElementById('lead').textContent =
-          (d&&d.error==='bad_token') ? 'このURLでは開けません。配布された専用URLか確認してください。'
-                                     : 'データを取得できませんでした。Googleに複数アカウントでログインしていると弾かれることがあります。info@haribow.com でログインしたブラウザか、シークレットウィンドウで開き直してください。';
-        return;
-      }
-      data=d; render(); if(isReload) toast('最新にしました');
-    })
-    .catch(function(){ document.getElementById('lead').textContent='通信できませんでした。電波の良いところで開き直してください。それでもだめなときは info@haribow.com でログインしたブラウザか、シークレットウィンドウでお試しください。'; });
-}
-
-function render(){
-  document.getElementById('who').textContent=data.opName+' さん';
-  document.getElementById('lead').textContent=
-    '演目ごとに、衣装を新しく買うか・いまあるものを使い回すかを入れてください。（'+data.updatedAt+' 時点）';
-  document.getElementById('body').style.display='';
-
-  document.getElementById('sTotal').textContent=yen(data.total);
-  document.getElementById('sRemain').textContent=yen(data.remain);
-  document.getElementById('sRemainBox').classList.toggle('over', data.remain<0);
-  document.getElementById('sShared').textContent=yen(data.shared||0);
-  document.getElementById('sUndec').textContent=(data.undecided+data.untouched);
-
-  document.getElementById('list').innerHTML=(data.items||[]).map(function(i){
-    var cls = !i.state ? ' untouched' : (i.state==='未定' ? ' undec' : '');
-    var seg = (data.states||[]).map(function(st){
-      var on = (i.state===st) ? ' on'+(st==='未定'?' undec':(st.indexOf('他案件')>=0?' shared':'')) : '';
-      return '<button class="'+on.trim()+'" onclick="pick(\''+esc(i.name)+'\',\''+esc(st)+'\')">'+esc(st)+'</button>';
-    }).join('');
-    /* 買う場合だけ入力欄を開く。使い回しは金額が発生せず、未定はまだ聞く段階でない。
-       「他案件でも使う」も買うので金額を入れる（ただし上限10万円には加算しない）。 */
-    var open = (i.state==='新規発注' || i.state.indexOf('他案件')>=0);
-    return '<div class="card'+cls+'" id="c-'+esc(i.name)+'">'
-      + '<div class="nm">'+esc(i.name)+'</div>'
-      + '<div class="meta">'
-        + (i.state? '' : 'まだ入力されていません')
-        + (i.updatedAt? ('最終更新 '+esc(i.updatedAt)+(i.updatedBy?(' ／ '+esc(i.updatedBy)):'')) : '')
-      + '</div>'
-      + '<div class="seg">'+seg+'</div>'
-      + '<div class="fields'+(open?' show':'')+'" id="f-'+esc(i.name)+'">'
-        + '<div class="row2">'
-          + '<div class="fld"><label>点数（着）</label><input type="number" inputmode="numeric" id="q-'+esc(i.name)+'" value="'+esc(i.qty)+'"></div>'
-          + '<div class="fld"><label>金額（円）</label><input type="number" inputmode="numeric" id="y-'+esc(i.name)+'" value="'+esc(i.yen)+'"></div>'
-        + '</div>'
-        + '<div class="fld"><label>領収書URL</label><input type="url" id="r-'+esc(i.name)+'" value="'+esc(i.receipt)+'" placeholder="https://…"></div>'
-        + '<div class="fld"><label>メモ</label><textarea id="m-'+esc(i.name)+'">'+esc(i.memo)+'</textarea></div>'
-        + '<button class="btn" onclick="save(\''+esc(i.name)+'\')">保存する</button>'
-      + '</div></div>';
-  }).join('');
-}
-
-/* 状態は押した瞬間に保存する。ここで保存ボタンを挟むと「押したのに残っていない」が起きる。
-   ★先に手元のデータを書き換えて描き直し、保存は裏で走らせる。
-     GASの応答は実測13〜44秒かかるので、待ってから描くと「押しても何も起きない」時間が長すぎる。
-     失敗したら元に戻して知らせる。 */
-function pick(name, st){
-  var it=(data.items||[]).filter(function(x){ return x.name===name; })[0];
-  if(!it) return;
-  var prev=it.state;
-  it.state=st; recalc(); render();
-  post({survey:'costume_update',op:OP,name:name,state:st}).then(function(res){
-    if(res&&res.ok){ toast(name+'：'+st); }
-    else { it.state=prev; recalc(); render(); toast('保存できませんでした：'+((res&&res.error)||'')); }
-  }).catch(function(){ it.state=prev; recalc(); render(); toast('通信できませんでした。もう一度押してください'); });
-}
-
-/* 合計を手元で引き直す。サーバーの再取得を待たずに数字を合わせるため。
-   ★加算するのは「新規発注」だけ。「新規（他案件でも使う）」は別枠（Costume.js と同じ規則）。 */
-function recalc(){
-  var t=0,sh=0,ud=0,ut=0;
-  (data.items||[]).forEach(function(i){
-    var y=Number(i.yen)||0;
-    if(i.state==='新規発注') t+=y;
-    else if(i.state.indexOf('他案件')>=0) sh+=y;
-    if(i.state==='未定') ud++;
-    if(!i.state) ut++;
-  });
-  data.total=t; data.shared=sh; data.remain=data.cap-t; data.undecided=ud; data.untouched=ut;
-}
-
-function save(name){
-  var g=function(p){ var el=document.getElementById(p+'-'+name); return el?el.value:''; };
-  var it=(data.items||[]).filter(function(x){ return x.name===name; })[0];
-  var payload={survey:'costume_update',op:OP,name:name,
-               qty:g('q'), yen:g('y'), receipt:g('r'), memo:g('m')};
-  /* 先に手元へ反映して合計を動かす。保存は裏で走らせる */
-  if(it){ it.qty=payload.qty; it.yen=payload.yen; it.receipt=payload.receipt; it.memo=payload.memo; recalc(); render(); }
-  toast(name+'を保存しています…');
-  post(payload).then(function(res){
-    if(res&&res.ok) toast(name+'を保存しました');
-    else toast('保存できませんでした：'+((res&&res.error)||''));
-  }).catch(function(){ toast('通信できませんでした。もう一度お試しください'); });
-}
-
-function post(body){
-  return fetch(BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify(body)}).then(function(r){ return r.json(); });
-}
-
-load(false);
-</script>
+<main>
+<p class="ey">HARIBOW Go BEYOND</p>
+<h1>このページの公開は終了しました</h1>
+<p>単独公演「Go BEYOND」（2026年9月29日）の準備・当日運営のためのページでした。公演が終わったため、公開を終了しています。</p>
+<div class="links"><a class="b p" href="https://go-beyond.haribow.com/">公式サイト</a></div>
+</main>
 </body>
 </html>

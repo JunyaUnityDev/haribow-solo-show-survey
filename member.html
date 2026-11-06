@@ -1,155 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script>
-/* ★GAS宛てのfetchはCookieを付けない（2026-09-24）。Googleにログイン中のブラウザだと
-   Cookie付きでGASへ行き「現在、ファイルを開くことができません」(404のHTML)が返り、
-   読み込みも送信も失敗する。curlでは再現しない。個別に credentials を指定した呼び出しはそのまま。 */
-(function(){
-  var f = window.fetch; if(!f) return;
-  window.fetch = function(u, o){
-    var s = typeof u === 'string' ? u : (u && u.url) || '';
-    if(/^https:\/\/script\.google(usercontent)?\.com\//.test(s) && !(o && o.credentials)){
-      o = Object.assign({}, o, { credentials:'omit' });
-    }
-    return f.call(this, u, o);
-  };
-})();
-</script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<title>HARIBOW単独公演 動員見込みヒアリング</title>
-<style>
-:root{--bg:#f5f8fd;--panel:#ffffff;--line:#d3deec;--ink:#142a52;--dim:#5b6b86;--faint:#93a1b8;--blue:#2563eb;--ok:#1a9b66;--warn:#d1502f;--shadow:0 6px 20px rgba(20,42,82,.10)}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(900px 500px at 70% -10%,rgba(37,99,235,.08),transparent 60%),var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.6}
-.wrap{max-width:640px;margin:0 auto;padding:22px 16px 80px}
-.logo{height:54px;width:auto;display:block;margin:4px 0 12px}
-h1{font-size:20px;font-weight:800;margin:0 0 6px}
-h1 b{color:var(--blue)}
-.lead{color:var(--dim);font-size:13.5px;margin:0 0 20px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
-label{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
-select,input{width:100%;background:#eef3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:14px}
-select:last-child,input:last-child{margin-bottom:0}
-.hint{font-size:12px;color:var(--faint);margin:-10px 0 14px}
-.btn{width:100%;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.28);letter-spacing:.03em}
-.btn:disabled{opacity:.5;cursor:default;box-shadow:none}
-.muted{color:var(--faint);font-size:12.5px}
-.err{color:var(--warn);font-size:13px;margin-top:8px;display:none}
-.done{text-align:center;padding:40px 20px}
-.done .ck{font-size:40px;color:var(--ok);font-weight:800}
-.done h2{font-size:20px;margin:12px 0 6px}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>受付は終了しました｜HARIBOW Go BEYOND</title>
+<!-- 2026-11-06 公演終了に伴い閉鎖。元の中身は git 履歴にある（このコミットの親）。 -->
+<style>:root{--bg:#0d1416;--fg:#ece8dc;--dim:#9aa6a6;--ac:#3f8f8a;--line:#24343a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;line-height:1.9}
+main{max-width:560px;width:100%;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:40px 4px}
+.ey{font-size:12px;letter-spacing:.2em;color:var(--ac);margin:0 0 14px}
+h1{font-size:22px;font-weight:700;margin:0 0 20px;line-height:1.6}
+p{margin:0 0 14px;font-size:15px}.dim{color:var(--dim);font-size:13.5px}
+.links{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+a.b{display:inline-block;padding:11px 18px;border:1px solid var(--ac);border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+a.b.p{background:var(--ac)}</style>
 </head>
 <body>
-<div class="wrap">
-  <img class="logo" src="assets/go-beyond-logo.png" alt="HARIBOW単独公演 Go BEYOND">
-  <h1>単独公演 動員見込みヒアリング</h1>
-  <p class="lead">9/29の単独公演、大体どれくらい呼べそうか教えてください。義務ではないので、大体の見込みでOKです。<br>送信は何度でもやり直せます（後から送ると前の回答が上書きされます）。</p>
-
-  <div id="form">
-    <div class="card">
-      <label>あなたの名前</label>
-      <select id="who">
-        <option value="">選択してください</option>
-        <option>坂田潤弥</option>
-        <option>海野鷹幸</option>
-        <option>松澤竜介</option>
-        <option>井端真秀</option>
-        <option>加藤周平</option>
-        <option>前田航希</option>
-        <option>谷瑠奈</option>
-        <option>佐藤善平</option>
-        <option>城向葵</option>
-        <option>清水大佑</option>
-        <option>永井竜斗</option>
-        <option>黒岩基</option>
-        <option>岡澤礼</option>
-        <option>刀祢槙斗</option>
-        <option>坂上健太</option>
-        <option>新遥生</option>
-        <option>三輪卓海</option>
-        <option>勝山誠也</option>
-        <option>越智孔聖</option>
-        <option>竹中理貴</option>
-        <option>山口泰侑</option>
-        <option>西川世那</option>
-        <option>米田玲音</option>
-        <option>金箱秀亮</option>
-        <option>武山心</option>
-        <option>稲葉大空</option>
-        <option>大森優馬</option>
-        <option>飯島未来</option>
-        <option>高木美幸</option>
-        <option>福満翔</option>
-        <option>坂井奏</option>
-      </select>
-
-      <label>家族・親族で「確実に来る」人数</label>
-      <input type="number" id="familySure" min="0" placeholder="例：2">
-
-      <label>家族・親族で「たぶん来る」人数</label>
-      <input type="number" id="familyMaybe" min="0" placeholder="例：1">
-
-      <label>友人・知人で「確実に来そう」な人数（大学ダブルダッチサークルの現役生は除く）</label>
-      <input type="number" id="friendsSure" min="0" placeholder="例：3">
-      <p class="hint">現役生は別で聞いているので、ここではそれ以外の友人・知人でお願いします</p>
-
-      <label>友人・知人で「たぶん来そう」な人数（現役生は除く）</label>
-      <input type="number" id="friendsMaybe" min="0" placeholder="例：2">
-
-      <label>その他・SNS経由で来てくれそうな人数感（あれば）</label>
-      <input type="number" id="otherCount" min="0" placeholder="例：3">
-    </div>
-    <div class="card">
-      <button class="btn" id="send">送信する</button>
-      <div class="err" id="err">名前を選択してください。</div>
-      <p class="muted" style="margin:10px 0 0">回答は集計のみに使います。</p>
-    </div>
-  </div>
-
-  <div class="done" id="done" style="display:none">
-    <div class="ck">✓</div>
-    <h2>送信ありがとうございました！</h2>
-    <p class="muted">回答を受け付けました。</p>
-  </div>
-</div>
-
-<script>
-var ENDPOINT = 'https://script.google.com/macros/s/AKfycbyPtSUbVfZX9keG6E9jP9EfVSjy9DoA6onp_FgXPM3tbjLz2gm5UNcxaeqSyzIIbPFW/exec';
-
-document.getElementById('send').addEventListener('click',function(){
-  var who=document.getElementById('who').value;
-  if(!who){
-    document.getElementById('err').style.display='block';
-    window.scrollTo(0,document.body.scrollHeight);
-    return;
-  }
-  var familySure=document.getElementById('familySure').value;
-  var familyMaybe=document.getElementById('familyMaybe').value;
-  var friendsSure=document.getElementById('friendsSure').value.trim();
-  var friendsMaybe=document.getElementById('friendsMaybe').value.trim();
-  var otherCount=document.getElementById('otherCount').value;
-
-  var btn=document.getElementById('send'); btn.disabled=true; btn.textContent='送信中…';
-  fetch(ENDPOINT,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({survey:'member',name:who,familySure:familySure,familyMaybe:familyMaybe,friendsSure:friendsSure,friendsMaybe:friendsMaybe,otherCount:otherCount})
-  }).then(function(){
-    document.getElementById('form').style.display='none';
-    document.getElementById('done').style.display='block';
-    window.scrollTo(0,0);
-  }).catch(function(e){
-    btn.disabled=false; btn.textContent='送信する';
-    document.getElementById('err').textContent='送信に失敗しました：'+e+' もう一度お試しください。';
-    document.getElementById('err').style.display='block';
-  });
-});
-</script>
+<main>
+<p class="ey">HARIBOW Go BEYOND</p>
+<h1>受付は終了しました</h1>
+<p>HARIBOW 初の単独公演「Go BEYOND」（2026年9月29日・めぐろパーシモンホール 大ホール）は終了しました。<br>ご来場いただいた皆さま、応援してくださった皆さま、ありがとうございました。</p>
+<p class="dim">このページでのお申し込み・ご回答の受付は終了しています。</p>
+<div class="links"><a class="b p" href="https://go-beyond.haribow.com/">公式サイト</a><a class="b" href="contact.html">お問い合わせ</a></div>
+</main>
 </body>
 </html>

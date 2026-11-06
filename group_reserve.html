@@ -1,45 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>団体予約｜HARIBOW単独公演「Go BEYOND」</title>
-<link rel="canonical" href="https://ticket.haribow.com/seats.html">
-<meta name="robots" content="noindex">
-<!--
-  2026-07-29：このページは座席指定を導入する前の旧・団体予約フォームだった。
-  seatIds を送らないため、サーバー(submitOrder / Payments.js:209)が invalid_order で必ず弾く。
-  つまり入力して送信ボタンを押しても100%失敗する状態のまま公開されていた。
-  （成果物一覧では「稼働中」と記録されていたが、実際には一度も成立しない）
-
-  どこからもリンクされていないが、過去に代表者へ直接URLを渡している可能性があるため、
-  404にはせず現行の seats.html へ転送する。
-  現行の団体予約は seats.html の「団体（5名〜）」タブ。座席を選んでから申し込む。
--->
-<meta http-equiv="refresh" content="0; url=seats.html">
-<style>
-  :root{ --bg:#0a0b0e; --ink:#f3f1ea; --dim:#a7adba; --main:#63b6cc; --line:#262a33; --panel:#14161c; }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);min-height:100vh;
-    display:flex;align-items:center;justify-content:center;padding:24px;
-    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
-    font-feature-settings:"palt";-webkit-font-smoothing:antialiased;line-height:1.7}
-  .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    padding:26px 22px;max-width:460px;width:100%;text-align:center;
-    box-shadow:0 8px 28px rgba(0,0,0,.55)}
-  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--main);font-weight:700;margin:0 0 10px}
-  h1{font-size:18px;font-weight:800;margin:0 0 10px}
-  p{color:var(--dim);font-size:13.5px;margin:0 0 18px}
-  a.go{display:inline-block;background:var(--main);color:#fff;text-decoration:none;
-    border-radius:10px;padding:13px 26px;font-weight:800;font-size:14px}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>受付は終了しました｜HARIBOW Go BEYOND</title>
+<!-- 2026-11-06 公演終了に伴い閉鎖。元の中身は git 履歴にある（このコミットの親）。 -->
+<style>:root{--bg:#0d1416;--fg:#ece8dc;--dim:#9aa6a6;--ac:#3f8f8a;--line:#24343a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;line-height:1.9}
+main{max-width:560px;width:100%;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:40px 4px}
+.ey{font-size:12px;letter-spacing:.2em;color:var(--ac);margin:0 0 14px}
+h1{font-size:22px;font-weight:700;margin:0 0 20px;line-height:1.6}
+p{margin:0 0 14px;font-size:15px}.dim{color:var(--dim);font-size:13.5px}
+.links{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+a.b{display:inline-block;padding:11px 18px;border:1px solid var(--ac);border-radius:6px;color:var(--fg);text-decoration:none;font-size:14px}
+a.b.p{background:var(--ac)}</style>
 </head>
 <body>
-  <div class="box">
-    <p class="eyebrow">HARIBOW 単独公演 · Go BEYOND</p>
-    <h1>団体予約のページが変わりました</h1>
-    <p>お席を選んでからお申し込みいただく形になりました。<br>自動で移動します。移らない場合は下のボタンからお進みください。</p>
-    <a class="go" href="seats.html">団体予約のページへ進む</a>
-  </div>
+<main>
+<p class="ey">HARIBOW Go BEYOND</p>
+<h1>受付は終了しました</h1>
+<p>HARIBOW 初の単独公演「Go BEYOND」（2026年9月29日・めぐろパーシモンホール 大ホール）は終了しました。<br>ご来場いただいた皆さま、応援してくださった皆さま、ありがとうございました。</p>
+<p class="dim">このページでのお申し込み・ご回答の受付は終了しています。</p>
+<div class="links"><a class="b p" href="https://go-beyond.haribow.com/">公式サイト</a><a class="b" href="contact.html">お問い合わせ</a></div>
+</main>
 </body>
 </html>
